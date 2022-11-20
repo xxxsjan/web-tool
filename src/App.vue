@@ -68,7 +68,7 @@ function onTransform() {
   console.log('onTransform: ');
   const prefix = inputForm.value.prefix || 'prefix';
   const description = inputForm.value.description || 'this is description';
-  const keyName = inputForm.snippetName || 'default snippet name';
+  const keyName = inputForm.value.snippetName || 'default snippet name';
   toRaw(outputEditor.value).setValue(
     JSON.stringify({
       [keyName]: {
