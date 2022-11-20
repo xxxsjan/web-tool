@@ -146,20 +146,7 @@ onMounted(() => {
         选择编辑器语言
         <el-select v-model="language" placeholder="language" size="default">
           <el-option
-            v-for="item in [
-              'css',
-              'html',
-              'javascript',
-              'json',
-              'less',
-              'markdown',
-              'mysql',
-              'scss',
-              'shell',
-              'sql',
-              'typescript',
-              'xml',
-            ]"
+            v-for="item in ['css', 'html', 'javascript', 'json', 'less', 'scss', 'typescript']"
             :key="item"
             :label="item"
             :value="item"
