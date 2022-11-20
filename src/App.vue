@@ -66,9 +66,9 @@ function getEditValue() {
 function onTransform() {
   const beforeBody = getEditValue();
   console.log('onTransform: ');
-  const prefix = inputForm.value.prefix || 'undefined prefix';
-  const description = inputForm.value.description || 'undefined description';
-  const keyName = 'Print to xxxxxxxxxxxxxxxxxx';
+  const prefix = inputForm.value.prefix || 'prefix';
+  const description = inputForm.value.description || 'this is description';
+  const keyName = inputForm.snippetName || 'default snippet name';
   toRaw(outputEditor.value).setValue(
     JSON.stringify({
       [keyName]: {
@@ -117,25 +117,30 @@ onMounted(() => {
 
   if (outputContainerDom) {
     outputEditor.value = monaco.editor.create(outputContainerDom, {
-      value: '',
+      value: JSON.stringify({}),
       language: 'json',
       ...commonConfig,
     });
   }
 
-  // window.addEventListener('resize', () => {
-  //   document.querySelectorAll('.monaco-editor.vs-dark').forEach((editor) => {
-  //     editor.style.width = editor.parentElement.offsetWidth + 'px';
-  //     const scrollbar = editor.querySelector(',decorationsOverviewRuler');
-  //     console.log('scrollbar: ', scrollbar);
-  //   });
-  // });
+  window.addEventListener('resize', () => {
+    const editor1 = document.querySelector('#inputContainer .monaco-editor.vs-dark');
+    const editor2 = document.querySelector('#outputContainer .monaco-editor.vs-dark');
+    toRaw(inputEditor.value).layout({
+      width: editor1.parentElement.offsetWidth,
+      height: editor1.parentElement.offsetHeight,
+    });
+    toRaw(outputEditor.value).layout({
+      width: editor1.parentElement.offsetWidth,
+      height: editor1.parentElement.offsetHeight,
+    });
+  });
 });
 </script>
 
 <template>
   <div class="wrapper">
-    <div>
+    <div class="left">
       <div id="inputContainer" ref="inputContainer" style="height: 80vh; max-width: 100%" />
       <div class="m-10">
         选择编辑器语言
@@ -164,11 +169,14 @@ onMounted(() => {
     </div>
     <div class="trans" @click="onTransform">
       <el-form :model="inputForm" label-width="120px">
+        <el-form-item label="snippet name">
+          <el-input v-model="inputForm.snippetName" placeholder="输入片段名称" />
+        </el-form-item>
         <el-form-item label="prefix">
-          <el-input v-model="inputForm.prefix" />
+          <el-input v-model="inputForm.prefix" placeholder="输入触发指令" />
         </el-form-item>
         <el-form-item label="description">
-          <el-input v-model="inputForm.description" />
+          <el-input v-model="inputForm.description" placeholder="输入描述" />
         </el-form-item>
         <el-form-item>
           <el-button @click="onTransform" type="primary"> 转换</el-button>
@@ -176,7 +184,7 @@ onMounted(() => {
       </el-form>
     </div>
 
-    <div>
+    <div class="right">
       <div id="outputContainer" ref="outputContainer" style="height: 80vh; max-width: 100%" />
     </div>
   </div>
@@ -184,11 +192,17 @@ onMounted(() => {
 
 <style scoped>
 .wrapper {
-  width: 100%;
+  width: 100vw;
   height: 100%;
   display: grid;
   grid-template-columns: 1fr 333px 1fr;
-  grid-template-rows: 1fr;
+  grid-template-rows: 100%;
+}
+.left {
+  overflow: hidden;
+}
+.right {
+  overflow: hidden;
 }
 .trans {
   display: flex;
