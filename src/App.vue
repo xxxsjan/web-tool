@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch, toRaw } from 'vue';
+import { onMounted, ref, watch, toRaw, getCurrentInstance } from 'vue';
 import * as monaco from 'monaco-editor';
 
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
@@ -7,7 +7,9 @@ import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-
+console.log(getCurrentInstance());
+const glp = getCurrentInstance().appContext.config.globalProperties;
+console.log('glp: ', glp);
 self.MonacoEnvironment = {
   getWorker(_, label) {
     if (label === 'json') {
@@ -28,6 +30,7 @@ self.MonacoEnvironment = {
 const inputEditor = ref(null);
 const outputEditor = ref(null);
 const language = ref('html');
+const result = ref('');
 function onFormat(type) {
   switch (type) {
     case 1:
@@ -69,15 +72,14 @@ function onTransform() {
   const prefix = inputForm.value.prefix || 'prefix';
   const description = inputForm.value.description || 'this is description';
   const keyName = inputForm.value.snippetName || 'default snippet name';
-  toRaw(outputEditor.value).setValue(
-    JSON.stringify({
-      [keyName]: {
-        prefix,
-        body: beforeBody,
-        description,
-      },
-    })
-  );
+  const _result = (result.value = JSON.stringify({
+    [keyName]: {
+      prefix,
+      body: beforeBody,
+      description,
+    },
+  }));
+  toRaw(outputEditor.value).setValue(_result);
   onFormat(2);
 }
 watch(
@@ -100,6 +102,14 @@ const commonConfig = {
   },
 };
 const inputForm = ref({});
+const copyResult = () => {
+  const coptText = result.value.slice(1, -1) || '';
+  console.log('coptText: ', coptText);
+  if (coptText) {
+    navigator.clipboard.writeText(coptText);
+    glp.$message.success('复制成功');
+  }
+};
 onMounted(() => {
   const inputContainerDom = document.querySelector('#inputContainer');
   const outputContainerDom = document.querySelector('#outputContainer');
@@ -173,6 +183,7 @@ onMounted(() => {
 
     <div class="right">
       <div id="outputContainer" ref="outputContainer" style="height: 80vh; max-width: 100%" />
+      <el-button @click="copyResult">复制结果</el-button>
     </div>
   </div>
 </template>
