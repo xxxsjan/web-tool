@@ -51,19 +51,22 @@ function getEditValue() {
   // https://www.jianshu.com/p/316cd6f5b54a?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation
   const arr = [];
   let str = '';
-  console.log(toRaw(inputEditor.value));
+  console.log('input', toRaw(inputEditor.value).getValue());
   toRaw(inputEditor.value)
     .getValue()
     .split('')
-    .map((item, index) => {
+    .map((item, index, oArr) => {
       if (item !== '\n') {
         str += item;
       } else {
         arr.push(str);
         str = '';
       }
+      if (str && index === oArr.length - 1) {
+        arr.push(str);
+      }
     });
-  console.log(arr);
+  console.log('output', arr);
   return arr;
 }
 function onTransform() {
@@ -110,6 +113,7 @@ const copyResult = () => {
     glp.$message.success('复制成功');
   }
 };
+
 onMounted(() => {
   const inputContainerDom = document.querySelector('#inputContainer');
   const outputContainerDom = document.querySelector('#outputContainer');
