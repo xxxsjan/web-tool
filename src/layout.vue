@@ -9,8 +9,7 @@
       text-color="#fff"
       active-text-color="#ffd04b"
     >
-      <el-menu-item index="vscode-snippet-generator">vscode用户代码片段</el-menu-item>
-      <el-menu-item index="format-css-style">css style转对象</el-menu-item>
+      <el-menu-item v-for="r in routes[0].children" :index="r.path">{{ r?.meta?.title || r.name }}</el-menu-item>
     </el-menu>
     <router-view></router-view>
   </div>
@@ -18,6 +17,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import routes from './router/routes';
 const activeIndex = ref('vscode-snippet-generator');
 </script>
 
