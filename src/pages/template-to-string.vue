@@ -1,9 +1,10 @@
 <template>
-  <div>
+  <div class="wrapper">
     <codemirror
+      class="left"
       v-model="code"
       placeholder="Code goes here..."
-      :style="{ height: '400px' }"
+      :style="{ height: '600px' }"
       :autofocus="true"
       :indent-with-tab="true"
       :tab-size="2"
@@ -13,11 +14,14 @@
       @focus="handleState('focus', $event)"
       @blur="handleState('blur', $event)"
     />
-    <el-button @click="getCodemirrorStates">获取state</el-button>
+    <div class="trans">
+      <el-button @click="getCodemirrorStates">转换➡️</el-button>
+    </div>
     <codemirror
+      class="right"
       v-model="code2"
       placeholder="Code goes here..."
-      :style="{ height: '400px' }"
+      :style="{ height: '600px' }"
       :autofocus="true"
       :indent-with-tab="true"
       :tab-size="2"
@@ -37,7 +41,7 @@ const code = ref(`\`
   <div>\${text}</div>
 </div>
 \``);
-const code2 = ref(`console.log('Hello, world!')`);
+const code2 = ref(`左侧输入后点击转换即可输出`);
 const extensions = [
   // javascript(),
   // oneDark,
@@ -105,4 +109,19 @@ function handleState(state, e) {
 }
 onMounted(() => {});
 </script>
-<style scoped></style>
+<style scoped>
+.wrapper {
+  width: 100vw;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 100px 1fr;
+  grid-template-rows: 100%;
+}
+
+.trans {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #333;
+}
+</style>
