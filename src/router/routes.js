@@ -29,6 +29,14 @@ export default [
           title: '模板字符串➡️普通字符串',
         },
       },
+      {
+        path: '/esm-to-commonjs',
+        name: 'esm-to-commonjs',
+        component: () => import('@/pages/esm-to-commonjs.vue'),
+        meta: {
+          title: 'esm➡️commonjs',
+        },
+      },
     ],
   },
 ];
