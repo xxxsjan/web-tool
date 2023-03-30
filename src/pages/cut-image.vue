@@ -2,7 +2,7 @@
   <div class="cut-image-container">
     <div class="preview-container">
       <div v-loading="loading">
-        <input type="file" @change="fileChange" />
+        <input type="file" @change="fileChange" accept=".png,.jpg,.jpeg" />
         <!-- <el-button @click="handleRetry">重新选择</el-button> -->
       </div>
       <canvas id="canvas"></canvas>
