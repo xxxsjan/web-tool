@@ -45,6 +45,14 @@ export default [
           title: "less➡️css",
         },
       },
+      {
+        path: "/cut-image",
+        name: "cut-image",
+        component: () => import("@/pages/cut-image.vue"),
+        meta: {
+          title: "图片去黑边",
+        },
+      },
     ],
   },
 ];
