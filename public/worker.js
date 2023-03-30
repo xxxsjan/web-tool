@@ -18,10 +18,11 @@ self.addEventListener("message", function (event) {
   const { imageData, width, height } = event.data;
   console.log("worker: ", imageData, width, height);
   // 获取底部要截取像素
-  let bottom = -1;
+  let bottom = height;
   let top = -1;
   let isTargetColorCount = 0;
   let precision = Math.floor(width * 0.2); // 一行 扫描精度
+  // 下边
   for (let y = height - 1; y > height / 2; y--) {
     for (let x = width - 1; x >= 0; x = x - precision) {
       // 一轮首次
@@ -35,13 +36,14 @@ self.addEventListener("message", function (event) {
         }
       }
       const result = getColor(x, y, imageData, width, height);
+      // console.log("result: ", x, y, result);
 
       if (deltaE(result, [0, 0, 0, 255]) < 10) {
         isTargetColorCount++;
       }
     }
   }
-
+  // 上边
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       // 一轮首次
@@ -56,8 +58,8 @@ self.addEventListener("message", function (event) {
       }
       const result = getColor(x, y, imageData, width, height);
       const delta = deltaE(result, [0, 0, 0, 255]);
-      // console.log(y, result, delta);
-
+      // console.log("下", x, y, result, delta);
+      // 相比0, 0, 0, 255色差
       if (delta < 30) {
         isTargetColorCount++;
       }

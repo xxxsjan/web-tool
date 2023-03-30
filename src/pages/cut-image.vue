@@ -3,11 +3,13 @@
     <div class="preview-container">
       <div v-loading="loading">
         <input type="file" @change="fileChange" />
+        <!-- <el-button @click="handleRetry">重新选择</el-button> -->
       </div>
       <canvas id="canvas"></canvas>
     </div>
+    <div v-show="imgBaseUrl">输出结果：</div>
     <div class="output-container">
-      <el-button @click="save">保存</el-button>
+      <el-button v-show="imgBaseUrl" @click="save">保存</el-button>
     </div>
   </div>
 </template>
@@ -22,6 +24,7 @@ export default {
   },
   methods: {
     fileChange(e) {
+      this.handleRetry();
       const [file] = e.target.files;
       console.log(file);
       const reader = new FileReader();
@@ -61,7 +64,10 @@ export default {
           const canvas = document.createElement("canvas");
           canvas.width = width;
           canvas.height = bottom - top - 1;
-          const ctx = canvas.getContext("2d");
+          console.log("output img width height", canvas.width, canvas.height);
+          const ctx = canvas.getContext("2d", {
+            willReadFrequently: true,
+          });
           ctx.drawImage(
             img,
             0,
@@ -78,13 +84,18 @@ export default {
           resultImg.src = canvas.toDataURL();
           resultImg.id = "base64Img";
           resultImg.style.width = "50%";
-          document.querySelector(".output-container").appendChild(resultImg);
+          // document.querySelector(".output-container").appendChild(resultImg);
+          document
+            .querySelector(".output-container")
+            .insertAdjacentElement("afterbegin", resultImg);
           vm.loading = false;
         };
       };
 
       const canvas = document.querySelector("#canvas");
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", {
+        willReadFrequently: true,
+      });
 
       const img = new Image();
       img.src = vm.imgBaseUrl;
@@ -98,53 +109,16 @@ export default {
         ctx.drawImage(img, 0, 0);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        // vm.calcBlack(canvas);
+
         worker.postMessage({ imageData, width, height });
       };
     },
-    calcBlack(canvas) {
-      var ctx = canvas.getContext("2d");
-      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      var data = imageData.data;
-      // 计算顶部黑边大小
-      var topOffset = 0;
-      for (var y = 0; y < canvas.height; y++) {
-        for (var x = 0; x < canvas.width; x++) {
-          var offset = (y * canvas.width + x) * 4;
-          var red = data[offset];
-          var green = data[offset + 1];
-          var blue = data[offset + 2];
-          if (red !== 0 || green !== 0 || blue !== 0) {
-            topOffset = y;
-            break;
-          }
-        }
-        if (topOffset > 0) {
-          break;
-        }
+    handleRetry() {
+      const imgEl = document.getElementById("base64Img");
+      if (imgEl) {
+        imgEl.remove();
       }
-
-      // 计算底部黑边大小
-      var bottomOffset = 0;
-      for (var y = canvas.height - 1; y >= 0; y--) {
-        for (var x = 0; x < canvas.width; x++) {
-          var offset = (y * canvas.width + x) * 4;
-          var red = data[offset];
-          var green = data[offset + 1];
-          var blue = data[offset + 2];
-          if (red !== 0 || green !== 0 || blue !== 0) {
-            bottomOffset = canvas.height - y - 1;
-            break;
-          }
-        }
-        if (bottomOffset > 0) {
-          break;
-        }
-      }
-
-      // 输出黑边大小
-      console.log("Top offset:", topOffset);
-      console.log("Bottom offset:", bottomOffset);
+      this.imgBaseUrl = "";
     },
   },
   mounted() {},
