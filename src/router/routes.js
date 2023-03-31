@@ -1,3 +1,5 @@
+import HomePage from "../pages/home-page.vue";
+
 export default [
   {
     path: "/",
@@ -5,6 +7,14 @@ export default [
     component: () => import("@/layout.vue"),
     redirect: "/vscode-snippet-generator",
     children: [
+      {
+        path: "/",
+        name: "home-page",
+        component: HomePage,
+        meta: {
+          title: "首页",
+        },
+      },
       {
         path: "/vscode-snippet-generator",
         name: "vscode-snippet-generator",

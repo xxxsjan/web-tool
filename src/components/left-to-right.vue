@@ -1,30 +1,36 @@
 <template>
   <div class="wrapper">
-    <codemirror
-      class="left"
-      v-model="code"
-      placeholder="Code goes here..."
-      :style="{ height: '600px' }"
-      :autofocus="true"
-      :indent-with-tab="true"
-      :tab-size="2"
-      :extensions="extensions"
-      @ready="handleReady"
-    />
-    <div class="trans">
+    <div class="left">
+      <codemirror
+        v-model="code"
+        placeholder="Code goes here..."
+        :style="{ height: '600px' }"
+        :autofocus="true"
+        :indent-with-tab="true"
+        :tab-size="2"
+        :extensions="extensions"
+        @ready="handleReady"
+        autoDestroy
+      />
+    </div>
+
+    <div class="center">
       <slot></slot>
       <div><el-button @click="handleGenerate">转换➡️</el-button></div>
     </div>
-    <codemirror
-      class="right"
-      v-model="code2"
-      placeholder="Code goes here..."
-      :style="{ height: '600px' }"
-      :autofocus="true"
-      :indent-with-tab="true"
-      :tab-size="2"
-      :extensions="extensions"
-    />
+    <div class="right">
+      <codemirror
+        v-model="code2"
+        placeholder="Code goes here..."
+        :style="{ height: '600px' }"
+        :autofocus="true"
+        :indent-with-tab="true"
+        :tab-size="2"
+        :extensions="extensions"
+        lineWrapping
+        autoDestroy
+      />
+    </div>
   </div>
 </template>
 
@@ -92,7 +98,7 @@ const handleGenerate = () => {
   grid-template-rows: 100%;
 }
 
-.trans {
+.center {
   display: flex;
   justify-content: center;
   align-items: center;
