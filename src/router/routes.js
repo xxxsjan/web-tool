@@ -53,6 +53,14 @@ export default [
           title: "图片去黑边",
         },
       },
+      {
+        path: "/package-to-cli",
+        name: "package-to-cli",
+        component: () => import("@/pages/package-to-cli.vue"),
+        meta: {
+          title: "依赖包转命令",
+        },
+      },
     ],
   },
 ];

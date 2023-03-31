@@ -12,7 +12,8 @@
       @ready="handleReady"
     />
     <div class="trans">
-      <el-button @click="handleGenerate">转换➡️</el-button>
+      <slot></slot>
+      <div><el-button @click="handleGenerate">转换➡️</el-button></div>
     </div>
     <codemirror
       class="right"
@@ -79,7 +80,7 @@ const handleGenerate = () => {
   // const length = state.doc.length;
   // const lines = state.doc.lines;
   // console.log(view.value.state.doc.text);
-  emits("toGenerate");
+  emits("toGenerate", code.value);
 };
 </script>
 <style scoped>
@@ -96,5 +97,6 @@ const handleGenerate = () => {
   justify-content: center;
   align-items: center;
   border: 1px solid #333;
+  flex-direction: column;
 }
 </style>
