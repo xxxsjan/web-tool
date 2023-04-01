@@ -6,14 +6,6 @@ import "tailwindcss/tailwind.css";
 
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
-import routes from "./router/routes";
-import {
-  createRouter,
-  createWebHistory,
-  createWebHashHistory,
-} from "vue-router";
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes,
-});
+import router from "./router";
+
 createApp(App).use(router).use(ElementPlus).mount("#app");
