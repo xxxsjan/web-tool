@@ -34,5 +34,3 @@ function toGenerate() {
   });
 }
 </script>
-
-<style scoped lang="scss"></style>

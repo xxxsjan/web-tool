@@ -162,7 +162,7 @@ onMounted(() => {
 <template>
   <div class="wrapper">
     <div class="left">
-      <div id="inputContainer" ref="inputContainer" style="height: 80vh; max-width: 100%" />
+      <div id="inputContainer" ref="inputContainer" style=" max-width: 100%;height: 80vh" />
       <div class="m-10">
         选择编辑器语言
         <el-select v-model="language" placeholder="language" size="default">
@@ -180,7 +180,7 @@ onMounted(() => {
     </div>
 
     <div class="right">
-      <div id="outputContainer" ref="outputContainer" style="height: 80vh; max-width: 100%" />
+      <div id="outputContainer" ref="outputContainer" style=" max-width: 100%;height: 80vh" />
       <el-button @click="copyResult">复制结果</el-button>
     </div>
   </div>
@@ -188,34 +188,39 @@ onMounted(() => {
 
 <style scoped>
 .wrapper {
+  display: grid;
   width: 100vw;
   height: 100%;
-  display: grid;
   grid-template-columns: 1fr 100px 1fr;
   grid-template-rows: 100%;
 }
+
 .left {
   overflow: hidden;
 }
+
 .right {
   overflow: hidden;
 }
+
 .trans {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .xxx {
   position: fixed;
-  width: 300px;
-  height: 300px;
-  left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
-  background-color: beige;
+  left: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 300px;
+  height: 300px;
+  background-color: beige;
+  transform: translate(-50%, -50%);
+
   /* position: 'fixed',
           width: '300px',
           height: '300px',

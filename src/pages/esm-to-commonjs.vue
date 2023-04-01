@@ -122,9 +122,9 @@ onMounted(() => {});
 </script>
 <style scoped>
 .wrapper {
+  display: grid;
   width: 100vw;
   height: 100%;
-  display: grid;
   grid-template-columns: 1fr 150px 1fr;
   grid-template-rows: 100%;
 }

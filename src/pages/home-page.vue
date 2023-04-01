@@ -90,20 +90,21 @@ onUnmounted(() => {
 
 <style scoped>
 .home-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
   width: 100vw;
   height: 100vh;
   box-sizing: border-box;
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
 }
+
 .home-page .text {
-  font-size: 50px;
   position: absolute;
-  left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%) scale(2);
+  left: 50%;
+  font-size: 50px;
   text-align: center;
+  transform: translate(-50%, -50%) scale(2);
 }
 </style>
