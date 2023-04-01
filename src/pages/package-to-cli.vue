@@ -12,6 +12,12 @@
           <el-radio label="yarn" />
         </el-radio-group>
       </el-form-item>
+      <el-form-item label="操作">
+        <el-radio-group v-model="form.operate">
+          <el-radio label="add" />
+          <el-radio label="remove" />
+        </el-radio-group>
+      </el-form-item>
       <el-form-item label="环境">
         <el-radio-group v-model="form.dev">
           <el-radio label="-S" />
@@ -26,7 +32,7 @@
 defineOptions({
   name: "package-to-cli",
 });
-const form = ref({ npmName: "pnpm", dev: "-S" });
+const form = ref({ npmName: "pnpm", dev: "-S", operate: "add" });
 const codeLeft = ref(`{
   "postcss": "8.4.12",
     "postcss-html": "1.3.0",
@@ -44,21 +50,28 @@ const codeRight = ref("左侧输入后点击转换即可输出");
 function toGenerate(code) {
   const firmText = code.replace(/\s|\{|\}/g, "");
   console.log("firmText: ", firmText);
-  const data = firmText.split(",").reduce((pre, cur) => {
+  const isAdd = form.value.operate === "add";
+  const pkgList = firmText.split(",").reduce((pre, cur) => {
     if (cur) {
       const mat = cur.match(/"(.*?)":"\^?(.*?)"/);
       if (mat) {
         const [a, name, version] = mat;
-        pre.push(`${name}@${version}`);
+        pre.push(`${name}${isAdd ? "@" + version : ""}`);
       }
     }
     return pre;
   }, []);
-  console.log("data: ", data);
-
-  codeRight.value = `${form.value.npmName} ${
-    form.value.npmName === "npm" ? "i" : "add"
-  } ${data.join(" ")} ${form.value.dev || ""}`;
+  const operate =
+    form.value.npmName === "npm"
+      ? isAdd
+        ? "install"
+        : "uninstall"
+      : isAdd
+      ? "add"
+      : "remove";
+  codeRight.value = `${form.value.npmName} ${operate} ${pkgList.join(" ")} ${
+    form.value.dev || ""
+  }`;
 
   copyResult(codeRight.value);
 }
