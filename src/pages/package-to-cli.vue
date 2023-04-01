@@ -51,7 +51,7 @@ defineOptions({
 });
 const dialogVisible = ref(false);
 
-const form = ref({ npmName: "pnpm", dev: "-S", operate: "add" });
+const form = reactive({ npmName: "pnpm", dev: "-S", operate: "add" });
 const codeLeft = ref(`{
     "postcss": "8.4.12",
     "postcss-html": "1.3.0",
@@ -69,7 +69,7 @@ const codeRight = ref("左侧输入后点击转换即可输出");
 function toGenerate(code) {
   code = code || codeLeft.value;
   const firmText = code.replace(/\s|\{|\}/g, "");
-  const isAdd = form.value.operate === "add";
+  const isAdd = form.operate === "add";
   const pkgList = firmText.split(",").reduce((pre, cur) => {
     if (cur) {
       const mat = cur.match(/"(.*?)":"\^?(.*?)"/);
@@ -81,15 +81,15 @@ function toGenerate(code) {
     return pre;
   }, []);
   const operate =
-    form.value.npmName === "npm"
+    form.npmName === "npm"
       ? isAdd
         ? "install"
         : "uninstall"
       : isAdd
       ? "add"
       : "remove";
-  codeRight.value = `${form.value.npmName} ${operate} ${pkgList.join(" ")} ${
-    form.value.dev || ""
+  codeRight.value = `${form.npmName} ${operate} ${pkgList.join(" ")} ${
+    form.dev || ""
   }`;
   dialogVisible.value = true;
   // copyResult(codeRight.value);
