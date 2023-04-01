@@ -1,10 +1,11 @@
 <template>
   <div class="wrapper">
+    <h1>esm导入 和 commonjs导入语法的相互切换</h1>
     <codemirror
       class="left"
       v-model="code"
       placeholder="Code goes here..."
-      :style="{ height: '600px' }"
+      :style="{ height: '300px' }"
       :autofocus="true"
       :indent-with-tab="true"
       :tab-size="2"
@@ -14,14 +15,18 @@
       @focus="handleState('focus', $event)"
       @blur="handleState('blur', $event)"
     />
-    <div class="trans">
-      <el-button @click="run"
-        >转换➡️{{ mode === 1 ? "commonjs" : "esm" }}</el-button
-      >
-
-      <el-button @click="changeMode">切换模式</el-button>
+    <div class="my-[10px] flex flex-col justify-center items-center">
+      <el-card class="trans w-6/12">
+        <div>
+          <el-icon @click="changeMode"><i-ep-RefreshLeft /></el-icon>
+          <span> 当前模式：生成{{ mode }} </span>
+        </div>
+        <div class="flex flex-row-reverse">
+          <el-button @click="run">转换</el-button>
+        </div>
+      </el-card>
     </div>
-    <codemirror
+    <!-- <codemirror
       class="right"
       v-model="code2"
       placeholder="Code goes here..."
@@ -30,8 +35,9 @@
       :indent-with-tab="true"
       :tab-size="2"
       :extensions="extensions"
-    />
+    /> -->
   </div>
+  <resultDialog v-model="dialogVisible" :result="code2" />
 </template>
 
 <script setup>
@@ -40,27 +46,36 @@ import { ref, onMounted, shallowRef } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 // import { oneDark } from '@codemirror/theme-one-dark';
-const code = ref(`import path from "path"
+const dialogVisible = ref(false);
+
+const esmText = `import path from "path"
 import Vue from 'vue';
-import {cloneDeep} from "lodash-es"`);
-const code2 = ref(`请在左侧输入esm代码`);
+import {cloneDeep} from "lodash-es"`;
+const code2DefaultText = `请在左侧输入代码`;
+const code = ref(esmText);
+const code2 = ref(code2DefaultText);
 const extensions = [
   javascript(),
   // oneDark,
 ];
-const mode = ref(1);
+const mode = ref("commonjs");
 
 function changeMode() {
-  if (mode.value === 1) {
-    mode.value = 2;
-    code.value = `const path = require("path")
-const Vue = require('vue');`;
-    code2.value = "请在左侧输入commonjs代码";
-  } else {
-    mode.value = 1;
-    code.value = `import path from "path"
-import Vue from 'vue';`;
-    code2.value = "请在左侧输入esm代码";
+  switch (mode.value) {
+    case "esm":
+      mode.value = "commonjs";
+      code.value = esmText;
+      code2.value = code2DefaultText;
+      break;
+    case "commonjs":
+      mode.value = "esm";
+      code.value = `const path = require("path")
+const Vue = require('vue');
+const {cloneDeep} = require("lodash-es");`;
+      code2.value = code2DefaultText;
+      break;
+    default:
+      break;
   }
 }
 // Codemirror EditorView instance ref
@@ -81,8 +96,8 @@ const run = () => {
   // const length = state.doc.length;
   // const lines = state.doc.lines;
   const code1Text = view.value.state.doc.text;
-  console.log('code1Text: ', code1Text);
-  if (mode.value === 1) {
+  console.log("code1Text: ", code1Text);
+  if (mode.value === "commonjs") {
     code2.value = code1Text
       .map((item) => {
         let reg = /import\s+(.*?)\s+from\s+["']([\w-]+)["'];?/;
@@ -92,7 +107,7 @@ const run = () => {
         return res;
       })
       .join("\n");
-      console.log(code2.value);
+    console.log(code2.value);
   } else {
     code2.value = code1Text
       .map((item) => {
@@ -104,6 +119,7 @@ const run = () => {
       })
       .join("\n");
   }
+  dialogVisible.value = true;
 };
 function handleState(state, e) {
   // log(state, e);
@@ -112,18 +128,18 @@ onMounted(() => {});
 </script>
 <style scoped>
 .wrapper {
-  display: grid;
-  width: 100vw;
-  height: 100%;
-  grid-template-columns: 1fr 150px 1fr;
-  grid-template-rows: 100%;
+  /* display: grid; */
+  /* width: 100vw; */
+  /* height: 100%; */
+  /* grid-template-columns: 1fr 150px 1fr; */
+  /* grid-template-rows: 100%; */
 }
 
 .trans {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid #333;
-  flex-direction: column;
+  /* display: flex; */
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* border: 1px solid #333; */
+  /* flex-direction: column; */
 }
 </style>
