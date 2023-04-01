@@ -41,7 +41,8 @@ import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 // import { oneDark } from '@codemirror/theme-one-dark';
 const code = ref(`import path from "path"
-import Vue from 'vue';`);
+import Vue from 'vue';
+import {cloneDeep} from "lodash-es"`);
 const code2 = ref(`请在左侧输入esm代码`);
 const extensions = [
   javascript(),
@@ -84,19 +85,20 @@ const run = () => {
   if (mode.value === 1) {
     code2.value = code1Text
       .map((item) => {
-        let reg = /import\s+(\w+)\s+from\s+["'](\w+)["'];?/;
+        let reg = /import\s+(.*?)\s+from\s+["']([\w-]+)["'];?/;
         const res = item.replace(reg, function (...args) {
           return `const ${args[1]} = require("${args[2]}");`;
         });
         return res;
       })
       .join("\n");
+      console.log(code2.value);
   } else {
     code2.value = code1Text
       .map((item) => {
-        let reg = /const\s+(\w+)\s+=\s+require\(["'](\w+)["']\);?/;
+        let reg = /const\s+(.*?)\s+=\s+require\(["']([\w-]+)["']\);?/;
         const res = item.replace(reg, function (...args) {
-          return `import ${args[1]} = from "${args[2]}";`;
+          return `import ${args[1]} from "${args[2]}";`;
         });
         return res;
       })
