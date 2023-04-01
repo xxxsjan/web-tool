@@ -37,10 +37,11 @@ export default defineConfig({
     Components({
       resolvers: [
         IconsResolver({
-          enabledCollections: ["ep"],
+          enabledCollections: ["ep"], //@iconify-json/ep 是 Element Plus 的图标库，所以 IconsResolver 配置了 enabledCollections: ['ep']
         }),
         ElementPlusResolver(),
       ],
+      dts: true,
     }),
     Icons({
       autoInstall: true,
