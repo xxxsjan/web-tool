@@ -73,8 +73,8 @@ const handleReady = (payload) => {
 
 // Status is available at all times via Codemirror EditorView
 const run = () => {
-  const state = view.value.state;
-  console.log('state: ', state);
+  // const state = view.value.state;
+  // console.log('state: ', state);
   // const ranges = state.selection.ranges;
   // const selected = ranges.reduce((r, range) => r + range.to - range.from, 0);
   // const cursor = ranges[0].anchor;

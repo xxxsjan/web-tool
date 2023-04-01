@@ -57,16 +57,17 @@ const handleReady = (payload) => {
 
 // Status is available at all times via Codemirror EditorView
 const getCodemirrorStates = () => {
-  const state = view.value.state;
-  const ranges = state.selection.ranges;
-  const selected = ranges.reduce((r, range) => r + range.to - range.from, 0);
-  const cursor = ranges[0].anchor;
-  const length = state.doc.length;
-  const lines = state.doc.lines;
+  // const state = view.value.state;
+  // const ranges = state.selection.ranges;
+  // const selected = ranges.reduce((r, range) => r + range.to - range.from, 0);
+  // const cursor = ranges[0].anchor;
+  // const length = state.doc.length;
+  // const lines = state.doc.lines;
   // more state info ...
   // return ...
-  console.log(view.value.state.doc.text);
-  code2.value = view.value.state.doc.text.reduce((pre, cur) => {
+  const code1Text = view.value.state.doc.text;
+  console.log('code1Text: ', code1Text);
+  code2.value = code1Text.reduce((pre, cur) => {
     let _cur = cur.replace('`', '');
     if (pre === '') {
       if (_cur.length > 0) {
