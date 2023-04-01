@@ -5,7 +5,8 @@ import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import DefineOptions from "unplugin-vue-define-options/vite";
-
+import Icons from "unplugin-icons/vite";
+import IconsResolver from "unplugin-icons/resolver";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -20,6 +21,9 @@ export default defineConfig({
       // 解析器配置
       resolvers: [
         ElementPlusResolver(), // 自动导入Element-Plus的Api
+        IconsResolver({
+          prefix: "Icon",
+        }),
       ],
       // 根据项目情况配置eslintrc，默认是不开启的
       eslintrc: {
@@ -31,7 +35,15 @@ export default defineConfig({
       },
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        IconsResolver({
+          enabledCollections: ["ep"],
+        }),
+        ElementPlusResolver(),
+      ],
+    }),
+    Icons({
+      autoInstall: true,
     }),
     DefineOptions(),
   ],
