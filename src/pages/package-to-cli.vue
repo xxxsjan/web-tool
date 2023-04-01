@@ -49,7 +49,6 @@ const codeLeft = ref(`{
 const codeRight = ref("左侧输入后点击转换即可输出");
 function toGenerate(code) {
   const firmText = code.replace(/\s|\{|\}/g, "");
-  console.log("firmText: ", firmText);
   const isAdd = form.value.operate === "add";
   const pkgList = firmText.split(",").reduce((pre, cur) => {
     if (cur) {
@@ -78,9 +77,7 @@ function toGenerate(code) {
 const glp = getCurrentInstance().appContext.config.globalProperties;
 
 const copyResult = (coptText) => {
-  console.log("coptText: ", coptText);
   if (coptText && navigator.clipboard) {
-    console.log("navigator.clipboard: ", navigator.clipboard);
     navigator.clipboard.writeText(coptText);
     glp.$message.success("结果已自动复制到粘贴板");
   }
