@@ -103,8 +103,8 @@ onUnmounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 50px;
+  font-size: 10vw;
   text-align: center;
-  transform: translate(-50%, -50%) scale(2);
+  transform: translate(-50%, -50%);
 }
 </style>

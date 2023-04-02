@@ -64,6 +64,14 @@ export default [
         },
       },
       {
+        path: "/image-to-icon",
+        name: "image-to-icon",
+        component: () => import("@/pages/image-to-icon.vue"),
+        meta: {
+          title: "图片转icon",
+        },
+      },
+      {
         path: "/package-to-cli",
         name: "package-to-cli",
         component: () => import("@/pages/package-to-cli.vue"),

@@ -20,6 +20,8 @@ declare module '@vue/runtime-core' {
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
+    IEpPlus: typeof import('~icons/ep/plus')['default']
     IEpRefreshLeft: typeof import('~icons/ep/refresh-left')['default']
     LeftToRight: typeof import('./src/components/left-to-right.vue')['default']
     ResultDialog: typeof import('./src/components/result-dialog.vue')['default']
