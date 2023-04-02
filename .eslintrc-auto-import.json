@@ -1,11 +1,17 @@
 {
   "globals": {
     "EffectScope": true,
+    "ElMenu": true,
+    "ElMenuItem": true,
+    "ElMessage": true,
+    "ElMessageBox": true,
+    "ElSubMenu": true,
     "computed": true,
     "createApp": true,
     "customRef": true,
     "defineAsyncComponent": true,
     "defineComponent": true,
+    "defineOptions": true,
     "effectScope": true,
     "getCurrentInstance": true,
     "getCurrentScope": true,

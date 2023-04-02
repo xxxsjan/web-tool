@@ -27,7 +27,8 @@ export default defineConfig({
             'ElMenu',
             'ElMessage',
             'ElMessageBox'
-          ]
+          ],
+          'unplugin-vue-define-options/macros': ['defineOptions']
         }
       ],
       // 解析器配置

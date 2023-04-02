@@ -2,11 +2,17 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue')['EffectScope']
+  const ElMenu: typeof import('element-plus')['ElMenu']
+  const ElMenuItem: typeof import('element-plus')['ElMenuItem']
+  const ElMessage: typeof import('element-plus')['ElMessage']
+  const ElMessageBox: typeof import('element-plus')['ElMessageBox']
+  const ElSubMenu: typeof import('element-plus')['ElSubMenu']
   const computed: typeof import('vue')['computed']
   const createApp: typeof import('vue')['createApp']
   const customRef: typeof import('vue')['customRef']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
+  const defineOptions: typeof import('unplugin-vue-define-options/macros')['defineOptions']
   const effectScope: typeof import('vue')['effectScope']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']

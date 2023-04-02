@@ -22,8 +22,5 @@ module.exports = {
     'no-useless-escape': 0,
     'vue/multi-word-component-names': 0
   },
-  ignorePatterns: ['node_modules/', 'dist/', 'build/*.js', '*.test.js'],
-  globals: {
-    defineOptions: true
-  }
+  ignorePatterns: ['node_modules/', 'dist/', 'build/*.js', '*.test.js']
 };
