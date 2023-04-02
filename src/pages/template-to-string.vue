@@ -49,7 +49,7 @@ const extensions = [
 
 // Codemirror EditorView instance ref
 const view = shallowRef();
-const handleReady = (payload) => {
+const handleReady = payload => {
   // https://codemirror.net/docs/ref/#view
   console.log('payload: ', payload);
   view.value = payload.view;

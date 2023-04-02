@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import less from "less";
+import less from 'less';
 const dialogVisible = ref(false);
 
 const codeLeft = ref(`@color: #f00;
@@ -29,7 +29,7 @@ const codeLeft = ref(`@color: #f00;
     color: @color;
   }
 `);
-const codeRight = ref("左侧输入后点击转换即可输出");
+const codeRight = ref('左侧输入后点击转换即可输出');
 function toGenerate() {
   less.render(codeLeft.value, function (e, output) {
     if (!e && output!.css) {

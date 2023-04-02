@@ -37,30 +37,30 @@
 <script setup>
 // https://github.com/surmon-china/vue-codemirror
 // import { ref, onMounted, shallowRef } from "vue";
-import { Codemirror } from "vue-codemirror";
-import { css } from "@codemirror/lang-css";
+import { Codemirror } from 'vue-codemirror';
+import { css } from '@codemirror/lang-css';
 
-const props = defineProps(["codeLeft", "codeRight"]);
+const props = defineProps(['codeLeft', 'codeRight']);
 const emits = defineEmits([
-  "update:codeLeft",
-  "update:codeRight",
-  "toGenerate",
+  'update:codeLeft',
+  'update:codeRight',
+  'toGenerate'
 ]);
 const code = ref(props.codeLeft);
 const code2 = ref(props.codeRight);
 
 watchEffect(() => {
-  emits("update:codeLeft", code.value);
+  emits('update:codeLeft', code.value);
 });
 watch(
   () => code2.value,
   () => {
-    emits("update:codeRight", code2.value);
+    emits('update:codeRight', code2.value);
   }
 );
 watch(
   () => props.codeRight,
-  (newValue, oldValue) => {
+  (newValue) => {
     if (newValue !== code2.value) {
       code2.value = newValue;
     }
@@ -71,9 +71,9 @@ const extensions = [css()];
 
 // Codemirror EditorView instance ref
 const view = shallowRef();
-const handleReady = (payload) => {
+const handleReady = payload => {
   // https://codemirror.net/docs/ref/#view
-  console.log("payload: ", payload);
+  console.log('payload: ', payload);
   view.value = payload.view;
 };
 
@@ -86,7 +86,7 @@ const handleGenerate = () => {
   // const length = state.doc.length;
   // const lines = state.doc.lines;
   // console.log(view.value.state.doc.text);
-  emits("toGenerate", code.value);
+  emits('toGenerate', code.value);
 };
 </script>
 <style scoped>

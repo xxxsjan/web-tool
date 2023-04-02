@@ -32,14 +32,14 @@
   </div>
 </template>
 <script setup>
-import { genFileId } from "element-plus";
+import { genFileId } from 'element-plus';
 const upload = ref();
 const fileList = ref([]);
 const outputSize = ref(32);
 
 // 超出limit触发
-const handleExceed = (files) => {
-  console.log("files: ", files, fileList);
+const handleExceed = files => {
+  console.log('files: ', files, fileList);
   upload.value.clearFiles();
   const file = files[0];
   file.uid = genFileId();
@@ -48,12 +48,12 @@ const handleExceed = (files) => {
 };
 
 function httpRequest(options) {
-  // console.log(options);
+  console.log(options);
   // ipcRenderer.invoke("REQ");
 }
-function submitUpload() {
-  upload.value.submit();
-}
+// function submitUpload() {
+//   upload.value.submit();
+// }
 function toDo() {
   // console.log(fileList.value[0]);
   if (fileList.value.length < 1) {
@@ -74,19 +74,19 @@ function toDo() {
 
 function image2ico(baseurl, filename) {
   const size = outputSize.value;
-  const imgEl = document.createElement("img");
-  const iconName = `${filename.split(".")[0]}_icon_${size}`;
+  const imgEl = document.createElement('img');
+  const iconName = `${filename.split('.')[0]}_icon_${size}`;
 
   imgEl.src = baseurl;
   imgEl.onload = function () {
-    var canvas = document.createElement("canvas");
+    var canvas = document.createElement('canvas');
     // canvas.width = this.width;
     canvas.width = size;
     // canvas.height = this.height;
     canvas.height = size;
-    console.log("canvas: ", canvas);
+    console.log('canvas: ', canvas);
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
 
     ctx.width = this.width;
     ctx.height = this.height;
@@ -99,9 +99,9 @@ function image2ico(baseurl, filename) {
     document.body.appendChild(canvas);
     function blobCallback(iconName) {
       return function (b) {
-        var a = document.createElement("a");
-        a.textContent = "Download";
-        a.download = iconName + ".ico";
+        var a = document.createElement('a');
+        a.textContent = 'Download';
+        a.download = iconName + '.ico';
         a.href = window.URL.createObjectURL(b);
         document.body.appendChild(a);
         a.click();
@@ -112,8 +112,8 @@ function image2ico(baseurl, filename) {
     }
     canvas.toBlob(
       blobCallback(iconName),
-      "image/vnd.microsoft.icon",
-      "-moz-parse-options:format=bmp;bpp=32"
+      'image/vnd.microsoft.icon',
+      '-moz-parse-options:format=bmp;bpp=32'
     );
     function aspectFit(imageWidth, imageHeight, canvasWidth, canvasHeight) {
       const imageRate = imageWidth / imageHeight;

@@ -1,59 +1,59 @@
-import HomePage from "../pages/home-page.vue";
+import HomePage from '../pages/home-page.vue';
 
 export default [
   {
-    path: "/",
-    name: "layout",
-    component: () => import("@/layout.vue"),
-    redirect: "/vscode-snippet-generator",
+    path: '/',
+    name: 'layout',
+    component: () => import('@/layout.vue'),
+    redirect: '/vscode-snippet-generator',
     children: [
       {
-        path: "/",
-        name: "home-page",
+        path: '/',
+        name: 'home-page',
         component: HomePage,
         meta: {
-          title: "首页",
-        },
+          title: '首页'
+        }
       },
       {
-        path: "/vscode-snippet-generator",
-        name: "vscode-snippet-generator",
-        component: () => import("@/pages/vscode-snippet-generator.vue"),
+        path: '/vscode-snippet-generator',
+        name: 'vscode-snippet-generator',
+        component: () => import('@/pages/vscode-snippet-generator.vue'),
         meta: {
-          title: "vscode用户代码片段",
-        },
+          title: 'vscode用户代码片段'
+        }
       },
       {
-        path: "/format-css-style",
-        name: "format-css-style",
-        component: () => import("@/pages/format-css-style.vue"),
+        path: '/format-css-style',
+        name: 'format-css-style',
+        component: () => import('@/pages/format-css-style.vue'),
         meta: {
-          title: "css style➡️对象",
-        },
+          title: 'css style➡️对象'
+        }
       },
       {
-        path: "/template-to-string",
-        name: "template-to-string",
-        component: () => import("@/pages/template-to-string.vue"),
+        path: '/template-to-string',
+        name: 'template-to-string',
+        component: () => import('@/pages/template-to-string.vue'),
         meta: {
-          title: "模板字符串➡️普通字符串",
-        },
+          title: '模板字符串➡️普通字符串'
+        }
       },
       {
-        path: "/esm-to-commonjs",
-        name: "esm-to-commonjs",
-        component: () => import("@/pages/esm-to-commonjs.vue"),
+        path: '/esm-to-commonjs',
+        name: 'esm-to-commonjs',
+        component: () => import('@/pages/esm-to-commonjs.vue'),
         meta: {
-          title: "esm➡️commonjs",
-        },
+          title: 'esm➡️commonjs'
+        }
       },
       {
-        path: "/less-to-css",
-        name: "less-to-css",
-        component: () => import("@/pages/less-to-css.vue"),
+        path: '/less-to-css',
+        name: 'less-to-css',
+        component: () => import('@/pages/less-to-css.vue'),
         meta: {
-          title: "less➡️css",
-        },
+          title: 'less➡️css'
+        }
       },
       // {
       //   path: "/scss-to-css",
@@ -64,29 +64,29 @@ export default [
       //   },
       // },
       {
-        path: "/cut-image",
-        name: "cut-image",
-        component: () => import("@/pages/cut-image.vue"),
+        path: '/cut-image',
+        name: 'cut-image',
+        component: () => import('@/pages/cut-image.vue'),
         meta: {
-          title: "图片去黑边",
-        },
+          title: '图片去黑边'
+        }
       },
       {
-        path: "/image-to-icon",
-        name: "image-to-icon",
-        component: () => import("@/pages/image-to-icon.vue"),
+        path: '/image-to-icon',
+        name: 'image-to-icon',
+        component: () => import('@/pages/image-to-icon.vue'),
         meta: {
-          title: "图片转icon",
-        },
+          title: '图片转icon'
+        }
       },
       {
-        path: "/package-to-cli",
-        name: "package-to-cli",
-        component: () => import("@/pages/package-to-cli.vue"),
+        path: '/package-to-cli',
+        name: 'package-to-cli',
+        component: () => import('@/pages/package-to-cli.vue'),
         meta: {
-          title: "依赖包转命令",
-        },
-      },
-    ],
-  },
+          title: '依赖包转命令'
+        }
+      }
+    ]
+  }
 ];

@@ -29,16 +29,16 @@
 </template>
 <script>
 export default {
-  name: "cut-image",
+  name: 'cut-image',
   data() {
     return {
       loading: false,
-      imgBaseUrl: "",
+      imgBaseUrl: '',
       customTop: 0,
       customBottom: 0,
       calcData: {},
       outputWidth: 0,
-      outputHeight: 0,
+      outputHeight: 0
     };
   },
   methods: {
@@ -56,15 +56,15 @@ export default {
       };
     },
     save() {
-      const imgEl = document.getElementById("base64Img");
+      const imgEl = document.getElementById('base64Img');
       if (!imgEl) {
         return;
       }
       // 获取Base64字符串
       var base64Image = imgEl?.src;
-      var link = document.createElement("a");
+      var link = document.createElement('a');
       link.href = base64Image;
-      link.download = "image.png";
+      link.download = 'image.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -75,17 +75,17 @@ export default {
       let { bottom, top } = vm.calcData;
       top = top + vm.customTop;
       bottom = bottom - vm.customBottom;
-      img.src = vm.imgBaseUrl || "./test.jpg";
+      img.src = vm.imgBaseUrl || './test.jpg';
       img.onload = function () {
         const { width, height } = img;
-        const canvas = document.createElement("canvas");
+        const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = bottom - top - 1;
-        console.log("output img width height", canvas.width, canvas.height);
+        console.log('output img width height', canvas.width, canvas.height);
         vm.outputWidth = canvas.width;
         vm.outputHeight = canvas.height;
-        const ctx = canvas.getContext("2d", {
-          willReadFrequently: true,
+        const ctx = canvas.getContext('2d', {
+          willReadFrequently: true
         });
         ctx.drawImage(
           img,
@@ -98,40 +98,40 @@ export default {
           canvas.width,
           canvas.height
         );
-        canvas.style.width = "100px";
+        canvas.style.width = '100px';
         const resultImg = new Image();
         resultImg.src = canvas.toDataURL();
-        resultImg.id = "base64Img";
-        resultImg.style.width = "50%";
+        resultImg.id = 'base64Img';
+        resultImg.style.width = '50%';
         // document.querySelector(".output-container").appendChild(resultImg);
 
         document
-          .querySelector(".output-container")
-          .insertAdjacentElement("afterbegin", resultImg);
+          .querySelector('.output-container')
+          .insertAdjacentElement('afterbegin', resultImg);
         vm.loading = false;
       };
     },
     toDo() {
       this.loading = true;
-      var worker = new Worker("/worker.js");
+      var worker = new Worker('/worker.js');
       const vm = this;
       worker.onmessage = function (event) {
         const { bottom, top } = event.data;
-        console.log("Message from worker:", event.data);
+        console.log('Message from worker:', event.data);
         vm.calcData = { bottom, top };
         vm.setOutputImg();
       };
 
-      const canvas = document.querySelector("#canvas");
-      const ctx = canvas.getContext("2d", {
-        willReadFrequently: true,
+      const canvas = document.querySelector('#canvas');
+      const ctx = canvas.getContext('2d', {
+        willReadFrequently: true
       });
 
       const img = new Image();
       img.src = vm.imgBaseUrl;
       img.onload = function () {
         const { width, height } = img;
-        console.log(" width, height: ", width, height);
+        console.log(' width, height: ', width, height);
 
         canvas.width = width;
         canvas.height = height;
@@ -144,14 +144,14 @@ export default {
       };
     },
     handleRetry() {
-      const imgEl = document.getElementById("base64Img");
+      const imgEl = document.getElementById('base64Img');
       if (imgEl) {
         imgEl.remove();
       }
-      this.imgBaseUrl = "";
+      this.imgBaseUrl = '';
     },
     handleCustom() {
-      const imgEl = document.getElementById("base64Img");
+      const imgEl = document.getElementById('base64Img');
       if (imgEl) {
         imgEl.remove();
       }
@@ -163,9 +163,9 @@ export default {
       this.calcData = {};
       this.outputWidth = 0;
       this.outputHeight = 0;
-    },
+    }
   },
-  mounted() {},
+  mounted() {}
 };
 </script>
 <style scoped>

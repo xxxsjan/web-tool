@@ -1,46 +1,46 @@
 <script setup>
-import { onMounted, ref, watch, toRaw, getCurrentInstance } from "vue";
-import * as monaco from "monaco-editor";
+import { onMounted, ref, watch, toRaw, getCurrentInstance } from 'vue';
+import * as monaco from 'monaco-editor';
 
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
-import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
-import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
-import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
-import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 console.log(getCurrentInstance());
 const glp = getCurrentInstance().appContext.config.globalProperties;
-console.log("glp: ", glp);
+console.log('glp: ', glp);
 self.MonacoEnvironment = {
   getWorker(_, label) {
-    if (label === "json") {
+    if (label === 'json') {
       return new JsonWorker();
     }
-    if (label === "css" || label === "scss" || label === "less") {
+    if (label === 'css' || label === 'scss' || label === 'less') {
       return new CssWorker();
     }
-    if (label === "html" || label === "handlebars" || label === "razor") {
+    if (label === 'html' || label === 'handlebars' || label === 'razor') {
       return new HtmlWorker();
     }
-    if (label === "typescript" || label === "javascript") {
+    if (label === 'typescript' || label === 'javascript') {
       return new TsWorker();
     }
     return new EditorWorker();
-  },
+  }
 };
 const inputEditor = ref(null);
 const outputEditor = ref(null);
-const language = ref("html");
-const result = ref("");
+const language = ref('html');
+const result = ref('');
 function onFormat(type) {
   switch (type) {
     case 1:
       if (inputEditor.value) {
-        inputEditor.value.getAction("editor.action.formatDocument").run();
+        inputEditor.value.getAction('editor.action.formatDocument').run();
       }
       break;
     case 2:
       if (outputEditor.value) {
-        outputEditor.value.getAction("editor.action.formatDocument").run();
+        outputEditor.value.getAction('editor.action.formatDocument').run();
       }
       break;
     default:
@@ -50,45 +50,45 @@ function onFormat(type) {
 function getEditValue() {
   // https://www.jianshu.com/p/316cd6f5b54a?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation
   const arr = [];
-  let str = "";
-  console.log("input", toRaw(inputEditor.value).getValue());
+  let str = '';
+  console.log('input', toRaw(inputEditor.value).getValue());
   toRaw(inputEditor.value)
     .getValue()
-    .split("")
+    .split('')
     .map((item, index, oArr) => {
-      if (item !== "\n") {
+      if (item !== '\n') {
         str += item;
       } else {
         arr.push(str);
-        str = "";
+        str = '';
       }
       if (str && index === oArr.length - 1) {
         arr.push(str);
       }
     });
-  console.log("output", arr);
+  console.log('output', arr);
   return arr;
 }
 function onTransform() {
   const beforeBody = getEditValue();
-  console.log("onTransform: ");
-  const prefix = inputForm.value.prefix || "prefix";
-  const description = inputForm.value.description || "this is description";
-  const keyName = inputForm.value.snippetName || "default snippet name";
+  console.log('onTransform: ');
+  const prefix = inputForm.value.prefix || 'prefix';
+  const description = inputForm.value.description || 'this is description';
+  const keyName = inputForm.value.snippetName || 'default snippet name';
   const _result = (result.value = JSON.stringify({
     [keyName]: {
       prefix,
       body: beforeBody,
-      description,
-    },
+      description
+    }
   }));
   toRaw(outputEditor.value).setValue(_result);
   onFormat(2);
 }
 watch(
   () => language.value,
-  (nVal) => {
-    console.log("nVal: ", nVal);
+  nVal => {
+    console.log('nVal: ', nVal);
     monaco.editor.setModelLanguage(toRaw(inputEditor.value).getModel(), nVal);
     // toRaw(inputEditor.value).updateOptions({
     //   language: nVal,
@@ -97,60 +97,60 @@ watch(
   }
 );
 const commonConfig = {
-  theme: "vs-dark",
+  theme: 'vs-dark',
   formatOnPaste: true, // 粘贴时格式化
   fontSize: 16,
   minimap: {
-    enabled: false,
-  },
+    enabled: false
+  }
 };
 const inputForm = ref({});
 const copyResult = () => {
-  const coptText = result.value.slice(1, -1) || "";
-  console.log("coptText: ", coptText);
+  const coptText = result.value.slice(1, -1) || '';
+  console.log('coptText: ', coptText);
   if (coptText) {
     navigator.clipboard.writeText(coptText);
-    glp.$message.success("复制成功");
+    glp.$message.success('复制成功');
   }
 };
 
 onMounted(() => {
-  const inputContainerDom = document.querySelector("#inputContainer");
-  const outputContainerDom = document.querySelector("#outputContainer");
+  const inputContainerDom = document.querySelector('#inputContainer');
+  const outputContainerDom = document.querySelector('#outputContainer');
   if (inputContainerDom) {
     inputEditor.value = monaco.editor.create(inputContainerDom, {
       value: `<template>
-    <div><\/div>
-</template>
+        <div><\/div>
+<\/template>
 <script lang="ts" setup><\/script>
 <style scoped><\/style>`,
-      language: "html",
-      ...commonConfig,
+      language: 'html',
+      ...commonConfig
     });
   }
 
   if (outputContainerDom) {
     outputEditor.value = monaco.editor.create(outputContainerDom, {
       value: JSON.stringify({}),
-      language: "json",
-      ...commonConfig,
+      language: 'json',
+      ...commonConfig
     });
   }
 
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     const editor1 = document.querySelector(
-      "#inputContainer .monaco-editor.vs-dark"
+      '#inputContainer .monaco-editor.vs-dark'
     );
-    const editor2 = document.querySelector(
-      "#outputContainer .monaco-editor.vs-dark"
-    );
+    // const editor2 = document.querySelector(
+    //   '#outputContainer .monaco-editor.vs-dark'
+    // );
     toRaw(inputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight,
+      height: editor1.parentElement.offsetHeight
     });
     toRaw(outputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight,
+      height: editor1.parentElement.offsetHeight
     });
   });
 });
@@ -162,7 +162,7 @@ onMounted(() => {
       <div
         id="inputContainer"
         ref="inputContainer"
-        style=" max-width: 100%;height: 80vh"
+        style="max-width: 100%; height: 80vh"
       />
       <div class="m-10">
         选择编辑器语言
@@ -175,7 +175,7 @@ onMounted(() => {
               'json',
               'less',
               'scss',
-              'typescript',
+              'typescript'
             ]"
             :key="item"
             :label="item"
@@ -208,7 +208,7 @@ onMounted(() => {
       <div
         id="outputContainer"
         ref="outputContainer"
-        style=" max-width: 100%;height: 80vh"
+        style="max-width: 100%; height: 80vh"
       />
       <el-button @click="copyResult">复制结果</el-button>
     </div>

@@ -2,10 +2,10 @@ module.exports = {
   defaultSeverity: "error",
   extends: [
     "stylelint-config-standard",
-    "stylelint-config-prettier",
     "stylelint-config-html/vue",
     "stylelint-config-recommended-scss",
     "stylelint-config-recommended-vue/scss",
+    "stylelint-config-prettier",
   ],
   plugins: ["stylelint-order"],
   rules: {

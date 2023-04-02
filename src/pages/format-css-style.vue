@@ -25,7 +25,7 @@ self.MonacoEnvironment = {
       return new TsWorker();
     }
     return new EditorWorker();
-  },
+  }
 };
 const inputEditor = ref(null);
 const outputEditor = ref(null);
@@ -73,7 +73,7 @@ function onTransform() {
   const reg = /([a-zA-z\-]+):(.*?);/g;
   const keyValue = inputText
     .match(reg)
-    .map((str) => {
+    .map(str => {
       const key = str.split(':')[0],
         value = str.split(':')[1].trim().replace(';', '');
       return `"${key}":"${value}"`;
@@ -86,7 +86,7 @@ function onTransform() {
 }
 watch(
   () => language.value,
-  (nVal) => {
+  nVal => {
     console.log('nVal: ', nVal);
     monaco.editor.setModelLanguage(toRaw(inputEditor.value).getModel(), nVal);
     // toRaw(inputEditor.value).updateOptions({
@@ -100,8 +100,8 @@ const commonConfig = {
   formatOnPaste: true, // 粘贴时格式化
   fontSize: 16,
   minimap: {
-    enabled: false,
-  },
+    enabled: false
+  }
 };
 
 const copyResult = () => {
@@ -130,7 +130,7 @@ onMounted(() => {
         align-items: center;
       }`,
       language: language.value,
-      ...commonConfig,
+      ...commonConfig
     });
   }
 
@@ -138,22 +138,26 @@ onMounted(() => {
     outputEditor.value = monaco.editor.create(outputContainerDom, {
       value: JSON.stringify({}),
       language: 'json',
-      ...commonConfig,
+      ...commonConfig
     });
   }
   setTimeout(() => {
     onFormat(1);
   }, 1111);
   window.addEventListener('resize', () => {
-    const editor1 = document.querySelector('#inputContainer .monaco-editor.vs-dark');
-    const editor2 = document.querySelector('#outputContainer .monaco-editor.vs-dark');
+    const editor1 = document.querySelector(
+      '#inputContainer .monaco-editor.vs-dark'
+    );
+    const editor2 = document.querySelector(
+      '#outputContainer .monaco-editor.vs-dark'
+    );
     toRaw(inputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight,
+      height: editor1.parentElement.offsetHeight
     });
     toRaw(outputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight,
+      height: editor1.parentElement.offsetHeight
     });
   });
 });
@@ -162,12 +166,24 @@ onMounted(() => {
 <template>
   <div class="wrapper">
     <div class="left">
-      <div id="inputContainer" ref="inputContainer" style=" max-width: 100%;height: 80vh" />
+      <div
+        id="inputContainer"
+        ref="inputContainer"
+        style="max-width: 100%; height: 80vh"
+      />
       <div class="m-10">
         选择编辑器语言
         <el-select v-model="language" placeholder="language" size="default">
           <el-option
-            v-for="item in ['css', 'html', 'javascript', 'json', 'less', 'scss', 'typescript']"
+            v-for="item in [
+              'css',
+              'html',
+              'javascript',
+              'json',
+              'less',
+              'scss',
+              'typescript'
+            ]"
             :key="item"
             :label="item"
             :value="item"
@@ -180,7 +196,11 @@ onMounted(() => {
     </div>
 
     <div class="right">
-      <div id="outputContainer" ref="outputContainer" style=" max-width: 100%;height: 80vh" />
+      <div
+        id="outputContainer"
+        ref="outputContainer"
+        style="max-width: 100%; height: 80vh"
+      />
       <el-button @click="copyResult">复制结果</el-button>
     </div>
   </div>

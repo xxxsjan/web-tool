@@ -45,13 +45,13 @@
 </template>
 
 <script setup>
-import resultDialog from "@/components/result-dialog.vue";
+import resultDialog from '@/components/result-dialog.vue';
 defineOptions({
-  name: "package-to-cli",
+  name: 'package-to-cli'
 });
 const dialogVisible = ref(false);
 
-const form = reactive({ npmName: "pnpm", dev: "-S", operate: "add" });
+const form = reactive({ npmName: 'pnpm', dev: '-S', operate: 'add' });
 const codeLeft = ref(`{
     "postcss": "8.4.12",
     "postcss-html": "1.3.0",
@@ -65,31 +65,31 @@ const codeLeft = ref(`{
     "stylelint-config-standard-scss": "4.0.0",
     "stylelint-order": "6.0.3",
 }`);
-const codeRight = ref("左侧输入后点击转换即可输出");
+const codeRight = ref('左侧输入后点击转换即可输出');
 function toGenerate(code) {
   code = code || codeLeft.value;
-  const firmText = code.replace(/\s|\{|\}/g, "");
-  const isAdd = form.operate === "add";
-  const pkgList = firmText.split(",").reduce((pre, cur) => {
+  const firmText = code.replace(/\s|\{|\}/g, '');
+  const isAdd = form.operate === 'add';
+  const pkgList = firmText.split(',').reduce((pre, cur) => {
     if (cur) {
       const mat = cur.match(/"(.*?)":"\^?(.*?)"/);
       if (mat) {
         const [a, name, version] = mat;
-        pre.push(`${name}${isAdd ? "@" + version : ""}`);
+        pre.push(`${name}${isAdd ? '@' + version : ''}`);
       }
     }
     return pre;
   }, []);
   const operate =
-    form.npmName === "npm"
+    form.npmName === 'npm'
       ? isAdd
-        ? "install"
-        : "uninstall"
+        ? 'install'
+        : 'uninstall'
       : isAdd
-      ? "add"
-      : "remove";
-  codeRight.value = `${form.npmName} ${operate} ${pkgList.join(" ")} ${
-    form.dev || ""
+      ? 'add'
+      : 'remove';
+  codeRight.value = `${form.npmName} ${operate} ${pkgList.join(' ')} ${
+    form.dev || ''
   }`;
   dialogVisible.value = true;
   // copyResult(codeRight.value);
@@ -100,6 +100,7 @@ function toGenerate(code) {
 .wrapper {
   grid-template-columns: 1fr 210px 1fr;
 }
+
 .package-to-cli {
   display: flex;
   justify-content: center;

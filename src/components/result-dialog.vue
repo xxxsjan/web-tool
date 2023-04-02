@@ -27,16 +27,16 @@
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false,
+    default: false
   },
   result: {
     type: String,
-    default: "",
-  },
+    default: ''
+  }
 });
 const emit = defineEmits([
   // "update:value"
-  "update:modelValue",
+  'update:modelValue'
 ]);
 const dialogVisible = ref(false);
 
@@ -45,11 +45,11 @@ watchEffect(() => {
 });
 watch(
   () => dialogVisible.value,
-  (n, o) => {
-    emit("update:modelValue", n);
+  (n) => {
+    emit('update:modelValue', n);
   }
 );
-const handleClose = (done) => {
+const handleClose = done => {
   done();
   //   ElMessageBox.confirm("Are you sure to close this dialog?")
   //     .then(() => {
@@ -60,16 +60,16 @@ const handleClose = (done) => {
   //     });
 };
 const glp = getCurrentInstance().appContext.config.globalProperties;
-const copyResult = (coptText) => {
+const copyResult = coptText => {
   if (coptText && navigator.clipboard) {
     navigator.clipboard.writeText(coptText);
-    glp.$message.success("结果已自动复制到粘贴板");
+    glp.$message.success('结果已自动复制到粘贴板');
   }
 };
 const handleCopy = function () {
   copyResult(props.result);
   console.log(
-    "🚀 ~ file: result-dialog.vue:70 ~ handleCopy ~ props.result:",
+    '🚀 ~ file: result-dialog.vue:70 ~ handleCopy ~ props.result:',
     props.result
   );
 };

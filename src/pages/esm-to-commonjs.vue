@@ -42,9 +42,9 @@
 
 <script setup>
 // https://github.com/surmon-china/vue-codemirror
-import { ref, onMounted, shallowRef } from "vue";
-import { Codemirror } from "vue-codemirror";
-import { javascript } from "@codemirror/lang-javascript";
+import { ref, onMounted, shallowRef } from 'vue';
+import { Codemirror } from 'vue-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
 // import { oneDark } from '@codemirror/theme-one-dark';
 const dialogVisible = ref(false);
 
@@ -55,20 +55,20 @@ const code2DefaultText = `请在左侧输入代码`;
 const code = ref(esmText);
 const code2 = ref(code2DefaultText);
 const extensions = [
-  javascript(),
+  javascript()
   // oneDark,
 ];
-const mode = ref("commonjs");
+const mode = ref('commonjs');
 
 function changeMode() {
   switch (mode.value) {
-    case "esm":
-      mode.value = "commonjs";
+    case 'esm':
+      mode.value = 'commonjs';
       code.value = esmText;
       code2.value = code2DefaultText;
       break;
-    case "commonjs":
-      mode.value = "esm";
+    case 'commonjs':
+      mode.value = 'esm';
       code.value = `const path = require("path")
 const Vue = require('vue');
 const {cloneDeep} = require("lodash-es");`;
@@ -80,9 +80,9 @@ const {cloneDeep} = require("lodash-es");`;
 }
 // Codemirror EditorView instance ref
 const view = shallowRef();
-const handleReady = (payload) => {
+const handleReady = payload => {
   // https://codemirror.net/docs/ref/#view
-  console.log("payload: ", payload);
+  console.log('payload: ', payload);
   view.value = payload.view;
 };
 
@@ -96,28 +96,28 @@ const run = () => {
   // const length = state.doc.length;
   // const lines = state.doc.lines;
   const code1Text = view.value.state.doc.text;
-  console.log("code1Text: ", code1Text);
-  if (mode.value === "commonjs") {
+  console.log('code1Text: ', code1Text);
+  if (mode.value === 'commonjs') {
     code2.value = code1Text
-      .map((item) => {
+      .map(item => {
         let reg = /import\s+(.*?)\s+from\s+["']([\w-]+)["'];?/;
         const res = item.replace(reg, function (...args) {
           return `const ${args[1]} = require("${args[2]}");`;
         });
         return res;
       })
-      .join("\n");
+      .join('\n');
     console.log(code2.value);
   } else {
     code2.value = code1Text
-      .map((item) => {
+      .map(item => {
         let reg = /const\s+(.*?)\s+=\s+require\(["']([\w-]+)["']\);?/;
         const res = item.replace(reg, function (...args) {
           return `import ${args[1]} from "${args[2]}";`;
         });
         return res;
       })
-      .join("\n");
+      .join('\n');
   }
   dialogVisible.value = true;
 };
@@ -129,17 +129,25 @@ onMounted(() => {});
 <style scoped>
 .wrapper {
   /* display: grid; */
+
   /* width: 100vw; */
+
   /* height: 100%; */
+
   /* grid-template-columns: 1fr 150px 1fr; */
+
   /* grid-template-rows: 100%; */
 }
 
 .trans {
   /* display: flex; */
+
   /* justify-content: center; */
+
   /* align-items: center; */
+
   /* border: 1px solid #333; */
+
   /* flex-direction: column; */
 }
 </style>
