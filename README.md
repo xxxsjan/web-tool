@@ -1,11 +1,16 @@
-# vscode代码片段生成工具
+# web工具箱网站
 
-在线地址 <https://code-snippet-generator.vercel.app/>
+## 快速体验
 
-### vscode用户代码片段生成
+- [在线地址](https://web-tool.dolam.top)
 
-![](./docs/1.png)
+## 功能介绍
 
-### css style样式转对象
-
-![](./docs/css2obj.png)
+- 自定义生成vscode的用户代码片段
+- css style → 对象
+- 模板字符串 → 普通字符串
+- esm → commonjs
+- less → css
+- 图片去黑边
+- 图片转icon
+- 依赖包转命令
