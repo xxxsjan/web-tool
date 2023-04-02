@@ -21,44 +21,50 @@ self.addEventListener("message", function (event) {
   let bottom = height;
   let top = -1;
   let isTargetColorCount = 0;
-  let precision = Math.floor(width * 0.2); // 一行 扫描精度
+  let precision = Math.floor(width * 0.1); // 一行 每几个像素检查一次
+  let maxPointCount = Math.floor(width / precision); // 一行最大检查点的数量
   // 下边
   for (let y = height - 1; y > height / 2; y--) {
-    for (let x = width - 1; x >= 0; x = x - precision) {
-      // 一轮首次
-      if (x === width - 1 && y !== height - 1) {
-        if (isTargetColorCount >= Math.floor(width / precision)) {
-          bottom = y + 1;
-          isTargetColorCount = 0;
-        } else {
-          isTargetColorCount = 0;
-          break;
-        }
+    // 每行第一个点判断上一行结果
+    if (y !== height - 1) {
+      // console.log("bottom", y + 1, isTargetColorCount, maxPointCount);
+      if (isTargetColorCount >= maxPointCount) {
+        bottom = y + 1;
+        isTargetColorCount = 0;
+      } else {
+        isTargetColorCount = 0;
+        break;
       }
+    }
+    for (let x = width - 1; x >= 0; x = x - precision) {
       const result = getColor(x, y, imageData, width, height);
-      // console.log("result: ", x, y, result);
-
-      if (deltaE(result, [0, 0, 0, 255]) < 10) {
+      const delta = deltaE(result, [0, 0, 0, 255])
+      if (y === 1689) {
+        console.log("1689行: ", x, result,delta);
+      }
+      if (delta < 10) {
         isTargetColorCount++;
       }
     }
   }
   // 上边
   for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      // 一轮首次
-      if (x === 0 && y !== 0) {
-        if (isTargetColorCount >= Math.floor(width / precision)) {
-          top = y - 1;
-          isTargetColorCount = 0;
-        } else {
-          break;
-        }
-        console.log(y, top);
+    // 一轮首次
+    if (y !== 0) {
+      // console.log("top", y - 1, isTargetColorCount, maxPointCount);
+      if (isTargetColorCount >= maxPointCount) {
+        top = y - 1;
+        isTargetColorCount = 0;
+      } else {
+        isTargetColorCount = 0;
+        break;
       }
+    }
+    for (let x = 0; x < width; x++) {
       const result = getColor(x, y, imageData, width, height);
       const delta = deltaE(result, [0, 0, 0, 255]);
-      // console.log("下", x, y, result, delta);
+      // console.log("上边result: ", x, y, result);
+
       // 相比0, 0, 0, 255色差
       if (delta < 30) {
         isTargetColorCount++;

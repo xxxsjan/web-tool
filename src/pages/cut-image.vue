@@ -1,5 +1,5 @@
 <template>
-  <div class="cut-image-container">
+  <div class="cut-image-container flex flex-col justify-center items-center">
     <div class="preview-container">
       <div v-loading="loading">
         <input type="file" @change="fileChange" accept=".png,.jpg,.jpeg" />
@@ -7,9 +7,22 @@
       </div>
       <canvas id="canvas"></canvas>
     </div>
+
     <div v-show="imgBaseUrl">输出结果：</div>
-    <div class="output-container">
-      <el-button v-show="imgBaseUrl" @click="save">保存</el-button>
+
+    <div class="output-container flex flex-col justify-center items-center">
+      <el-card class="w-[500px] my-5">
+        手动修正（10px以内）
+        <br />
+        上：<el-input-number v-model="customTop" :min="-10" :max="10" />
+        下：<el-input-number v-model="customBottom" :min="-10" :max="10" />
+        <el-button @click="handleCustom"> 修正 </el-button>
+        <div class="flex flex-row-reverse my-2">
+          <el-button v-show="imgBaseUrl" @click="save" type="success"
+            >保存</el-button
+          >
+        </div>
+      </el-card>
     </div>
   </div>
 </template>
@@ -20,10 +33,14 @@ export default {
     return {
       loading: false,
       imgBaseUrl: "",
+      customTop: 0,
+      customBottom: 0,
+      calcData: {},
     };
   },
   methods: {
     fileChange(e) {
+      this.reset();
       this.handleRetry();
       const [file] = e.target.files;
       console.log(file);
@@ -49,6 +66,46 @@ export default {
       link.click();
       document.body.removeChild(link);
     },
+    setOutputImg() {
+      const img = new Image();
+      const vm = this;
+      let { bottom, top } = vm.calcData;
+      top = top + vm.customTop;
+      bottom = bottom - vm.customBottom;
+      img.src = vm.imgBaseUrl || "./test.jpg";
+      img.onload = function () {
+        const { width, height } = img;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = bottom - top - 1;
+        console.log("output img width height", canvas.width, canvas.height);
+        const ctx = canvas.getContext("2d", {
+          willReadFrequently: true,
+        });
+        ctx.drawImage(
+          img,
+          0,
+          top + 1,
+          canvas.width,
+          canvas.height,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        canvas.style.width = "100px";
+        const resultImg = new Image();
+        resultImg.src = canvas.toDataURL();
+        resultImg.id = "base64Img";
+        resultImg.style.width = "50%";
+        // document.querySelector(".output-container").appendChild(resultImg);
+
+        document
+          .querySelector(".output-container")
+          .insertAdjacentElement("afterbegin", resultImg);
+        vm.loading = false;
+      };
+    },
     toDo() {
       this.loading = true;
       var worker = new Worker("/worker.js");
@@ -56,40 +113,8 @@ export default {
       worker.onmessage = function (event) {
         const { bottom, top } = event.data;
         console.log("Message from worker:", event.data);
-        const img = new Image();
-
-        img.src = vm.imgBaseUrl || "./test.jpg";
-        img.onload = function () {
-          const { width, height } = img;
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = bottom - top - 1;
-          console.log("output img width height", canvas.width, canvas.height);
-          const ctx = canvas.getContext("2d", {
-            willReadFrequently: true,
-          });
-          ctx.drawImage(
-            img,
-            0,
-            top + 1,
-            canvas.width,
-            canvas.height,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-          canvas.style.width = "100px";
-          const resultImg = new Image();
-          resultImg.src = canvas.toDataURL();
-          resultImg.id = "base64Img";
-          resultImg.style.width = "50%";
-          // document.querySelector(".output-container").appendChild(resultImg);
-          document
-            .querySelector(".output-container")
-            .insertAdjacentElement("afterbegin", resultImg);
-          vm.loading = false;
-        };
+        vm.calcData = { bottom, top };
+        vm.setOutputImg();
       };
 
       const canvas = document.querySelector("#canvas");
@@ -120,12 +145,24 @@ export default {
       }
       this.imgBaseUrl = "";
     },
+    handleCustom() {
+      const imgEl = document.getElementById("base64Img");
+      if (imgEl) {
+        imgEl.remove();
+      }
+      this.setOutputImg();
+    },
+    reset() {
+      this.customTop = 0;
+      this.customBottom = 0;
+      this.calcData = {};
+    },
   },
   mounted() {},
 };
 </script>
 <style scoped>
 #canvas {
-  width: 50%;
+  width: 30vw;
 }
 </style>
