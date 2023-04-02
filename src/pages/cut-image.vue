@@ -17,7 +17,8 @@
         上：<el-input-number v-model="customTop" :min="-10" :max="10" />
         下：<el-input-number v-model="customBottom" :min="-10" :max="10" />
         <el-button @click="handleCustom"> 修正 </el-button>
-        <div class="flex flex-row-reverse my-2">
+        <div class="flex flex-row my-2 justify-between">
+          <span>输出尺寸：{{ outputWidth }}x{{ outputHeight }}</span>
           <el-button v-show="imgBaseUrl" @click="save" type="success"
             >保存</el-button
           >
@@ -36,6 +37,8 @@ export default {
       customTop: 0,
       customBottom: 0,
       calcData: {},
+      outputWidth: 0,
+      outputHeight: 0,
     };
   },
   methods: {
@@ -79,6 +82,8 @@ export default {
         canvas.width = width;
         canvas.height = bottom - top - 1;
         console.log("output img width height", canvas.width, canvas.height);
+        vm.outputWidth = canvas.width;
+        vm.outputHeight = canvas.height;
         const ctx = canvas.getContext("2d", {
           willReadFrequently: true,
         });
@@ -156,6 +161,8 @@ export default {
       this.customTop = 0;
       this.customBottom = 0;
       this.calcData = {};
+      this.outputWidth = 0;
+      this.outputHeight = 0;
     },
   },
   mounted() {},

@@ -20,54 +20,60 @@ self.addEventListener("message", function (event) {
   // 获取底部要截取像素
   let bottom = height;
   let top = -1;
-  let isTargetColorCount = 0;
+  let similarCount = 0;
   let precision = Math.floor(width * 0.1); // 一行 每几个像素检查一次
-  let maxPointCount = Math.floor(width / precision); // 一行最大检查点的数量
+  let removeFlag = Math.floor((width / precision) * 0.6); //  每行抽样的点，有60%符合即可满足移除条件
   // 下边
   for (let y = height - 1; y > height / 2; y--) {
     // 每行第一个点判断上一行结果
     if (y !== height - 1) {
-      // console.log("bottom", y + 1, isTargetColorCount, maxPointCount);
-      if (isTargetColorCount >= maxPointCount) {
+      // console.log("bottom", y + 1, similarCount, removeFlag);
+      if (similarCount >= removeFlag) {
         bottom = y + 1;
-        isTargetColorCount = 0;
+        similarCount = 0;
       } else {
-        isTargetColorCount = 0;
+        similarCount = 0;
         break;
       }
     }
     for (let x = width - 1; x >= 0; x = x - precision) {
-      const result = getColor(x, y, imageData, width, height);
-      const delta = deltaE(result, [0, 0, 0, 255])
-      if (y === 1689) {
-        console.log("1689行: ", x, result,delta);
-      }
-      if (delta < 10) {
-        isTargetColorCount++;
+      const result = getColor(x, y, imageData, width, height); // number[]
+      const delta = deltaE(result, [0, 0, 0, 255]);
+
+      if (delta < 52) {
+        similarCount++;
+      } else {
+        console.log(
+          `%c ${y}行${x}像素：`,
+          `background-color:rgba(${result.toString()})`,
+          result,
+          delta
+        );
       }
     }
   }
+  console.log("bottom: ", bottom);
   // 上边
   for (let y = 0; y < height; y++) {
     // 一轮首次
     if (y !== 0) {
-      // console.log("top", y - 1, isTargetColorCount, maxPointCount);
-      if (isTargetColorCount >= maxPointCount) {
+      // console.log("top", y - 1, similarCount, removeFlag);
+      if (similarCount >= removeFlag) {
         top = y - 1;
-        isTargetColorCount = 0;
+        similarCount = 0;
       } else {
-        isTargetColorCount = 0;
+        similarCount = 0;
         break;
       }
     }
-    for (let x = 0; x < width; x++) {
+    for (let x = 0; x < width; x = x + precision) {
       const result = getColor(x, y, imageData, width, height);
       const delta = deltaE(result, [0, 0, 0, 255]);
-      // console.log("上边result: ", x, y, result);
+      console.log("上边result: ", x, y, result, delta, similarCount);
 
-      // 相比0, 0, 0, 255色差
+      // 相比0, 0, 0, 255颜色接近
       if (delta < 30) {
-        isTargetColorCount++;
+        similarCount++;
       }
     }
   }
