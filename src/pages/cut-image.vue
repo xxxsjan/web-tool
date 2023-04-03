@@ -40,7 +40,7 @@
             ></span>
             <!-- 尺寸信息 -->
             <span class="crop-info" style="bottom: -21px"
-              >{{ moveElWidth }} × {{ moveElHeight }}</span
+              >{{ parseInt(moveElWidth) }} × {{ parseInt(moveElHeight) }}</span
             >
             <!-- 框 -->
             <span
@@ -226,7 +226,7 @@ export default {
         }
         if (isS) {
           let _res = Math.max(pre_moveElHeight + deltaY, 1);
-          _res = Math.min(_res, vm.previewImgHeight);
+          _res = Math.min(_res, vm.previewImgHeight - vm.translateY);
           vm.moveElHeight = _res;
         }
         if (isW) {
