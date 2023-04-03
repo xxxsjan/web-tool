@@ -1,19 +1,22 @@
 <template>
-  <div
-    class="cut-image-container flex flex-col justify-center items-center"
-    :class="{ 'is-move': isMove }"
-  >
+  <div class="cut-image-container flex flex-col justify-center items-center">
     <div>
       <div v-loading="loading">
         <input type="file" @change="fileChange" accept=".png,.jpg,.jpeg" />
       </div>
+      <div
+        class="preview-container"
+        style="width: 500px; height: 500px"
+        v-if="false"
+      >
+        <!-- 像素背景 -->
+        <div class="px-bg"></div>
+        <!-- 遮罩 -->
+        <div class="mask-bg"></div>
+      </div>
       <div class="preview-container">
         <img :src="imgBaseUrl" alt="" class="preview-img" />
-        <!-- <canvas id="canvas"></canvas> -->
-        <!-- 像素背景 -->
-        <!-- <div class="px-bg"></div> -->
-        <!-- 遮罩 -->
-        <!-- <div class="mask-bg"></div> -->
+
         <!-- 裁剪容器 -->
         <div
           class="cut-wrapper"
@@ -109,10 +112,17 @@
 
     <div>
       <el-card
-        class="output-container flex flex-col justify-center items-center w-[375px] my-5"
+        class="output-container flex flex-col justify-center items-center w-[375px] my-5 py-3"
         v-show="imgBaseUrl"
       >
-        <div>输出结果：</div>
+        <div>
+          <el-button
+            @click="handleCut"
+            type="primary"
+            style="margin-right: 10px"
+            >裁剪</el-button
+          >输出结果：
+        </div>
       </el-card>
     </div>
     <div>
@@ -140,13 +150,6 @@
         </div>
       </el-card>
     </div>
-
-    <el-button
-      @click="handleCut"
-      style="position: fixed; right: 0; top: 50%"
-      type="primary"
-      >裁剪</el-button
-    >
   </div>
 </template>
 <script>
@@ -462,13 +465,10 @@ export default {
 <style scoped>
 .preview-container {
   position: relative;
-  width: 50vw;
+  width: 40vw;
   touch-action: none;
 }
-.cut-image-container.is-move {
-  /* height: calc(100vh - 58.4px); */
-  overflow: hidden;
-}
+
 .cut-wrapper {
   position: absolute;
   width: 100%;
