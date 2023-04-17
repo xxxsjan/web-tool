@@ -1,4 +1,5 @@
 {
+  // https://www.typescriptlang.org/tsconfig
   "compilerOptions": {
     "module": "ESNext", // 打包模块类型ESNext
     "target": "es6", // 打包目标版本
@@ -11,7 +12,7 @@
     "noLib": false, // 不处理类库
     "sourceMap": true, // 生成sourcemap
     "lib": [
-    //   // 编译时用的库
+      // 编译时用的库
       "ESNext",
       "DOM"
     ],
