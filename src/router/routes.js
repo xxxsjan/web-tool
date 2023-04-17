@@ -86,6 +86,14 @@ export default [
         meta: {
           title: '依赖包转命令'
         }
+      },
+      {
+        path: 'path-transform',
+        name: 'path-transform',
+        component: () => import('@/pages/path-transform.vue'),
+        meta: {
+          title: 'windows路径转换'
+        }
       }
     ]
   }
