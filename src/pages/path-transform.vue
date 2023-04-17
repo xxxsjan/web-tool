@@ -6,7 +6,7 @@
       v-model="originVal"
       type="textarea"
       placeholder="请输入windows的路径"
-      :autosize="{ minRows: 10, maxRows: 15 }"
+      :autosize="{ minRows: 3, maxRows: 15 }"
       style="width: 50%"
       resize="none"
     />
@@ -17,7 +17,7 @@
       v-show="result"
       v-model="result"
       type="textarea"
-      :autosize="{ minRows: 10, maxRows: 15 }"
+      :autosize="{ minRows: 3, maxRows: 15 }"
       style="width: 50%"
       resize="none"
       @focus="$event => $event.target.select()"
