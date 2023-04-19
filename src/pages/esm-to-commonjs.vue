@@ -100,7 +100,7 @@ const run = () => {
   if (mode.value === 'commonjs') {
     code2.value = code1Text
       .map(item => {
-        let reg = /import\s+(.*?)\s+from\s+["']([\w-]+)["'];?/;
+        let reg = /import\s+(.*?)\s+from\s+["']([\w-\/]+)["'];?/;
         const res = item.replace(reg, function (...args) {
           return `const ${args[1]} = require("${args[2]}");`;
         });
@@ -111,7 +111,7 @@ const run = () => {
   } else {
     code2.value = code1Text
       .map(item => {
-        let reg = /const\s+(.*?)\s+=\s+require\(["']([\w-]+)["']\);?/;
+        let reg = /const\s+(.*?)\s+=\s+require\(["']([\w-\/]+)["']\);?/;
         const res = item.replace(reg, function (...args) {
           return `import ${args[1]} from "${args[2]}";`;
         });

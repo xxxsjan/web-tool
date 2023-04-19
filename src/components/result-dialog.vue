@@ -7,7 +7,7 @@
     :close-on-click-modal="false"
   >
     <el-input
-      :value="result"
+      v-model="inputVal"
       type="textarea"
       placeholder="Please input"
       autosize
@@ -23,7 +23,6 @@
 </template>
 
 <script setup>
-// import { ElMessageBox } from "element-plus";
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -34,10 +33,7 @@ const props = defineProps({
     default: ''
   }
 });
-const emit = defineEmits([
-  // "update:value"
-  'update:modelValue'
-]);
+const emit = defineEmits(['update:modelValue']);
 const dialogVisible = ref(false);
 
 watchEffect(() => {
@@ -45,19 +41,19 @@ watchEffect(() => {
 });
 watch(
   () => dialogVisible.value,
-  (n) => {
+  n => {
     emit('update:modelValue', n);
+  }
+);
+const inputVal = ref('');
+watch(
+  () => props.result,
+  n => {
+    inputVal.value = n;
   }
 );
 const handleClose = done => {
   done();
-  //   ElMessageBox.confirm("Are you sure to close this dialog?")
-  //     .then(() => {
-  //       done();
-  //     })
-  //     .catch(() => {
-  //       // catch error
-  //     });
 };
 const glp = getCurrentInstance().appContext.config.globalProperties;
 const copyResult = coptText => {
