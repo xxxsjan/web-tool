@@ -10,7 +10,7 @@
       v-model="inputVal"
       type="textarea"
       placeholder="Please input"
-      autosize
+      :autosize="{ minRows: 2, maxRows: 13 }"
       style="width: 90%"
     />
     <template #footer>

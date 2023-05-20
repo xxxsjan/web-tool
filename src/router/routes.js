@@ -94,6 +94,14 @@ export default [
         meta: {
           title: 'windows路径转换'
         }
+      },
+      {
+        path: 'vue-to-jsx',
+        name: 'vue-to-jsx',
+        component: () => import('@/pages/vue-to-jsx.vue'),
+        meta: {
+          title: 'vue-to-jsx'
+        }
       }
     ]
   }
