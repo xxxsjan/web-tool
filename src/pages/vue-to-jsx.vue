@@ -1,6 +1,6 @@
 <template>
   <div class="less-to-css flex flex-col justify-center items-center">
-    <h1>{{ pageTitle }}}</h1>
+    <h1>{{ pageTitle }}</h1>
     <el-input
       v-model="codeLeft"
       type="textarea"
@@ -24,10 +24,8 @@ const pageTitle = 'vue-to-jsx';
 
 const dialogVisible = ref(false);
 
-const codeLeft = ref(`<view class="caption">
-    <text class="text">猜你喜欢</text>
-  </view>
-  <view class="guess">
+const codeLeft = ref(`
+  <view class="guess" scroll-y data={{a:'1'}} :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
     <navigator
       v-for="item in guessList"
       :key="item.id"
@@ -43,31 +41,49 @@ const codeLeft = ref(`<view class="caption">
       </view>
     </navigator>
   </view>
-  <view class="loading-text" ref="myRef">
-    {{ finish ? '没有更多了~' : '加载中...' }}
-  </view>
   `);
 const codeRight = ref('左侧输入后点击转换即可输出');
-function toGenerate() {
-  let res = '';
-  res = codeLeft.value.replace(/:(\w+)="(.*?)"/g, function (...rest) {
-    console.log('rest: ', rest);
-    return `${rest[1]}={${rest[2]}}`;
+function hyphenToCamelCase(str) {
+  return str.replace(/-([a-z])/g, function (match, letter) {
+    return letter.toUpperCase();
   });
+}
+function toGenerate() {
+  let res = codeLeft.value;
+  res = res.replace(/:([\w-]+)="(.*?)"/g, function (...rest) {
+    return `${hyphenToCamelCase(rest[1])}={${rest[2]}}`;
+  });
+
+  res = res.replace(/@(\w+)="(.*?)"/g, function (...rest) {
+    console.log('rest: ', rest);
+    return `on${
+      rest[1].charAt(0).toUpperCase() + rest[1].slice(1)
+    }={${rest[2]}}`;
+  });
+
   res = res.replace(/class=/g, 'className=');
-  res = res.replace(/{{(.*?)}}/g, function (...rest) {
+
+  res = res.replace(/(?<!=)\{\{(.*?)\}\}/g, function (...rest) {
     return `{${rest[1]}}`;
   });
+
   res = res.replace(/ref="(.*?)"/g, function (...rest) {
     return `ref={${rest[1]}}`;
   });
+
   res = componentNameReplace(res);
+  // <!-- xxx -->
+  res = res.replace(/<!--.*?-->/g, function (...rest) {
+    return `{/* ${rest[0]} */}`;
+  });
+
   codeRight.value = res;
   dialogVisible.value = true;
 }
 
 function componentNameReplace(str) {
   const map = {
+    'scroll-view': 'ScrollView',
     view: 'View',
     swiper: 'Swiper',
     navigator: 'Navigator',
