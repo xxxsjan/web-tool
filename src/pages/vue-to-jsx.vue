@@ -25,7 +25,7 @@ const pageTitle = 'vue-to-jsx';
 const dialogVisible = ref(false);
 
 const codeLeft = ref(`
-  <view class="guess" scroll-y data={{a:'1'}} :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
+  <view class="guess viewPort" scroll-y data={{a:'1'}} :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
     <navigator
       v-for="item in guessList"
       :key="item.id"
@@ -91,8 +91,16 @@ function componentNameReplace(str) {
     text: 'Text'
   };
   for (let key in map) {
-    const reg = new RegExp(key, 'g');
-    str = str.replace(reg, map[key]);
+    const reg = new RegExp(`<(${key})|<\/(${key})>`, 'g');
+
+    str = str.replace(reg, function (o, m1, m2, ...rest) {
+      if (!m2) {
+        return '<' + map[key];
+      }
+      if (!m1) {
+        return `</${map[key]}>`;
+      }
+    });
   }
   return str;
 }
