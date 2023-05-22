@@ -13,73 +13,13 @@
       <el-button @click="() => toGenerate()">生成</el-button>
     </div>
 
-    <el-card header="驼峰扎转换">
-      <div>
-        <label>驼峰扎转换：</label>
-        <el-input v-model="originVal" style="width: 200px"></el-input>
-      </div>
-
-      <el-button @click="() => (resultVal = pascalToKebab(originVal))"
-        >ToKebab</el-button
-      >
-      <el-button @click="() => (resultVal = camelToKebab(originVal))"
-        >ToKebab</el-button
-      >
-      <el-button @click="() => (resultVal = kebabToPascal(originVal))"
-        >ToPascal</el-button
-      >
-      <el-button @click="() => (resultVal = kebabToCamel(originVal))"
-        >ToCamel</el-button
-      >
-
-      <div>
-        <label>结果：</label>
-        <span>{{ resultVal }}</span>
-        <el-link v-show="resultVal" type="primary" @click="handleCopy"
-          >复制</el-link
-        >
-      </div>
-    </el-card>
+    
   </div>
   <resultDialog v-model="dialogVisible" :result="codeRight" />
 </template>
 
 <script setup>
-// import { useClipboard } from '@vueuse/core';
-const originVal = ref('PascalCase');
-const resultVal = ref('');
-function handleCopy() {
-  // const { text, copy, copied, isSupported } = useClipboard({
-  //   source: resultVal.value
-  // });
-  // console.log(text, copy, copied, isSupported);
-  try {
-    navigator.clipboard.writeText(resultVal.value);
-    ElMessage({
-      message: '已复制',
-      type: 'success'
-    });
-  } catch (error) {
-    alert(error);
-  }
-}
-function kebabToPascal(str) {
-  return str
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
-}
-function pascalToKebab(str) {
-  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-}
-function kebabToCamel(str) {
-  return str
-    .replace(/-([a-z])/g, (_, char) => char.toUpperCase())
-    .replace(/^[A-Z]/, char => char.toLowerCase());
-}
-function camelToKebab(str) {
-  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-}
+
 const pageTitle = 'vue-to-jsx';
 // defineOptions({
 //   name: pageTitle
