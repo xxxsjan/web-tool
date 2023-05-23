@@ -88,11 +88,11 @@ export default [
         }
       },
       {
-        path: 'path-transform',
-        name: 'path-transform',
-        component: () => import('@/pages/path-transform.vue'),
+        path: 'string-transform',
+        name: 'string-transform',
+        component: () => import('@/pages/string-transform/string-transform.vue'),
         meta: {
-          title: 'windows路径转换'
+          title: '字符转换'
         }
       },
       {
