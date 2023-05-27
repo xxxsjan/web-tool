@@ -15,6 +15,7 @@
         :key="r.name"
         >{{ r?.meta?.title || r.name }}</el-menu-item
       >
+      <el-menu-item index="/ikun-keyboard">ikun-keyboard</el-menu-item>
     </el-menu>
     <router-view></router-view>
   </div>

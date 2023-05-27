@@ -122,7 +122,8 @@ onMounted(() => {
       <span class="s4"></span>
     </div>
     <div class="keyContainer">
-      <!-- <div class="leave">n</div> -->
+      <div class="leave">n</div>
+      <div class="leave">n</div>
     </div>
     <audio id="audio" src="./ikun/啊.wav"></audio>
   </div>
@@ -136,7 +137,10 @@ onMounted(() => {
   overflow: hidden;
   position: relative;
 }
+
 .keyContainer {
+  width: 100px;
+  height: 100px;
   color: white;
   font-size: 10em;
   left: 50%;
@@ -146,6 +150,7 @@ onMounted(() => {
 }
 
 .leave {
+  position: absolute;
   animation-name: leave;
   animation-duration: 1s;
   animation-fill-mode: forwards;
