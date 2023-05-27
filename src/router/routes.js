@@ -90,7 +90,8 @@ export default [
       {
         path: 'string-transform',
         name: 'string-transform',
-        component: () => import('@/pages/string-transform/string-transform.vue'),
+        component: () =>
+          import('@/pages/string-transform/string-transform.vue'),
         meta: {
           title: '字符转换'
         }
@@ -104,5 +105,10 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: '/ikun-keyboard',
+    name: 'ikun-keyboard',
+    component: () => import('@/pages/ikun-keyboard.vue')
   }
 ];

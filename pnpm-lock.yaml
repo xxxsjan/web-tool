@@ -22,6 +22,9 @@ dependencies:
   element-plus:
     specifier: ^2.2.22
     version: registry.npmmirror.com/element-plus@2.2.22(vue@3.2.45)
+  gsap:
+    specifier: ^3.11.5
+    version: 3.11.5
   less:
     specifier: ^4.1.3
     version: registry.npmmirror.com/less@4.1.3
@@ -430,6 +433,10 @@ packages:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
     requiresBuild: true
     optional: true
+
+  /gsap@3.11.5:
+    resolution: {integrity: sha512-Q89nKCLgoX5xUjznh9LcaIUkz54k1voNucT1Rpf9SJNFIQznBwFqt5qUUQbeVInFyN/n18OUJkpeI6CNEDt74w==}
+    dev: false
 
   /image-size@0.5.5:
     resolution: {integrity: sha512-6TDAlDPZxUFCv+fuOkIoXT/V/f3Qbq8e37p+YOiYrUv3v9cc3/6x78VdfPgFVaB9dZYeLUfKgHRebpkm/oP2VQ==}

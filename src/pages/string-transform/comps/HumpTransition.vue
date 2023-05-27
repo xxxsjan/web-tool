@@ -20,7 +20,7 @@
 
     <div>
       <label>结果：</label>
-      <span>{{ resultVal }}</span>
+      <pre>{{ resultVal }}</pre>
       <el-link v-show="resultVal" type="primary" @click="handleCopy"
         >复制</el-link
       >
