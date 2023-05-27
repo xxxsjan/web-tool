@@ -1,19 +1,20 @@
 <template>
-  <div class="less-to-css flex flex-col justify-center items-center">
-    <h1>less语法转css</h1>
-    <el-input
-      v-model="codeLeft"
-      type="textarea"
-      placeholder="Please input"
-      :autosize="{ minRows: 10, maxRows: 15 }"
-      style="width: 50%"
-      resize="none"
-    />
-    <div class="my-[10px]">
-      <el-button @click="() => toGenerate()">生成</el-button>
+  <el-card header="less语法转css" style="width: 700px">
+    <div class="less-to-css flex flex-col justify-center items-center">
+      <el-input
+        v-model="codeLeft"
+        type="textarea"
+        placeholder="Please input"
+        :autosize="{ minRows: 10, maxRows: 15 }"
+        style="width: 50%"
+        resize="none"
+      />
+      <div class="my-[10px]">
+        <el-button @click="() => toGenerate()">生成</el-button>
+      </div>
     </div>
-  </div>
-  <resultDialog v-model="dialogVisible" :result="codeRight" />
+    <resultDialog v-model="dialogVisible" :result="codeRight" />
+  </el-card>
 </template>
 
 <script setup lang="ts">
