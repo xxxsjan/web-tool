@@ -22,7 +22,6 @@ declare module '@vue/runtime-core' {
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElSelect: typeof import('element-plus/es')['ElSelect']
-    ElText: typeof import('element-plus/es')['ElText']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     IEpPlus: typeof import('~icons/ep/plus')['default']
     IEpRefreshLeft: typeof import('~icons/ep/refresh-left')['default']
