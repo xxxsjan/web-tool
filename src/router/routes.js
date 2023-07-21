@@ -88,6 +88,14 @@ export default [
         meta: {
           title: 'vue-to-jsx'
         }
+      },
+      {
+        path: 'preview-html',
+        name: 'preview-html',
+        component: () => import('@/pages/preview-html.vue'),
+        meta: {
+          title: '三件套预览html'
+        }
       }
     ]
   },
