@@ -16,6 +16,14 @@ export default [
         }
       },
       {
+        path: 'preview-html',
+        name: 'preview-html',
+        component: () => import('@/pages/preview-html.vue'),
+        meta: {
+          title: '三件套预览html'
+        }
+      },
+      {
         path: '/vscode-snippet-generator',
         name: 'vscode-snippet-generator',
         component: () => import('@/pages/vscode-snippet-generator.vue'),
@@ -87,14 +95,6 @@ export default [
         component: () => import('@/pages/vue-to-jsx.vue'),
         meta: {
           title: 'vue-to-jsx'
-        }
-      },
-      {
-        path: 'preview-html',
-        name: 'preview-html',
-        component: () => import('@/pages/preview-html.vue'),
-        meta: {
-          title: '三件套预览html'
         }
       }
     ]

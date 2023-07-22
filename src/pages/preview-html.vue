@@ -29,8 +29,16 @@
 </template>
 
 <script lang="ts" setup>
-const html = ref(`<div>Hello world</div>`);
-const style = ref(`div{color:#bfa;}`);
+const html = ref(`<div class="triangle"></div>`);
+const style = ref(`.triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 200px 200px 0 0;
+  border-color: #007bff transparent transparent transparent;
+  -webkit-filter: drop-shadow(1px 1px 1px rgba(0,0,0,.5));
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,.5));
+}`);
 const script = ref('');
 
 function setIframe(html: string, style: string, script: string) {
@@ -60,5 +68,6 @@ onMounted(() => {
 <style scoped>
 iframe {
   width: 100%;
+  min-height: 400px;
 }
 </style>
