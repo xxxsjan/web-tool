@@ -63,7 +63,7 @@ function bindEvent() {
 }
 const _map = {
   a: '/ikun/啊.wav',
-  m: '/ikun/没.wav',
+  m: '/ikun/mei.wav',
   n: '/ikun/你.wav',
   t: '/ikun/太.wav',
   c: '/ikun/唱.wav',
