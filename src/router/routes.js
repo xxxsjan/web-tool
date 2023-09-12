@@ -67,7 +67,7 @@ export default [
       {
         path: '/image-to-icon',
         name: 'image-to-icon',
-        component: () => import('@/pages/image-to-icon.vue'),
+        component: () => import('@/pages/image-to-icon/index.vue'),
         meta: {
           title: '图片转icon'
         }

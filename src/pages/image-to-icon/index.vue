@@ -1,16 +1,7 @@
 <template>
   <div class="flex flex-col justify-center items-center">
-    <el-upload
-      v-model:file-list="fileList"
-      class="upload-demo1"
-      action=""
-      :auto-upload="false"
-      :limit="1"
-      :on-exceed="handleExceed"
-      ref="upload"
-      :http-request="httpRequest"
-      list-type="picture-card"
-    >
+    <el-upload v-model:file-list="fileList" class="upload-demo1" action="" :auto-upload="false" :limit="1"
+      :on-exceed="handleExceed" ref="upload" :http-request="httpRequest" list-type="picture-card">
       <template #trigger>
         <el-icon><i-ep-Plus /></el-icon>
       </template>
@@ -29,9 +20,11 @@
       </el-select>
       <el-button type="primary" @click="toDo">生成icon文件</el-button>
     </div>
+    <DomToSvg />
   </div>
 </template>
 <script setup>
+import DomToSvg from './dom-to-svg.vue';
 import { genFileId } from 'element-plus';
 const upload = ref();
 const fileList = ref([]);

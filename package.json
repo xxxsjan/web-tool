@@ -20,6 +20,8 @@
     "@vercel/analytics": "^0.1.11",
     "@vueuse/core": "^10.1.2",
     "codemirror": "^6.0.1",
+    "dom-to-image": "^2.6.0",
+    "dom-to-svg": "^0.12.2",
     "element-plus": "^2.2.22",
     "gsap": "^3.11.5",
     "less": "^4.1.3",
