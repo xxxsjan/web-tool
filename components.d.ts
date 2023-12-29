@@ -7,6 +7,8 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    ArrowLeft: typeof import('./src/components/icons/arrow-left.vue')['default']
+    BackHomeBtn: typeof import('./src/components/BackHomeBtn.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElDialog: typeof import('element-plus/es')['ElDialog']
@@ -29,6 +31,7 @@ declare module '@vue/runtime-core' {
     ResultDialog: typeof import('./src/components/result-dialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Tool: typeof import('./src/components/icons/tool.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

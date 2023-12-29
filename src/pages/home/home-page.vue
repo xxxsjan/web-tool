@@ -1,11 +1,15 @@
 <template>
   <div class="home-page">
-    <div class="text">WelCome</div>
-    <canvas id="bg"></canvas>
+    <div v-if="welcome" class="text" @click="welcome = false">WelCome</div>
+    <canvas id="bg" v-if="welcome"></canvas>
+    <NavigationList v-else />
   </div>
 </template>
 
 <script setup lang="ts">
+import NavigationList from './NavigationList.vue';
+
+const welcome = ref(true);
 let canvasWidth: number, canvasHeight: number;
 
 function initCanvas() {

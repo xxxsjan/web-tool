@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-menu
+    <!-- <el-menu
       :default-active="activeIndex"
       class="el-menu-demo"
       mode="horizontal"
@@ -16,13 +16,19 @@
         >{{ r?.meta?.title || r.name }}</el-menu-item
       >
       <el-menu-item index="/ikun-keyboard">ikun-keyboard</el-menu-item>
-    </el-menu>
-    <router-view></router-view>
+    </el-menu> -->
+    <div>
+      <BackHomeBtn v-show="route.path !== '/'" />
+
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import routes from './router/routes';
-const activeIndex = ref('vscode-snippet-generator');
+import BackHomeBtn from '@/components/BackHomeBtn.vue';
+const route = useRoute();
+
+// import routes from './router/routes';
+// const activeIndex = ref('vscode-snippet-generator');
 </script>
