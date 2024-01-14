@@ -6,4 +6,5 @@ function transf(str = 'z-index') {
     })
   );
 }
-transf('content-type');
+// 测试
+// transf('content-type');
