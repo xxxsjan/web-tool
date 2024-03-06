@@ -2,7 +2,7 @@
   <div class="index_page">
     <div class="nya-container">
       <div class="nya-title">
-        <i class="eva eva-thermometer-plus-outline"></i><span>热门</span>
+        <i class="eva eva-thermometer-plus-outline"></i><span>工具</span>
       </div>
 
       <a
@@ -28,6 +28,10 @@
 import routes from '@/router/routes';
 import IconTool from '@/components/icons/tool.vue';
 const list = ref(routes[0].children.filter(r => r.path !== '/'));
+list.value.push({
+  path: '/html/text-reading.html',
+  name: '文字朗读'
+});
 </script>
 
 <style lang="scss" scoped>
@@ -37,7 +41,7 @@ const list = ref(routes[0].children.filter(r => r.path !== '/'));
   min-height: calc(100vh - 18px);
 
   box-sizing: border-box;
-  margin: auto;
+  margin: 88px auto;
   padding: 0 6vw 0;
 
   --theme: #249ffd;

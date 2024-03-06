@@ -1,8 +1,11 @@
 <template>
   <div class="home-page">
-    <div v-if="welcome" class="text" @click="welcome = false">WelCome</div>
-    <canvas id="bg" v-if="welcome"></canvas>
+    <div v-if="welcome" class="text" @click="welcome = false">
+      <div class="welcome-text">WelCome</div>
+      <h1 class="animate-text">点击进入</h1>
+    </div>
     <NavigationList v-else />
+    <canvas id="bg" v-if="welcome"></canvas>
   </div>
 </template>
 
@@ -92,7 +95,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .home-page {
   position: absolute;
   top: 0;
@@ -107,8 +110,25 @@ onUnmounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 10vw;
   text-align: center;
   transform: translate(-50%, -50%);
+  user-select: none;
+  .welcome-text {
+    font-size: 10vw;
+  }
+  .animate-text {
+    font-size: 1vw;
+    white-space: nowrap;
+    animation: animate 3s linear forwards;
+  }
+
+  @keyframes animate {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0.3;
+    }
+  }
 }
 </style>

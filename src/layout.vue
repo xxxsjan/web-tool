@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-menu
+      v-if="false"
       :default-active="activeIndex"
       class="el-menu-demo"
       mode="horizontal"
@@ -18,8 +19,7 @@
       <el-menu-item index="/ikun-keyboard">ikun-keyboard</el-menu-item>
     </el-menu>
     <div>
-      <BackHomeBtn v-show="route.path !== '/'" />
-
+      <BackHomeBtn v-show="route.path !== '/'" class="m-4" />
       <router-view></router-view>
     </div>
   </div>
