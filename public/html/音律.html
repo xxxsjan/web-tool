@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>音律</title>
+    <style>
+        html {
+            -webkit-overflow-scrolling: touch;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            user-select: none;
+            font-family: Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        :root {
+            --color: #ce93d8;
+        }
+
+        .container {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .btn {
+            border-width: 0;
+            font-size: 14px;
+            width: 4rem;
+            line-height: 2rem;
+            background-color: var(--color);
+            color: #fff;
+            outline: none;
+            cursor: pointer;
+            background-image: linear-gradient(45deg, #fff 0.3rem, transparent 0),
+                linear-gradient(-135deg, #fff 0.3rem, transparent 0);
+        }
+
+        .btn+button {
+            margin-left: 1rem;
+        }
+
+        label+label {
+            margin-left: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <button class="btn" data-idx="-9">Do</button>
+        <button class="btn" data-idx="-7">Rai</button>
+        <button class="btn" data-idx="-5">Mi</button>
+        <button class="btn" data-idx="-4">Fa</button>
+        <button class="btn" data-idx="-2">So</button>
+        <button class="btn" data-idx="0">La</button>
+        <button class="btn" data-idx="2">Xi</button>
+        <p>
+            <label for="sine">
+                <input type="radio" name="wave" id="sine" value="sine" checked />
+                Sine
+            </label>
+            <label for="square">
+                <input type="radio" name="wave" id="square" value="square" />
+                Square
+            </label>
+            <label for="sawtooth">
+                <input type="radio" name="wave" id="sawtooth" value="sawtooth" />
+                Sawtooth
+            </label>
+            <label for="triangle">
+                <input type="radio" name="wave" id="triangle" value="triangle" />
+                Triangle
+            </label>
+        </p>
+    </div>
+
+    <script>
+        const beep = (freq, wave, duration = 1) => {
+            // Older webkit/blink browsers require a prefix
+            const AudioContext = window.AudioContext || window.webkitAudioContext
+            // 创建音频上下文
+            const audioCtx = new AudioContext()
+            // 创建音频振荡器
+            const oscillator = audioCtx.createOscillator()
+            // 创建音量控制
+            const gainNode = audioCtx.createGain()
+            // 创建音频输出端
+            const destNode = audioCtx.destination
+            // 串联各个 node
+            oscillator.connect(gainNode).connect(destNode)
+
+            // 设置鲨鱼齿波形
+            oscillator.type = wave
+            // 设置振荡器频率
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime)
+            oscillator.start(audioCtx.currentTime)
+            oscillator.stop(audioCtx.currentTime + duration)
+
+            // 当前时间设置音量为 0
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
+            // 0.01 秒后音量为 1
+            gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.01)
+            // 1 秒内声音慢慢降低
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1)
+
+            oscillator.onended = () => {
+                audioCtx.close()
+            }
+        }
+
+        const container = document.querySelector(".container")
+        // 按钮事件
+        container.addEventListener(
+            "mousedown",
+            evt => {
+                if (evt.target.tagName.toLowerCase() === "button") {
+                    // 读取波形名称
+                    const wave = Array.from(document.getElementsByName("wave")).find(item => item.checked).value
+                    // 读取 data-idx
+                    const idx = +evt.target.dataset["idx"]
+                    // 换算频率
+                    const frequency = 440 * Math.pow(2, idx / 12)
+                    // 振荡器发声
+                    beep(frequency, wave)
+                }
+            },
+            false
+        )
+    </script>
+</body>
+
+</html>

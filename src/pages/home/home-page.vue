@@ -11,6 +11,10 @@
 
 <script setup lang="ts">
 import NavigationList from './NavigationList.vue';
+import { useCounterStore } from '@/stores/counter';
+
+const store = useCounterStore();
+console.log('store: ', store);
 
 const welcome = ref(true);
 let canvasWidth: number, canvasHeight: number;
