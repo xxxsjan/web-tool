@@ -38,7 +38,7 @@ list.value.push({
 .index_page {
   position: relative;
   max-width: 62.5rem;
-  min-height: calc(100vh - 18px);
+  // min-height: calc(100vh - 18px);
 
   box-sizing: border-box;
   margin: 88px auto;

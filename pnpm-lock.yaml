@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@codemirror/lang-css':
         specifier: ^6.1.1
-        version: 6.1.1(@codemirror/view@6.12.0)(@lezer/common@1.0.2)
+        version: 6.1.1(@codemirror/view@6.25.1)(@lezer/common@1.2.1)
       '@codemirror/lang-json':
         specifier: ^6.0.1
         version: 6.0.1
@@ -25,7 +25,7 @@ importers:
         version: 10.1.2(vue@3.2.45)
       codemirror:
         specifier: ^6.0.1
-        version: registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.0.2)
+        version: registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.2.1)
       dom-to-image:
         specifier: ^2.6.0
         version: 2.6.0
@@ -210,11 +210,26 @@ packages:
       '@codemirror/state': 6.2.0
       '@codemirror/view': 6.12.0
       '@lezer/common': 1.0.2
+    dev: true
 
-  /@codemirror/lang-css@6.1.1(@codemirror/view@6.12.0)(@lezer/common@1.0.2):
+  /@codemirror/autocomplete@6.4.0(@codemirror/language@6.6.0)(@codemirror/state@6.2.0)(@codemirror/view@6.25.1)(@lezer/common@1.2.1):
+    resolution: {integrity: sha512-HLF2PnZAm1s4kGs30EiqKMgD7XsYaQ0XJnMR0rofEWQ5t5D60SfqpDIkIh1ze5tiEbyUWm8+VJ6W1/erVvBMIA==}
+    peerDependencies:
+      '@codemirror/language': ^6.0.0
+      '@codemirror/state': ^6.0.0
+      '@codemirror/view': ^6.0.0
+      '@lezer/common': ^1.0.0
+    dependencies:
+      '@codemirror/language': 6.6.0
+      '@codemirror/state': 6.2.0
+      '@codemirror/view': 6.25.1
+      '@lezer/common': 1.2.1
+    dev: false
+
+  /@codemirror/lang-css@6.1.1(@codemirror/view@6.25.1)(@lezer/common@1.2.1):
     resolution: {integrity: sha512-P6jdNEHyRcqqDgbvHYyC9Wxkek0rnG3a9aVSRi4a7WrjPbQtBTaOmvYpXmm13zZMAatO4Oqpac+0QZs7sy+LnQ==}
     dependencies:
-      '@codemirror/autocomplete': 6.4.0(@codemirror/language@6.6.0)(@codemirror/state@6.2.0)(@codemirror/view@6.12.0)(@lezer/common@1.0.2)
+      '@codemirror/autocomplete': 6.4.0(@codemirror/language@6.6.0)(@codemirror/state@6.2.0)(@codemirror/view@6.25.1)(@lezer/common@1.2.1)
       '@codemirror/language': 6.6.0
       '@codemirror/state': 6.2.0
       '@lezer/css': 1.1.1
@@ -263,12 +278,24 @@ packages:
   /@codemirror/state@6.2.0:
     resolution: {integrity: sha512-69QXtcrsc3RYtOtd+GsvczJ319udtBf1PTrr2KbLWM/e2CXUPnh0Nz9AUo8WfhSQ7GeL8dPVNUmhQVgpmuaNGA==}
 
+  /@codemirror/state@6.4.1:
+    resolution: {integrity: sha512-QkEyUiLhsJoZkbumGZlswmAhA7CBU02Wrz7zvH4SrcifbsqwlXShVXg65f3v/ts57W3dqyamEriMhij1Z3Zz4A==, tarball: https://registry.npmmirror.com/@codemirror/state/-/state-6.4.1.tgz}
+    dev: false
+
   /@codemirror/view@6.12.0:
     resolution: {integrity: sha512-xNHvbJBc2v8JuEcIGOck6EUGShpP+TYGCEMVEVQMYxbFXfMhYnoF3znxB/2GgeKR0nrxBs+nhBupiTYQqCp2kw==}
     dependencies:
       '@codemirror/state': 6.2.0
       style-mod: 4.0.3
       w3c-keyname: 2.2.7
+
+  /@codemirror/view@6.25.1:
+    resolution: {integrity: sha512-2LXLxsQnHDdfGzDvjzAwZh2ZviNJm7im6tGpa0IONIDnFd8RZ80D2SNi8PDi6YjKcMoMRK20v6OmKIdsrwsyoQ==, tarball: https://registry.npmmirror.com/@codemirror/view/-/view-6.25.1.tgz}
+    dependencies:
+      '@codemirror/state': 6.4.1
+      style-mod: 4.1.2
+      w3c-keyname: 2.2.8
+    dev: false
 
   /@csstools/selector-specificity@2.2.0(postcss-selector-parser@6.0.11):
     resolution: {integrity: sha512-+OJ9konv95ClSTOJCmMZqpd5+YGsB2S+x6w3E1oaM8UuR5j8nTNHYSz8c9BEPGDOCMQYIEEGlVPj/VY64iTbGw==}
@@ -332,6 +359,10 @@ packages:
 
   /@lezer/common@1.0.2:
     resolution: {integrity: sha512-SVgiGtMnMnW3ActR8SXgsDhw7a0w0ChHSYAyAUxxrOiJ1OqYWEKk/xJd84tTSPo1mo6DXLObAJALNnd0Hrv7Ng==}
+
+  /@lezer/common@1.2.1:
+    resolution: {integrity: sha512-yemX0ZD2xS/73llMZIK6KplkjIjf2EvAHcinDi/TfJ9hS25G0388+ClHt6/3but0oOxinTcQHJLDXh6w1crzFQ==, tarball: https://registry.npmmirror.com/@lezer/common/-/common-1.2.1.tgz}
+    dev: false
 
   /@lezer/css@1.1.1:
     resolution: {integrity: sha512-mSjx+unLLapEqdOYDejnGBokB5+AiJKZVclmud0MKQOKx3DLJ5b5VTCstgDDknR6iIV4gVrN6euzsCnj0A2gQA==}
@@ -781,8 +812,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /caniuse-lite@1.0.30001489:
-    resolution: {integrity: sha512-x1mgZEXK8jHIfAxm+xgdpHpk50IN3z3q3zP261/WS+uvePxW8izXuCu6AHz0lkuYTlATDehiZ/tNyYBdSQsOUQ==}
+  /caniuse-lite@1.0.30001596:
+    resolution: {integrity: sha512-zpkZ+kEr6We7w63ORkoJ2pOfBwBkY/bJrG/UZ90qNb45Isblu8wzDgevEOrRL1r9dWayHjYiiyCMEXPn4DweGQ==, tarball: https://registry.npmmirror.com/caniuse-lite/-/caniuse-lite-1.0.30001596.tgz}
     dev: true
 
   /chalk@2.4.2:
@@ -863,18 +894,6 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
     dev: true
-
-  /debug@3.2.7:
-    resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
-    requiresBuild: true
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.3
-    optional: true
 
   /debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -1718,11 +1737,6 @@ packages:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
     dev: true
 
-  /ms@2.1.3:
-    resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
-    requiresBuild: true
-    optional: true
-
   /nanoid@3.3.6:
     resolution: {integrity: sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -1732,17 +1746,14 @@ packages:
     resolution: {integrity: sha512-Tj+HTDSJJKaZnfiuw+iaF9skdPpTo2GtEly5JHnWV/hfv2Qj/9RKsGISQtLh2ox3l5EAGw487hnBee0sIJ6v2g==}
     dev: true
 
-  /needle@3.2.0:
-    resolution: {integrity: sha512-oUvzXnyLiVyVGoianLijF9O/RecZUf7TkBfimjGrLM4eQhXyeJwM6GeAWccwfQ9aa4gMCZKqhAOuLaMIcQxajQ==, tarball: https://registry.npmmirror.com/needle/-/needle-3.2.0.tgz}
+  /needle@3.3.1:
+    resolution: {integrity: sha512-6k0YULvhpw+RoLNiQCRKOl09Rv1dPLr8hHnVjHqdolKwDrdNyk+Hmrthi4lIGPPz3r39dLx0hsF5s40sZ3Us4Q==, tarball: https://registry.npmmirror.com/needle/-/needle-3.3.1.tgz}
     engines: {node: '>= 4.4.x'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      debug: 3.2.7
       iconv-lite: 0.6.3
       sax: 1.2.4
-    transitivePeerDependencies:
-      - supports-color
     optional: true
 
   /normalize-package-data@2.5.0:
@@ -2177,6 +2188,10 @@ packages:
   /style-mod@4.0.3:
     resolution: {integrity: sha512-78Jv8kYJdjbvRwwijtCevYADfsI0lGzYJe4mMFdceO8l75DFFDoqBhR1jVDicDRRaX4//g1u9wKeo+ztc2h1Rw==}
 
+  /style-mod@4.1.2:
+    resolution: {integrity: sha512-wnD1HyVqpJUI2+eKZ+eo1UwghftP6yuFheBqqe+bWCotBjC2K1YnteJILRMs3SM4V/0dLEW1SC27MWP5y+mwmw==, tarball: https://registry.npmmirror.com/style-mod/-/style-mod-4.1.2.tgz}
+    dev: false
+
   /style-search@0.1.0:
     resolution: {integrity: sha512-Dj1Okke1C3uKKwQcetra4jSuk0DqbzbYtXipzFlFMZtowbF1x7BKJwB9AayVMyFARvU8EDrZdcax4At/452cAg==}
     dev: true
@@ -2511,6 +2526,10 @@ packages:
   /w3c-keyname@2.2.7:
     resolution: {integrity: sha512-XB8aa62d4rrVfoZYQaYNy3fy+z4nrfy2ooea3/0BnBzXW0tSdZ+lRgjzBZhk0La0H6h8fVyYCxx/qkQcAIuvfg==}
 
+  /w3c-keyname@2.2.8:
+    resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==, tarball: https://registry.npmmirror.com/w3c-keyname/-/w3c-keyname-2.2.8.tgz}
+    dev: false
+
   /which@1.3.1:
     resolution: {integrity: sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ==}
     hasBin: true
@@ -2611,7 +2630,7 @@ packages:
       to-fast-properties: registry.npmmirror.com/to-fast-properties@2.0.0
     dev: true
 
-  registry.npmmirror.com/@codemirror/autocomplete@6.4.0(@codemirror/language@6.3.2)(@codemirror/state@6.2.0)(@codemirror/view@6.7.1)(@lezer/common@1.0.2):
+  registry.npmmirror.com/@codemirror/autocomplete@6.4.0(@codemirror/language@6.3.2)(@codemirror/state@6.2.0)(@codemirror/view@6.7.1)(@lezer/common@1.2.1):
     resolution: {integrity: sha512-HLF2PnZAm1s4kGs30EiqKMgD7XsYaQ0XJnMR0rofEWQ5t5D60SfqpDIkIh1ze5tiEbyUWm8+VJ6W1/erVvBMIA==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/@codemirror/autocomplete/-/autocomplete-6.4.0.tgz}
     id: registry.npmmirror.com/@codemirror/autocomplete/6.4.0
     name: '@codemirror/autocomplete'
@@ -2625,7 +2644,7 @@ packages:
       '@codemirror/language': registry.npmmirror.com/@codemirror/language@6.3.2
       '@codemirror/state': 6.2.0
       '@codemirror/view': registry.npmmirror.com/@codemirror/view@6.7.1
-      '@lezer/common': 1.0.2
+      '@lezer/common': 1.2.1
     dev: false
 
   registry.npmmirror.com/@codemirror/commands@6.1.3:
@@ -3191,7 +3210,7 @@ packages:
       postcss: ^8.1.0
     dependencies:
       browserslist: registry.npmmirror.com/browserslist@4.21.4
-      caniuse-lite: 1.0.30001489
+      caniuse-lite: 1.0.30001596
       fraction.js: registry.npmmirror.com/fraction.js@4.2.0
       normalize-range: registry.npmmirror.com/normalize-range@0.1.2
       picocolors: registry.npmmirror.com/picocolors@1.0.0
@@ -3249,7 +3268,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001489
+      caniuse-lite: 1.0.30001596
       electron-to-chromium: registry.npmmirror.com/electron-to-chromium@1.4.284
       node-releases: registry.npmmirror.com/node-releases@2.0.6
       update-browserslist-db: registry.npmmirror.com/update-browserslist-db@1.0.10(browserslist@4.21.4)
@@ -3295,13 +3314,13 @@ packages:
     optionalDependencies:
       fsevents: 2.3.3
 
-  registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.0.2):
+  registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.2.1):
     resolution: {integrity: sha512-J8j+nZ+CdWmIeFIGXEFbFPtpiYacFMDR8GlHK3IyHQJMCaVRfGx9NT+Hxivv1ckLWPvNdZqndbr/7lVhrf/Svg==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/codemirror/-/codemirror-6.0.1.tgz}
     id: registry.npmmirror.com/codemirror/6.0.1
     name: codemirror
     version: 6.0.1
     dependencies:
-      '@codemirror/autocomplete': registry.npmmirror.com/@codemirror/autocomplete@6.4.0(@codemirror/language@6.3.2)(@codemirror/state@6.2.0)(@codemirror/view@6.7.1)(@lezer/common@1.0.2)
+      '@codemirror/autocomplete': registry.npmmirror.com/@codemirror/autocomplete@6.4.0(@codemirror/language@6.3.2)(@codemirror/state@6.2.0)(@codemirror/view@6.7.1)(@lezer/common@1.2.1)
       '@codemirror/commands': registry.npmmirror.com/@codemirror/commands@6.1.3
       '@codemirror/language': registry.npmmirror.com/@codemirror/language@6.3.2
       '@codemirror/lint': registry.npmmirror.com/@codemirror/lint@6.1.0
@@ -4003,10 +4022,8 @@ packages:
       image-size: 0.5.5
       make-dir: 2.1.0
       mime: 1.6.0
-      needle: 3.2.0
+      needle: 3.3.1
       source-map: 0.6.1
-    transitivePeerDependencies:
-      - supports-color
 
   registry.npmmirror.com/levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/levn/-/levn-0.4.1.tgz}
@@ -4970,7 +4987,7 @@ packages:
       '@codemirror/language': registry.npmmirror.com/@codemirror/language@6.3.2
       '@codemirror/state': 6.2.0
       '@codemirror/view': registry.npmmirror.com/@codemirror/view@6.7.1
-      codemirror: registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.0.2)
+      codemirror: registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.2.1)
       vue: registry.npmmirror.com/vue@3.2.45
     dev: false
 
