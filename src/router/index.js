@@ -4,7 +4,7 @@ import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 
 NProgress.configure({
-  showSpinner: false // 可选配置，是否显示加载中的小圆圈
+  showSpinner: true //  是否显示加载中的小圆圈
 });
 const router = createRouter({
   history: createWebHistory(),

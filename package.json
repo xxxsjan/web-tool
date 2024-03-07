@@ -28,6 +28,7 @@
     "monaco-editor": "^0.34.1",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.14",
+    "pinia-plugin-persistedstate": "^3.2.1",
     "tailwindcss": "^3.2.4",
     "vue": "^3.2.45",
     "vue-codemirror": "^6.1.1",

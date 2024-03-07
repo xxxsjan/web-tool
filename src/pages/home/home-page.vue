@@ -1,30 +1,32 @@
 <template>
   <div class="home-page">
-    <div v-if="welcome" class="text" @click="welcome = false">
+    <div v-if="showWelcome" class="text" @click="showWelcome = false">
       <div class="welcome-text">WelCome</div>
       <h1 class="animate-text">点击进入</h1>
     </div>
     <NavigationList v-else />
-    <canvas id="bg" v-if="welcome"></canvas>
+    <canvas id="bg" v-if="showWelcome"></canvas>
   </div>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import NavigationList from './NavigationList.vue';
-import { useCounterStore } from '@/stores/counter';
+import { useHomeStore } from '@/stores/home';
 
-const store = useCounterStore();
-console.log('store: ', store);
+const homeStore = useHomeStore();
 
-const welcome = ref(true);
+const { showWelcome } = storeToRefs(homeStore);
+
 let canvasWidth: number, canvasHeight: number;
 
 function initCanvas() {
-  const { width, height } = window.getComputedStyle(
-    document.querySelector('.home-page') as HTMLElement
-  );
-  canvasWidth = parseInt(width);
-  canvasHeight = parseInt(height);
+  const { innerWidth, innerHeight } = window;
+  // const { width, height } = window.getComputedStyle(
+  //   document.querySelector('.home-page') as HTMLElement
+  // );
+  canvasWidth = parseInt(innerWidth + 'px');
+  canvasHeight = parseInt(innerHeight + 'px');
   const canvas = document.querySelector('#bg') as HTMLCanvasElement;
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
