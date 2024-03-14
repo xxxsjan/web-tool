@@ -4,161 +4,165 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-importers:
+dependencies:
+  '@codemirror/lang-css':
+    specifier: ^6.1.1
+    version: 6.1.1(@codemirror/view@6.25.1)(@lezer/common@1.2.1)
+  '@codemirror/lang-json':
+    specifier: ^6.0.1
+    version: 6.0.1
+  '@element-plus/icons-vue':
+    specifier: ^2.1.0
+    version: 2.1.0(vue@3.2.45)
+  '@vercel/analytics':
+    specifier: ^0.1.11
+    version: 0.1.11(react@18.2.0)
+  '@vueuse/core':
+    specifier: ^10.1.2
+    version: 10.1.2(vue@3.2.45)
+  bignumber.js:
+    specifier: ^9.1.2
+    version: 9.1.2
+  codemirror:
+    specifier: ^6.0.1
+    version: registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.2.1)
+  dayjs:
+    specifier: ^1.11.10
+    version: 1.11.10
+  dom-to-image:
+    specifier: ^2.6.0
+    version: 2.6.0
+  dom-to-svg:
+    specifier: ^0.12.2
+    version: 0.12.2
+  element-plus:
+    specifier: ^2.2.22
+    version: registry.npmmirror.com/element-plus@2.2.22(vue@3.2.45)
+  gsap:
+    specifier: ^3.11.5
+    version: 3.11.5
+  less:
+    specifier: ^4.1.3
+    version: registry.npmmirror.com/less@4.1.3
+  monaco-editor:
+    specifier: ^0.34.1
+    version: registry.npmmirror.com/monaco-editor@0.34.1
+  nprogress:
+    specifier: ^0.2.0
+    version: 0.2.0
+  pinia:
+    specifier: ^2.0.14
+    version: 2.0.14(typescript@5.0.3)(vue@3.2.45)
+  pinia-plugin-persistedstate:
+    specifier: ^3.2.1
+    version: 3.2.1(pinia@2.0.14)
+  tailwindcss:
+    specifier: ^3.2.4
+    version: registry.npmmirror.com/tailwindcss@3.2.4(postcss@8.4.19)
+  vue:
+    specifier: ^3.2.45
+    version: registry.npmmirror.com/vue@3.2.45
+  vue-codemirror:
+    specifier: ^6.1.1
+    version: registry.npmmirror.com/vue-codemirror@6.1.1(codemirror@6.0.1)(vue@3.2.45)
+  vue-router:
+    specifier: ^4.1.6
+    version: registry.npmmirror.com/vue-router@4.1.6(vue@3.2.45)
 
-  .:
-    dependencies:
-      '@codemirror/lang-css':
-        specifier: ^6.1.1
-        version: 6.1.1(@codemirror/view@6.25.1)(@lezer/common@1.2.1)
-      '@codemirror/lang-json':
-        specifier: ^6.0.1
-        version: 6.0.1
-      '@element-plus/icons-vue':
-        specifier: ^2.1.0
-        version: 2.1.0(vue@3.2.45)
-      '@vercel/analytics':
-        specifier: ^0.1.11
-        version: 0.1.11(react@18.2.0)
-      '@vueuse/core':
-        specifier: ^10.1.2
-        version: 10.1.2(vue@3.2.45)
-      codemirror:
-        specifier: ^6.0.1
-        version: registry.npmmirror.com/codemirror@6.0.1(@lezer/common@1.2.1)
-      dom-to-image:
-        specifier: ^2.6.0
-        version: 2.6.0
-      dom-to-svg:
-        specifier: ^0.12.2
-        version: 0.12.2
-      element-plus:
-        specifier: ^2.2.22
-        version: registry.npmmirror.com/element-plus@2.2.22(vue@3.2.45)
-      gsap:
-        specifier: ^3.11.5
-        version: 3.11.5
-      less:
-        specifier: ^4.1.3
-        version: registry.npmmirror.com/less@4.1.3
-      monaco-editor:
-        specifier: ^0.34.1
-        version: registry.npmmirror.com/monaco-editor@0.34.1
-      nprogress:
-        specifier: ^0.2.0
-        version: 0.2.0
-      pinia:
-        specifier: ^2.0.14
-        version: 2.0.14(typescript@5.0.3)(vue@3.2.45)
-      pinia-plugin-persistedstate:
-        specifier: ^3.2.1
-        version: 3.2.1(pinia@2.0.14)
-      tailwindcss:
-        specifier: ^3.2.4
-        version: registry.npmmirror.com/tailwindcss@3.2.4(postcss@8.4.19)
-      vue:
-        specifier: ^3.2.45
-        version: registry.npmmirror.com/vue@3.2.45
-      vue-codemirror:
-        specifier: ^6.1.1
-        version: registry.npmmirror.com/vue-codemirror@6.1.1(codemirror@6.0.1)(vue@3.2.45)
-      vue-router:
-        specifier: ^4.1.6
-        version: registry.npmmirror.com/vue-router@4.1.6(vue@3.2.45)
-    devDependencies:
-      '@codemirror/lang-javascript':
-        specifier: ^6.1.4
-        version: 6.1.4
-      '@codemirror/state':
-        specifier: ^6.2.0
-        version: 6.2.0
-      '@iconify-json/ep':
-        specifier: ^1.1.10
-        version: 1.1.10
-      '@types/less':
-        specifier: ^3.0.3
-        version: 3.0.3
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.57.0
-        version: 5.57.0(@typescript-eslint/parser@5.57.0)(eslint@8.37.0)(typescript@5.0.3)
-      '@typescript-eslint/parser':
-        specifier: ^5.57.0
-        version: 5.57.0(eslint@8.37.0)(typescript@5.0.3)
-      '@vitejs/plugin-vue':
-        specifier: ^3.2.0
-        version: 3.2.0(vite@3.2.4)(vue@3.2.45)
-      autoprefixer:
-        specifier: ^10.4.13
-        version: registry.npmmirror.com/autoprefixer@10.4.13(postcss@8.4.19)
-      eslint:
-        specifier: ^8.37.0
-        version: registry.npmmirror.com/eslint@8.37.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: registry.npmmirror.com/eslint-config-prettier@8.8.0(eslint@8.37.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: registry.npmmirror.com/eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.8.0)(eslint@8.37.0)(prettier@2.8.7)
-      eslint-plugin-vue:
-        specifier: ^9.10.0
-        version: registry.npmmirror.com/eslint-plugin-vue@9.10.0(eslint@8.37.0)
-      postcss:
-        specifier: 8.4.19
-        version: 8.4.19
-      postcss-html:
-        specifier: 1.3.0
-        version: 1.3.0
-      prettier:
-        specifier: ^2.8.7
-        version: registry.npmmirror.com/prettier@2.8.7
-      sass:
-        specifier: ^1.69.7
-        version: 1.69.7
-      stylelint:
-        specifier: 14.10.0
-        version: 14.10.0
-      stylelint-config-html:
-        specifier: 1.0.0
-        version: 1.0.0(postcss-html@1.3.0)(stylelint@14.10.0)
-      stylelint-config-prettier:
-        specifier: 9.0.3
-        version: 9.0.3(stylelint@14.10.0)
-      stylelint-config-recommended:
-        specifier: 7.0.0
-        version: 7.0.0(stylelint@14.10.0)
-      stylelint-config-recommended-scss:
-        specifier: 8.0.0
-        version: 8.0.0(postcss@8.4.19)(stylelint@14.10.0)
-      stylelint-config-recommended-vue:
-        specifier: 1.4.0
-        version: 1.4.0(postcss-html@1.3.0)(stylelint@14.10.0)
-      stylelint-config-standard:
-        specifier: 25.0.0
-        version: 25.0.0(stylelint@14.10.0)
-      stylelint-config-standard-scss:
-        specifier: 4.0.0
-        version: 4.0.0(postcss@8.4.19)(stylelint@14.10.0)
-      stylelint-order:
-        specifier: 6.0.3
-        version: 6.0.3(stylelint@14.10.0)
-      typescript:
-        specifier: ^5.0.3
-        version: registry.npmmirror.com/typescript@5.0.3
-      unplugin-auto-import:
-        specifier: ^0.12.0
-        version: registry.npmmirror.com/unplugin-auto-import@0.12.0(@vueuse/core@10.1.2)
-      unplugin-icons:
-        specifier: ^0.16.1
-        version: registry.npmmirror.com/unplugin-icons@0.16.1
-      unplugin-vue-components:
-        specifier: ^0.22.11
-        version: registry.npmmirror.com/unplugin-vue-components@0.22.11(vue@3.2.45)
-      unplugin-vue-define-options:
-        specifier: ^1.3.2
-        version: registry.npmmirror.com/unplugin-vue-define-options@1.3.2(vue@3.2.45)
-      vite:
-        specifier: ^3.2.4
-        version: registry.npmmirror.com/vite@3.2.4(less@4.1.3)(sass@1.69.7)
+devDependencies:
+  '@codemirror/lang-javascript':
+    specifier: ^6.1.4
+    version: 6.1.4
+  '@codemirror/state':
+    specifier: ^6.2.0
+    version: 6.2.0
+  '@iconify-json/ep':
+    specifier: ^1.1.10
+    version: 1.1.10
+  '@types/less':
+    specifier: ^3.0.3
+    version: 3.0.3
+  '@typescript-eslint/eslint-plugin':
+    specifier: ^5.57.0
+    version: 5.57.0(@typescript-eslint/parser@5.57.0)(eslint@8.37.0)(typescript@5.0.3)
+  '@typescript-eslint/parser':
+    specifier: ^5.57.0
+    version: 5.57.0(eslint@8.37.0)(typescript@5.0.3)
+  '@vitejs/plugin-vue':
+    specifier: ^3.2.0
+    version: 3.2.0(vite@3.2.4)(vue@3.2.45)
+  autoprefixer:
+    specifier: ^10.4.13
+    version: registry.npmmirror.com/autoprefixer@10.4.13(postcss@8.4.19)
+  eslint:
+    specifier: ^8.37.0
+    version: registry.npmmirror.com/eslint@8.37.0
+  eslint-config-prettier:
+    specifier: ^8.8.0
+    version: registry.npmmirror.com/eslint-config-prettier@8.8.0(eslint@8.37.0)
+  eslint-plugin-prettier:
+    specifier: ^4.2.1
+    version: registry.npmmirror.com/eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.8.0)(eslint@8.37.0)(prettier@2.8.7)
+  eslint-plugin-vue:
+    specifier: ^9.10.0
+    version: registry.npmmirror.com/eslint-plugin-vue@9.10.0(eslint@8.37.0)
+  postcss:
+    specifier: 8.4.19
+    version: 8.4.19
+  postcss-html:
+    specifier: 1.3.0
+    version: 1.3.0
+  prettier:
+    specifier: ^2.8.7
+    version: registry.npmmirror.com/prettier@2.8.7
+  sass:
+    specifier: ^1.69.7
+    version: 1.69.7
+  stylelint:
+    specifier: 14.10.0
+    version: 14.10.0
+  stylelint-config-html:
+    specifier: 1.0.0
+    version: 1.0.0(postcss-html@1.3.0)(stylelint@14.10.0)
+  stylelint-config-prettier:
+    specifier: 9.0.3
+    version: 9.0.3(stylelint@14.10.0)
+  stylelint-config-recommended:
+    specifier: 7.0.0
+    version: 7.0.0(stylelint@14.10.0)
+  stylelint-config-recommended-scss:
+    specifier: 8.0.0
+    version: 8.0.0(postcss@8.4.19)(stylelint@14.10.0)
+  stylelint-config-recommended-vue:
+    specifier: 1.4.0
+    version: 1.4.0(postcss-html@1.3.0)(stylelint@14.10.0)
+  stylelint-config-standard:
+    specifier: 25.0.0
+    version: 25.0.0(stylelint@14.10.0)
+  stylelint-config-standard-scss:
+    specifier: 4.0.0
+    version: 4.0.0(postcss@8.4.19)(stylelint@14.10.0)
+  stylelint-order:
+    specifier: 6.0.3
+    version: 6.0.3(stylelint@14.10.0)
+  typescript:
+    specifier: ^5.0.3
+    version: registry.npmmirror.com/typescript@5.0.3
+  unplugin-auto-import:
+    specifier: ^0.12.0
+    version: registry.npmmirror.com/unplugin-auto-import@0.12.0(@vueuse/core@10.1.2)
+  unplugin-icons:
+    specifier: ^0.16.1
+    version: registry.npmmirror.com/unplugin-icons@0.16.1
+  unplugin-vue-components:
+    specifier: ^0.22.11
+    version: registry.npmmirror.com/unplugin-vue-components@0.22.11(vue@3.2.45)
+  unplugin-vue-define-options:
+    specifier: ^1.3.2
+    version: registry.npmmirror.com/unplugin-vue-define-options@1.3.2(vue@3.2.45)
+  vite:
+    specifier: ^3.2.4
+    version: registry.npmmirror.com/vite@3.2.4(less@4.1.3)(sass@1.69.7)
 
 packages:
 
@@ -777,6 +781,10 @@ packages:
     resolution: {integrity: sha512-1ugUSr8BHXRnK23KfuYS+gVMC3LB8QGH9W1iGtDPsNWoQbgtXSExkBu2aDR4epiGWZOjZsj6lDl/N/AqqTC3UA==}
     dev: true
 
+  /bignumber.js@9.1.2:
+    resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==, tarball: https://registry.npmmirror.com/bignumber.js/-/bignumber.js-9.1.2.tgz}
+    dev: false
+
   /binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
     engines: {node: '>=8'}
@@ -897,6 +905,10 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
     dev: true
+
+  /dayjs@1.11.10:
+    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==, tarball: https://registry.npmmirror.com/dayjs/-/dayjs-1.11.10.tgz}
+    dev: false
 
   /debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -3398,12 +3410,6 @@ packages:
     name: csstype
     version: 2.6.21
 
-  registry.npmmirror.com/dayjs@1.11.6:
-    resolution: {integrity: sha512-zZbY5giJAinCG+7AGaw0wIhNZ6J8AhWuSXKvuc1KAyMiRsvGQWqh4L+MomvhdAYjN+lqvVCMq1I41e3YHvXkyQ==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/dayjs/-/dayjs-1.11.6.tgz}
-    name: dayjs
-    version: 1.11.6
-    dev: false
-
   registry.npmmirror.com/debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/debug/-/debug-4.3.4.tgz}
     name: debug
@@ -3485,7 +3491,7 @@ packages:
       '@types/lodash-es': registry.npmmirror.com/@types/lodash-es@4.17.6
       '@vueuse/core': 9.5.0(vue@3.2.45)
       async-validator: registry.npmmirror.com/async-validator@4.2.5
-      dayjs: registry.npmmirror.com/dayjs@1.11.6
+      dayjs: 1.11.10
       escape-html: registry.npmmirror.com/escape-html@1.0.3
       lodash: registry.npmmirror.com/lodash@4.17.21
       lodash-es: registry.npmmirror.com/lodash-es@4.17.21
