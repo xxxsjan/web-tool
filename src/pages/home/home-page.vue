@@ -11,8 +11,10 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import NavigationList from './NavigationList.vue';
+
 import { useHomeStore } from '@/stores/home';
+
+import NavigationList from './NavigationList.vue';
 
 const homeStore = useHomeStore();
 

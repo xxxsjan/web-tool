@@ -17,7 +17,6 @@
 <script setup>
 import { Search } from '@element-plus/icons-vue';
 import BigNumber from 'bignumber.js';
-
 import dayjs from 'dayjs';
 const monthlyIncome = ref(14000); // 每月工资
 const tableData = ref([]);

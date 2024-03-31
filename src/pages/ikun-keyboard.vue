@@ -92,8 +92,8 @@ onMounted(() => {
     if (Object.keys(_map).includes(event.key)) {
       console.log('event.key: ', event.key);
       // 创建并播放声音
-      let sound = new Audio(_map[event.key]);
-      sound.play();
+      let audio = new Audio(_map[event.key]);
+      audio.play();
       function handleAudioEnded() {
         audioCount--;
         if (audioCount === 0) {

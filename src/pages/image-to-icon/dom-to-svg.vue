@@ -21,8 +21,8 @@
 </template>
 
 <script lang="ts" setup>
-import { elementToSVG, inlineResources } from 'dom-to-svg'
 import domtoimage from 'dom-to-image';
+import { elementToSVG, inlineResources } from 'dom-to-svg'
 const result = ref('')
 
 function toDo() {

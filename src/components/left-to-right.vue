@@ -37,8 +37,8 @@
 <script setup>
 // https://github.com/surmon-china/vue-codemirror
 // import { ref, onMounted, shallowRef } from "vue";
-import { Codemirror } from 'vue-codemirror';
 import { css } from '@codemirror/lang-css';
+import { Codemirror } from 'vue-codemirror';
 
 const props = defineProps(['codeLeft', 'codeRight']);
 const emits = defineEmits([

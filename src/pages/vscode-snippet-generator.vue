@@ -1,12 +1,11 @@
 <script setup>
-import { onMounted, ref, watch, toRaw, getCurrentInstance } from 'vue';
 import * as monaco from 'monaco-editor';
-
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+import { getCurrentInstance,onMounted, ref, toRaw, watch } from 'vue';
 console.log(getCurrentInstance());
 const glp = getCurrentInstance().appContext.config.globalProperties;
 console.log('glp: ', glp);

@@ -24,10 +24,10 @@
 </template>
 
 <script lang="ts" setup>
-import PathTransform from './comps/PathTransform.vue';
+import EsmCommonjs from './comps/esm-to-commonjs.vue';
 import HumpTransition from './comps/HumpTransition.vue';
 import LessToCss from './comps/less-to-css.vue';
-import EsmCommonjs from './comps/esm-to-commonjs.vue';
+import PathTransform from './comps/PathTransform.vue';
 
 const list = ['PathTransform', 'HumpTransition', 'LessToCss', 'EsmCommonjs'];
 

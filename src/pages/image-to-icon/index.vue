@@ -24,8 +24,9 @@
   </div>
 </template>
 <script setup>
-import DomToSvg from './dom-to-svg.vue';
 import { genFileId } from 'element-plus';
+
+import DomToSvg from './dom-to-svg.vue';
 const upload = ref();
 const fileList = ref([]);
 const outputSize = ref(32);

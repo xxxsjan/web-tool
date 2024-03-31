@@ -1,7 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import routes from './routes';
-import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
+
+import NProgress from 'nprogress';
+import { createRouter, createWebHistory } from 'vue-router';
+
+import routes from './routes';
 
 NProgress.configure({
   showSpinner: true //  是否显示加载中的小圆圈

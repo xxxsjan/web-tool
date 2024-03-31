@@ -25,8 +25,8 @@
 </template>
 
 <script setup>
-import routes from '@/router/routes';
 import IconTool from '@/components/icons/tool.vue';
+import routes from '@/router/routes';
 const list = ref(routes[0].children.filter(r => r.path !== '/'));
 list.value.push({
   path: '/html/text-reading.html',

@@ -48,14 +48,6 @@ export default [
         }
       },
 
-      // {
-      //   path: "/scss-to-css",
-      //   name: "scss-to-css",
-      //   component: () => import("@/pages/scss-to-css.vue"),
-      //   meta: {
-      //     title: "scss➡️css",
-      //   },
-      // },
       {
         path: '/cut-image',
         name: 'cut-image',

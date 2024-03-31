@@ -32,7 +32,7 @@
 
 <script setup>
 // https://github.com/surmon-china/vue-codemirror
-import { ref, onMounted, shallowRef } from 'vue';
+import { onMounted, ref, shallowRef } from 'vue';
 import { Codemirror } from 'vue-codemirror';
 // import { javascript } from '@codemirror/lang-javascript';
 // import { oneDark } from '@codemirror/theme-one-dark';
