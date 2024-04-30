@@ -10,7 +10,7 @@
           class="card w-1/3 bg-base-100 shadow-xl mr-4 mb-4"
           v-for="(item, index) in list"
           :key="index"
-          @click="$router.push(item.path)"
+          @click="go(item.path)"
         >
           <div class="card-body">
             <h2 class="card-title">{{ item?.meta?.title || item.name }}</h2>
@@ -30,6 +30,14 @@ list.value.push({
   path: '/html/text-reading.html',
   name: '文字朗读'
 });
+const router = useRouter();
+function go(path) {
+  if (path.includes('.html')) {
+    window.open(path);
+  } else {
+    router.push(path);
+  }
+}
 </script>
 
 <style lang="scss" scoped>

@@ -50,169 +50,171 @@
 
 </body>
 <script>
-    let utterance, textareaEl, synth, voices = []
+    window.onload = function () {
+        let utterance, textareaEl, synth, voices = []
 
-    if ("speechSynthesis" in window) {
-        textareaEl = document.querySelector(".textarea"),
-            synth = window.speechSynthesis,
-            voiceSelect = document.querySelector("#voiceSelect"),
-            voices = []
-    } else {
-        throw alert("对不起，您的浏览器不支持")
-    }
-    function play() {
-        myCheckFunc() //检查文本框是否为空
-        cancel() //
-        utterance = new SpeechSynthesisUtterance(textareaEl.value)
+        if ("speechSynthesis" in window) {
+            textareaEl = document.querySelector(".textarea"),
+                synth = window.speechSynthesis,
+                voiceSelect = document.querySelector("#voiceSelect"),
+                voices = []
+        } else {
+            throw alert("对不起，您的浏览器不支持")
+        }
+        function play() {
+            myCheckFunc() //检查文本框是否为空
+            cancel() //
+            utterance = new SpeechSynthesisUtterance(textareaEl.value)
 
-        console.log(utterance.duration);
+            console.log(utterance.duration);
 
 
-        var selectedOption = voiceSelect.selectedOptions[0].getAttribute("data-name")
+            var selectedOption = voiceSelect.selectedOptions[0].getAttribute("data-name")
 
-        for (i = 0; i < voices.length; i++) {
-            if (voices[i].name === selectedOption) {
-                utterance.voice = voices[i]
+            for (i = 0; i < voices.length; i++) {
+                if (voices[i].name === selectedOption) {
+                    utterance.voice = voices[i]
+                }
+            }
+
+            // utterance.rate = 1.4; // 设置播放语速，范围：0.1 - 10之间
+            // text – 要合成的文字内容，字符串。
+            // lang – 使用的语言，字符串， 例如："zh-cn"
+            // voiceURI – 指定希望使用的声音和服务，字符串。
+            // volume – 声音的音量，区间范围是0到1，默认是1。
+            // rate – 语速，数值，默认值是1，范围是0.1到10，表示语速的倍数，例如2表示正常语速的两倍。
+            // pitch – 表示说话的音高，数值，范围从0（最小）到2（最大）。默认值为1。
+            synth.speak(utterance)
+        }
+
+        //暂停
+        function pause() {
+            console.log('pause');
+
+            myCheckFunc() //检查文本框是否为空
+            synth.pause()
+
+            // var blob = new Blob([new XMLSerializer().serializeToString(utterance)], { type: 'application/ssml+xml' });
+            console.log('new XMLSerializer() ', new XMLSerializer().serializeToString(utterance));
+            return
+
+
+        }
+        function downloadBlob(blob) {
+            // 创建一个下载链接
+            var url = URL.createObjectURL(blob);
+
+            // 创建一个下载按钮
+            var downloadButton = document.createElement('a');
+            downloadButton.href = url;
+            downloadButton.download = 'speech.wav';
+            downloadButton.innerHTML = 'Download';
+
+            // 将下载按钮添加到页面中
+            document.body.appendChild(downloadButton);
+        }
+        //继续播放
+        function resume() {
+            myCheckFunc() //检查文本框是否为空
+            synth.resume() //继续
+        }
+        //清除所有语音播报创建的队列
+        function cancel() {
+            synth.cancel()
+        }
+        //清空文本框
+        function cls() {
+            document.getElementById("texts").value = ""
+        }
+        //检查文本框是否为空
+        function myCheckFunc() {
+            let x
+            x = document.getElementById("texts").value
+            try {
+                if (x === "") throw "文本框为空"
+            } catch (error) {
+                alert("提示" + error)
             }
         }
 
-        // utterance.rate = 1.4; // 设置播放语速，范围：0.1 - 10之间
-        // text – 要合成的文字内容，字符串。
-        // lang – 使用的语言，字符串， 例如："zh-cn"
-        // voiceURI – 指定希望使用的声音和服务，字符串。
-        // volume – 声音的音量，区间范围是0到1，默认是1。
-        // rate – 语速，数值，默认值是1，范围是0.1到10，表示语速的倍数，例如2表示正常语速的两倍。
-        // pitch – 表示说话的音高，数值，范围从0（最小）到2（最大）。默认值为1。
-        synth.speak(utterance)
-    }
+        // 创建选择语言的select标签
+        function populateVoiceList() {
+            voices = window.speechSynthesis.getVoices()
+            console.log("voices: ", voices)
 
-    //暂停
-    function pause() {
-        console.log('pause');
+            for (i = 0; i < voices.length; i++) {
+                var option = document.createElement("option")
+                option.textContent = voices[i].name + " (" + voices[i].lang + ")"
 
-        myCheckFunc() //检查文本框是否为空
-        synth.pause()
-
-        // var blob = new Blob([new XMLSerializer().serializeToString(utterance)], { type: 'application/ssml+xml' });
-        console.log('new XMLSerializer() ', new XMLSerializer().serializeToString(utterance));
-        return
-
-
-    }
-    function downloadBlob(blob) {
-        // 创建一个下载链接
-        var url = URL.createObjectURL(blob);
-
-        // 创建一个下载按钮
-        var downloadButton = document.createElement('a');
-        downloadButton.href = url;
-        downloadButton.download = 'speech.wav';
-        downloadButton.innerHTML = 'Download';
-
-        // 将下载按钮添加到页面中
-        document.body.appendChild(downloadButton);
-    }
-    //继续播放
-    function resume() {
-        myCheckFunc() //检查文本框是否为空
-        synth.resume() //继续
-    }
-    //清除所有语音播报创建的队列
-    function cancel() {
-        synth.cancel()
-    }
-    //清空文本框
-    function cls() {
-        document.getElementById("texts").value = ""
-    }
-    //检查文本框是否为空
-    function myCheckFunc() {
-        let x
-        x = document.getElementById("texts").value
-        try {
-            if (x === "") throw "文本框为空"
-        } catch (error) {
-            alert("提示" + error)
-        }
-    }
-
-    // 创建选择语言的select标签
-    function populateVoiceList() {
-        voices = window.speechSynthesis.getVoices()
-        console.log("voices: ", voices)
-
-        for (i = 0; i < voices.length; i++) {
-            var option = document.createElement("option")
-            option.textContent = voices[i].name + " (" + voices[i].lang + ")"
-
-            if (voices[i].default) {
-                option.textContent += " -- DEFAULT"
+                if (voices[i].default) {
+                    option.textContent += " -- DEFAULT"
+                }
+                option.setAttribute("data-lang", voices[i].lang)
+                option.setAttribute("data-name", voices[i].name)
+                voiceSelect.appendChild(option)
             }
-            option.setAttribute("data-lang", voices[i].lang)
-            option.setAttribute("data-name", voices[i].name)
-            voiceSelect.appendChild(option)
         }
-    }
 
-    setTimeout(function () {
-        populateVoiceList()
-    }, 500)
+        setTimeout(function () {
+            populateVoiceList()
+        }, 500)
 
 
-    function download() {
-        myCheckFunc(); // 检查文本框是否为空
+        function download() {
+            myCheckFunc(); // 检查文本框是否为空
 
-        console.log('utterance.audioBuffer: ', utterance.audioBuffer);
+            console.log('utterance.audioBuffer: ', utterance.audioBuffer);
 
-    }
+        }
 
-    // SpeechSynthesisUtterance转换为AudioBuffer
-    function utteranceToAudioBuffer(utterance) {
-        // 创建AudioContext
-        var audioContext = new AudioContext();
+        // SpeechSynthesisUtterance转换为AudioBuffer
+        function utteranceToAudioBuffer(utterance) {
+            // 创建AudioContext
+            var audioContext = new AudioContext();
 
-        // 创建ScriptProcessorNode
-        var scriptNode = audioContext.createScriptProcessor(4096, 1, 1);
+            // 创建ScriptProcessorNode
+            var scriptNode = audioContext.createScriptProcessor(4096, 1, 1);
 
-        // 创建AudioBuffer
-        var audioBuffer = audioContext.createBuffer(1, audioContext.sampleRate * utterance.duration, audioContext.sampleRate);
+            // 创建AudioBuffer
+            var audioBuffer = audioContext.createBuffer(1, audioContext.sampleRate * utterance.duration, audioContext.sampleRate);
 
-        // 填充AudioBuffer
-        var channelData = audioBuffer.getChannelData(0);
-        var offset = 0;
-        var duration = utterance.duration;
-        utterance.onboundary = function (event) {
-            var start = event.charIndex;
-            var end = event.charIndex + event.charLength;
-            var text = utterance.text.substring(start, end);
-            var seconds = event.elapsedTime;
-            var samples = Math.floor(seconds * audioContext.sampleRate);
-            for (var i = offset; i < offset + samples; i++) {
-                var t = (i - offset) / audioContext.sampleRate;
-                var value = textToValue(text, t, duration);
-                channelData[i] = value;
-            }
-            offset += samples;
-        };
+            // 填充AudioBuffer
+            var channelData = audioBuffer.getChannelData(0);
+            var offset = 0;
+            var duration = utterance.duration;
+            utterance.onboundary = function (event) {
+                var start = event.charIndex;
+                var end = event.charIndex + event.charLength;
+                var text = utterance.text.substring(start, end);
+                var seconds = event.elapsedTime;
+                var samples = Math.floor(seconds * audioContext.sampleRate);
+                for (var i = offset; i < offset + samples; i++) {
+                    var t = (i - offset) / audioContext.sampleRate;
+                    var value = textToValue(text, t, duration);
+                    channelData[i] = value;
+                }
+                offset += samples;
+            };
 
-        // 连接ScriptProcessorNode
-        scriptNode.connect(audioContext.destination);
+            // 连接ScriptProcessorNode
+            scriptNode.connect(audioContext.destination);
 
-        // 开始语音合成
-        speechSynthesis.speak(utterance);
+            // 开始语音合成
+            speechSynthesis.speak(utterance);
 
-        return audioBuffer;
-    }
+            return audioBuffer;
+        }
 
-    // 将合成文本转换为音频值
-    function textToValue(text, t, duration) {
-        // 在这里实现自定义的音频合成算法
-        // 这个示例中使用了简单的正弦波合成声音
-        var frequency = 440;
-        var amplitude = 0.5;
-        var value = amplitude * Math.sin(2 * Math.PI * frequency * t);
+        // 将合成文本转换为音频值
+        function textToValue(text, t, duration) {
+            // 在这里实现自定义的音频合成算法
+            // 这个示例中使用了简单的正弦波合成声音
+            var frequency = 440;
+            var amplitude = 0.5;
+            var value = amplitude * Math.sin(2 * Math.PI * frequency * t);
 
-        return value;
+            return value;
+        }
     }
 </script>
 
