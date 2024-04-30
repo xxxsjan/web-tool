@@ -4,7 +4,7 @@
       <div class="welcome-text">WelCome</div>
       <h1 class="animate-text">点击进入</h1>
     </div>
-    <NavigationList v-else />
+    <NavigationList2 v-else />
     <canvas id="bg" v-if="showWelcome"></canvas>
   </div>
 </template>
@@ -14,7 +14,7 @@ import { storeToRefs } from 'pinia';
 
 import { useHomeStore } from '@/stores/home';
 
-import NavigationList from './NavigationList.vue';
+import NavigationList2 from './NavigationList2.vue';
 
 const homeStore = useHomeStore();
 

@@ -94,14 +94,14 @@ list.value.push({
   cursor: pointer;
   display: inline-flex;
   letter-spacing: 0.0625rem;
-  margin: 0.4375rem;
-  padding: 0.625rem;
+  margin: .5rem;
+  padding: 1rem;
   position: relative;
   transform: translateZ(0);
   transition: transform 0.1s ease, background-color 0.1s ease,
     color 0.05s ease-out;
   vertical-align: top;
-  width: calc(25% - 0.875rem);
+  min-width: 16rem;
 
   border-radius: 0.5rem;
   font-size: 0;

@@ -89,14 +89,14 @@ export default [
           title: 'vue-to-jsx'
         }
       },
-      {
-        path: '/tax-calculation',
-        name: 'tax-calculation',
-        component: () => import('@/pages/tax-calculation.vue'),
-        meta: {
-          title: '个税计算器'
-        }
-      }
+      // {
+      //   path: '/tax-calculation',
+      //   name: 'tax-calculation',
+      //   component: () => import('@/pages/tax-calculation.vue'),
+      //   meta: {
+      //     title: '个税计算器'
+      //   }
+      // }
     ]
   },
   {
