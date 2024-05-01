@@ -1,6 +1,6 @@
 <template>
   <el-menu
-    v-if="false"
+    v-if="routes.length > 0 && routes[0].children.length > 0"
     :default-active="activeIndex"
     class="el-menu-demo"
     mode="horizontal"
