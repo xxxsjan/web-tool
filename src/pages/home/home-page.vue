@@ -2,7 +2,8 @@
   <div class="home-page min-w-[660px]">
     <div v-if="showWelcome" class="text" @click="showWelcome = false">
       <div class="welcome-text">WelCome</div>
-      <h1 class="animate-text">点击进入</h1>
+      <h1 class="animate-text"></h1>
+      <p class="animate-bounce text-xl text-center text-red-500">点击进入</p>
     </div>
     <NavigationList2 v-else />
     <canvas id="bg" v-if="showWelcome"></canvas>
@@ -123,20 +124,6 @@ onUnmounted(() => {
   user-select: none;
   .welcome-text {
     font-size: 10vw;
-  }
-  .animate-text {
-    font-size: 1vw;
-    white-space: nowrap;
-    animation: animate 3s linear forwards;
-  }
-
-  @keyframes animate {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 0.3;
-    }
   }
 }
 </style>
