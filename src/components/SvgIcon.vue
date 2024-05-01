@@ -19,8 +19,9 @@ export default defineComponent({
       required: true
     },
     color: {
-      type: String
-      // default: "#435B71",
+      type: String,
+      default: '#435B71'
+      // default: '#inherit'
     },
     size: {
       type: [Number, String],
@@ -37,7 +38,7 @@ export default defineComponent({
       return {
         width: s,
         height: s,
-        color: props.color || 'inherit'
+        color: props.color
       };
     });
     return { symbolId, getStyle };

@@ -4,7 +4,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 
 inject();
-
+import 'virtual:svg-icons-register';
 import './assets/cuIcon.css';
 import './style.css';
 import 'element-plus/dist/index.css';
