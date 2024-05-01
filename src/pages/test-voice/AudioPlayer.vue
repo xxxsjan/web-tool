@@ -26,6 +26,7 @@
 
 <script lang="ts" setup>
 import { VideoPause, VideoPlay } from '@element-plus/icons-vue';
+// https://web-tool.dolam.fun/ikun/%E9%B8%A1.wav
 const props = defineProps<{ src: string }>();
 const audioRef = shallowRef(null);
 const isPlay = ref(false);

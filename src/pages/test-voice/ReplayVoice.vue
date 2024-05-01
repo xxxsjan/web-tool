@@ -1,56 +1,60 @@
 <template>
-  <!-- <SvgIcon name="voice" size="30" class="emoji mr-4" @click="showVoice" /> -->
-  <div @click="showVoice">showVoice</div>
-  <el-dialog
-    v-model="dialogVisible"
-    title="录音"
-    width="30%"
-    :before-close="handleClose"
-    :close-on-click-modal="false"
-  >
-    <div v-if="isStart">
-      <div class="mation mb-10">
-        <div class="ap">
-          <div class="box">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+  <div>
+    <SvgIcon name="voice" size="30" @click="showVoice" />
+
+    <el-dialog
+      v-model="dialogVisible"
+      title="录音"
+      width="50%"
+      :before-close="handleClose"
+      :close-on-click-modal="false"
+    >
+      <div v-if="isStart">
+        <div class="mation mb-10">
+          <div class="ap">
+            <div class="box">
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="text-center">
-      <audio
-        class="mb-10"
-        v-if="!isStart && hasVoice"
-        :src="recordedAudio"
-        controls="controls"
-        ref="audio"
-      ></audio>
-      <div>
-        <el-button v-if="!isStart" class="startRecord" @click="voice">
-          <!-- <SvgIcon name="voiceStart" size="20" class="emoji mr-4" /> -->
-          开始录音
-        </el-button>
-        <el-button v-else @click="handleStop">
-          <!-- <SvgIcon name="stop" size="20" class="emoji mr-4" /> -->
-          停止录音
-        </el-button>
-        <el-button type="primary" v-if="!isStart && hasVoice" @click="submit">
-          发送
-        </el-button>
+      <div class="text-center">
+        <AudioPlayer
+          class="mb-10"
+          v-if="!isStart && hasVoice"
+          :src="recordedAudio"
+        />
+        <div>
+          <div v-if="!isStart" class="btn btn-neutral" @click="voice">
+            <!-- <SvgIcon name="voiceStart" size="20" class="emoji mr-4" /> -->
+            开始录音
+          </div>
+          <el-button v-else @click="handleStop">
+            <!-- <SvgIcon name="stop" size="20" class="emoji mr-4" /> -->
+            停止录音
+          </el-button>
+          <el-button type="primary" v-if="!isStart && hasVoice" @click="submit">
+            发送
+          </el-button>
+        </div>
       </div>
-    </div>
-  </el-dialog>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup>
 import Recorder from 'js-audio-recorder';
+
+import SvgIcon from '@/components/SvgIcon.vue';
+
+import AudioPlayer from './AudioPlayer.vue';
 //录音功能
 let dialogVisible = ref();
 
@@ -220,10 +224,5 @@ $primary-color: pink;
   float: left;
   margin-top: 20px;
   margin-left: 50px;
-}
-
-.startRecord {
-  background: $primary-color;
-  color: white;
 }
 </style>
