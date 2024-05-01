@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex flex-col items-center justify-center h-full">
     <ReplayVoice />
   </div>
 </template>
