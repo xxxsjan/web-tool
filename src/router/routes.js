@@ -81,22 +81,7 @@ export default [
           title: '字符转换'
         }
       },
-      {
-        path: 'vue-to-jsx',
-        name: 'vue-to-jsx',
-        component: () => import('@/pages/vue-to-jsx.vue'),
-        meta: {
-          title: 'vue-to-jsx'
-        }
-      },
-      // {
-      //   path: '/tax-calculation',
-      //   name: 'tax-calculation',
-      //   component: () => import('@/pages/tax-calculation.vue'),
-      //   meta: {
-      //     title: '个税计算器'
-      //   }
-      // }
+      ...autoImport()
     ]
   },
   {
@@ -105,3 +90,39 @@ export default [
     component: () => import('@/pages/ikun-keyboard.vue')
   }
 ];
+
+function autoImport() {
+  // https://cn.vitejs.dev/guide/features.html#glob-import
+
+  // globEager('xxx')等同于glob('xxx',{ eager: true })
+  const pageModule = import.meta.glob('/src/pages/**/page.js', {
+    eager: true, // 同步加载 直接获取对象
+    import: 'default' // 直接获取default
+  });
+
+  const pageComps = import.meta.glob('/src/pages/**/index.vue');
+  console.log('pageComps: ', pageComps);
+
+  const autoRoutes = Object.entries(pageModule)
+    .map(([pageJsPath, meta]) => {
+      const pageName = pageJsPath.replace(
+        /(\/src\/pages\/)(.+)(\/page\.js)/,
+        '$2'
+      );
+      console.log(pageName);
+      const routePathArr = pageName.split('/');
+      const name = routePathArr[routePathArr.length - 1];
+
+      const vueFilePath = `/src/pages/${pageName}/index.vue`;
+
+      return {
+        path: '/' + pageName,
+        name,
+        component: pageComps[vueFilePath],
+        meta
+      };
+    })
+    .filter(f => f.component);
+  console.log('✅autoRoutes', autoRoutes);
+  return autoRoutes;
+}

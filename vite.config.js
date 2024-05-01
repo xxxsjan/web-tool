@@ -1,12 +1,14 @@
-import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 import AutoImport from 'unplugin-auto-import/vite';
-import Components from 'unplugin-vue-components/vite';
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
-import DefineOptions from 'unplugin-vue-define-options/vite';
-import Icons from 'unplugin-icons/vite';
 import IconsResolver from 'unplugin-icons/resolver';
+import Icons from 'unplugin-icons/vite';
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite';
+import DefineOptions from 'unplugin-vue-define-options/vite';
+import { defineConfig } from 'vite';
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -59,7 +61,11 @@ export default defineConfig({
     Icons({
       autoInstall: true
     }),
-    DefineOptions()
+    DefineOptions(),
+    createSvgIconsPlugin({
+      iconDirs: [path.resolve(process.cwd(), 'src/assets/svg')],
+      symbolId: 'icon-[dir]-[name]'
+    })
   ],
   resolve: {
     alias: {

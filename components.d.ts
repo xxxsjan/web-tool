@@ -33,6 +33,7 @@ declare module '@vue/runtime-core' {
     ResultDialog: typeof import('./src/components/result-dialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SvgIcon: typeof import('./src/components/SvgIcon.vue')['default']
     Tool: typeof import('./src/components/icons/tool.vue')['default']
   }
   export interface ComponentCustomProperties {

@@ -14,7 +14,6 @@
         >
           <div class="card-body">
             <h2 class="card-title">{{ item?.meta?.title || item.name }}</h2>
-            <!-- <p>{{ item?.meta?.title || item.name }}</p> -->
           </div>
         </div>
       </div>
