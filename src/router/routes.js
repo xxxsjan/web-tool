@@ -1,10 +1,11 @@
-import HomePage from '../pages/home/home-page.vue';
+import Layout from '@/layout/index.vue';
+import HomePage from '@/pages/home/home-page.vue';
 
 export default [
   {
     path: '/',
     name: 'layout',
-    component: () => import('@/layout.vue'),
+    component: Layout,
     redirect: '/vscode-snippet-generator',
     children: [
       {
