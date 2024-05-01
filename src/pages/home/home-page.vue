@@ -1,5 +1,5 @@
 <template>
-  <div class="home-page">
+  <div class="home-page min-w-[660px]">
     <div v-if="showWelcome" class="text" @click="showWelcome = false">
       <div class="welcome-text">WelCome</div>
       <h1 class="animate-text">点击进入</h1>
