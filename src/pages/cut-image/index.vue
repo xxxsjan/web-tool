@@ -9,7 +9,7 @@
         <!-- 遮罩 -->
         <div class="mask-bg"></div>
 
-        <div v-loading="loading" class="mb-2 absolute">
+        <div v-loading="loading" class="mb-2 absolute" v-if="!imgBaseUrl">
           <input
             type="file"
             @change="fileChange"
@@ -127,7 +127,13 @@
         v-show="imgBaseUrl"
       >
         <div class="w-full">
-          <button @click="handleCut" class="btn mr-5">裁剪</button>
+          <div class="flex justify-between">
+            <button @click="handleCut" class="btn mr-5">裁剪</button>
+
+            <button class="btn" @click="reset">
+              <el-icon><RefreshRight /></el-icon>重选图片
+            </button>
+          </div>
           <div class="my-5">
             输出结果：({{ outputWidth }}x{{ outputHeight }})
           </div>
@@ -162,8 +168,13 @@
   </div>
 </template>
 <script>
+import { RefreshRight } from '@element-plus/icons-vue';
+
 export default {
   name: 'cut-image',
+  components: {
+    RefreshRight,
+  },
   data() {
     return {
       loading: false,
@@ -315,7 +326,6 @@ export default {
 
     fileChange(e) {
       this.reset();
-      this.removeBase64Img();
       const [file] = e.target.files;
       console.log(file);
       const reader = new FileReader();
@@ -450,6 +460,7 @@ export default {
       this.calcData = {};
       this.outputWidth = 0;
       this.outputHeight = 0;
+      this.removeBase64Img();
     },
   },
   mounted() {},
