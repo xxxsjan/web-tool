@@ -25,25 +25,22 @@
           </div>
         </div>
       </div>
-      <div class="text-center">
+      <div class="flex justify-center">
         <AudioPlayer
           class="mb-10"
           v-if="!isStart && hasVoice"
           :src="recordedAudio"
         />
-        <div>
-          <div v-if="!isStart" class="btn btn-neutral" @click="voice">
-            <!-- <SvgIcon name="voiceStart" size="20" class="emoji mr-4" /> -->
-            开始录音
-          </div>
-          <el-button v-else @click="handleStop">
-            <!-- <SvgIcon name="stop" size="20" class="emoji mr-4" /> -->
-            停止录音
-          </el-button>
-          <el-button type="primary" v-if="!isStart && hasVoice" @click="submit">
-            发送
-          </el-button>
+      </div>
+
+      <div class="flex justify-center gap-4 text-center">
+        <div v-if="!isStart" class="btn btn-neutral" @click="voice">
+          开始录音
         </div>
+        <el-button v-else @click="handleStop" class="btn"> 停止录音 </el-button>
+        <el-button v-if="!isStart && hasVoice" @click="submit" class="btn">
+          发送
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -77,7 +74,7 @@ const data = reactive({
   isHistory: true,
   // 录音时长
   duration: 0,
-  timer: null
+  timer: null,
 });
 
 const emit = defineEmits(['submit']);
@@ -111,7 +108,7 @@ const voice = () => {
   data.recorder = new Recorder({
     sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
     sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
-    numChannels: 1 // 声道，支持 1 或 2， 默认是1
+    numChannels: 1, // 声道，支持 1 或 2， 默认是1
   });
   //记录开始录音的时间
   data.duration = new Date();
@@ -123,7 +120,7 @@ const voice = () => {
     },
     error => {
       console.log(`${error.name} : ${error.message}`);
-    }
+    },
   );
 };
 

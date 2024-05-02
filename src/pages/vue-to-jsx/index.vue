@@ -12,23 +12,17 @@
     <div class="my-[10px]">
       <el-button @click="() => toGenerate()">生成</el-button>
     </div>
-
-    
   </div>
   <resultDialog v-model="dialogVisible" :result="codeRight" />
 </template>
 
 <script setup>
-
 const pageTitle = 'vue-to-jsx';
-// defineOptions({
-//   name: pageTitle
-// });
 
 const dialogVisible = ref(false);
 
 const codeLeft = ref(`
-  <view class="guess viewPort" scroll-y data={{a:'1'}} :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
+  <view class="guess viewPort" scroll-y :data="{a:'1'}" :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
     <navigator
       v-for="item in guessList"
       :key="item.id"
@@ -91,7 +85,7 @@ function componentNameReplace(str) {
     swiper: 'Swiper',
     navigator: 'Navigator',
     image: 'Image',
-    text: 'Text'
+    text: 'Text',
   };
   for (let key in map) {
     const reg = new RegExp(`<(${key})|<\/(${key})>`, 'g');

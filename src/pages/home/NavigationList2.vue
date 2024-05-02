@@ -19,7 +19,9 @@
           @click="go(item.path)"
         >
           <div class="card-body">
-            <h2 class="card-title">{{ item?.meta?.title || item.name }}</h2>
+            <h2 class="card-title">
+              {{ item?.meta?.title || item.meta?.name || item.name }}
+            </h2>
           </div>
         </div>
       </div>
@@ -28,12 +30,11 @@
 </template>
 
 <script setup>
-import IconTool from '@/components/icons/tool.vue';
 import routes from '@/router/routes';
 const list = ref(routes[0].children.filter(r => r.path !== '/'));
 list.value.push({
   path: '/html/text-reading.html',
-  name: '文字朗读'
+  name: '文字朗读',
 });
 const router = useRouter();
 function go(path) {

@@ -1,3 +1,3 @@
 export default {
-  name: '测试voice'
+  name: '录音测试'
 };
