@@ -28,51 +28,74 @@ export default defineConfig({
             'ElSubMenu',
             'ElMenu',
             'ElMessage',
-            'ElMessageBox'
+            'ElMessageBox',
           ],
-          'unplugin-vue-define-options/macros': ['defineOptions']
-        }
+          'unplugin-vue-define-options/macros': ['defineOptions'],
+        },
       ],
       // 解析器配置
       resolvers: [
         ElementPlusResolver(), // 自动导入Element-Plus的Api
         IconsResolver({
-          prefix: 'Icon'
-        })
+          prefix: 'Icon',
+        }),
       ],
       // 根据项目情况配置eslintrc，默认是不开启的
       eslintrc: {
-        enabled: true // @default false
+        enabled: true, // @default false
         // 下面两个是其他配置，默认即可
         // 输出一份json文件，默认输出路径为./.eslintrc-auto-import.json
         // filepath: './.eslintrc-auto-import.json', // @default './.eslintrc-auto-import.json'
         // globalsPropValue: true, // @default true 可设置 boolean | 'readonly' | 'readable' | 'writable' | 'writeable'
-      }
+      },
     }),
     Components({
       resolvers: [
         IconsResolver({
-          enabledCollections: ['ep'] //@iconify-json/ep 是 Element Plus 的图标库，所以 IconsResolver 配置了 enabledCollections: ['ep']
+          enabledCollections: ['ep'], //@iconify-json/ep 是 Element Plus 的图标库，所以 IconsResolver 配置了 enabledCollections: ['ep']
         }),
-        ElementPlusResolver()
+        ElementPlusResolver(),
       ],
-      dts: true
+      dts: true,
     }),
     Icons({
-      autoInstall: true
+      autoInstall: true,
     }),
     DefineOptions(),
     createSvgIconsPlugin({
       iconDirs: [path.resolve(process.cwd(), 'src/icons')],
-      symbolId: 'icon-[dir]-[name]'
-    })
+      symbolId: 'icon-[dir]-[name]',
+    }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
-    port: 3333
-  }
+    port: 3333,
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue', 'vue-router'],
+          'element-plus': ['element-plus'],
+          dayjs: ['dayjs'],
+        },
+        chunkFileNames(chunkInfo) {
+          const { facadeModuleId } = chunkInfo;
+          let name = '[name]';
+          if (facadeModuleId) {
+            const pattern = /\/([^/]+)\/index.vue$/;
+            const match = facadeModuleId.match(pattern);
+            name = match ? match[1] : name;
+          }
+          return `static/js/${name}-[hash].js`;
+        },
+        entryFileNames: `static/js/app-[hash].js`,
+        assetFileNames: `static/[ext]/[name]-[hash].[ext]`,
+      },
+    },
+  },
 });
