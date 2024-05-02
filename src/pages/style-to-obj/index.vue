@@ -5,10 +5,7 @@ import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-import { getCurrentInstance,onMounted, ref, toRaw, watch } from 'vue';
-console.log(getCurrentInstance());
-const glp = getCurrentInstance().appContext.config.globalProperties;
-console.log('glp: ', glp);
+
 self.MonacoEnvironment = {
   getWorker(_, label) {
     if (label === 'json') {
@@ -24,7 +21,7 @@ self.MonacoEnvironment = {
       return new TsWorker();
     }
     return new EditorWorker();
-  }
+  },
 };
 const inputEditor = ref(null);
 const outputEditor = ref(null);
@@ -92,15 +89,15 @@ watch(
     //   language: nVal,
     // });
     onFormat(1);
-  }
+  },
 );
 const commonConfig = {
   theme: 'vs-dark',
   formatOnPaste: true, // 粘贴时格式化
   fontSize: 16,
   minimap: {
-    enabled: false
-  }
+    enabled: false,
+  },
 };
 
 const copyResult = () => {
@@ -108,7 +105,7 @@ const copyResult = () => {
   console.log('coptText: ', coptText);
   if (coptText) {
     navigator.clipboard.writeText(coptText);
-    glp.$message.success('复制成功');
+    ElMessage.success('复制成功');
   }
 };
 onMounted(() => {
@@ -129,7 +126,7 @@ onMounted(() => {
         align-items: center;
       }`,
       language: language.value,
-      ...commonConfig
+      ...commonConfig,
     });
   }
 
@@ -137,7 +134,7 @@ onMounted(() => {
     outputEditor.value = monaco.editor.create(outputContainerDom, {
       value: JSON.stringify({}),
       language: 'json',
-      ...commonConfig
+      ...commonConfig,
     });
   }
   setTimeout(() => {
@@ -145,87 +142,75 @@ onMounted(() => {
   }, 1111);
   window.addEventListener('resize', () => {
     const editor1 = document.querySelector(
-      '#inputContainer .monaco-editor.vs-dark'
+      '#inputContainer .monaco-editor.vs-dark',
     );
     const editor2 = document.querySelector(
-      '#outputContainer .monaco-editor.vs-dark'
+      '#outputContainer .monaco-editor.vs-dark',
     );
     toRaw(inputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight
+      height: editor1.parentElement.offsetHeight,
     });
     toRaw(outputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight
+      height: editor1.parentElement.offsetHeight,
     });
   });
 });
 </script>
 
 <template>
-  <div class="wrapper">
+  <div class="wrapper grid w-full h-full grid-cols-[1fr_120px_1fr]">
     <div class="left">
-      <div
-        id="inputContainer"
-        ref="inputContainer"
-        style="max-width: 100%; height: 80vh"
-      />
-      <div class="m-10">
-        选择编辑器语言
-        <el-select v-model="language" placeholder="language" size="default">
-          <el-option
-            v-for="item in [
-              'css',
-              'html',
-              'javascript',
-              'json',
-              'less',
-              'scss',
-              'typescript'
-            ]"
-            :key="item"
-            :label="item"
-            :value="item"
-          />
-        </el-select>
+      <div id="inputContainer" ref="inputContainer" style="height: 70vh"></div>
+      <div class="m-2">
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text"> 选择编辑器语言</span>
+            <span class="label-text-alt"></span>
+          </div>
+          <select
+            class="select select-bordered w-full max-w-xs"
+            v-model="language"
+          >
+            <option
+              v-for="item in [
+                'css',
+                'html',
+                'javascript',
+                'json',
+                'less',
+                'scss',
+                'typescript',
+              ]"
+              :key="item"
+              :label="item"
+              :value="item"
+            >
+              {{ item }}
+            </option>
+          </select>
+        </label>
       </div>
     </div>
-    <div class="trans">
-      <el-button @click="onTransform" type="primary"> 转换</el-button>
+    <div class="center h-full flex flex-col justify-center gap-4 px-2">
+      <button class="btn btn-primary" @click="onTransform">转换</button>
+      <button class="btn" @click="copyResult">复制结果</button>
     </div>
 
     <div class="right">
-      <div
-        id="outputContainer"
-        ref="outputContainer"
-        style="max-width: 100%; height: 80vh"
-      />
-      <el-button @click="copyResult">复制结果</el-button>
+      <div id="outputContainer" ref="outputContainer" style="height: 70vh" ></div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.wrapper {
-  display: grid;
-  width: 100vw;
-  height: 100%;
-  grid-template-columns: 1fr 100px 1fr;
-  grid-template-rows: 100%;
-}
-
 .left {
   overflow: hidden;
 }
 
 .right {
   overflow: hidden;
-}
-
-.trans {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .xxx {
