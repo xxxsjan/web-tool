@@ -1,154 +1,163 @@
 <template>
-  <div class="cut-image-container flex flex-col justify-center items-center">
-    <div>
-      <div v-loading="loading">
-        <input type="file" @change="fileChange" accept=".png,.jpg,.jpeg" />
-      </div>
-      <div
-        class="preview-container"
-        style="width: 500px; height: 500px"
-        v-if="false"
-      >
+  <div
+    class="flex flex-col justify-center items-center lg:flex-row lg:items-start gap-5"
+  >
+    <div class="left">
+      <div class="bg-container flex justify-center items-center">
         <!-- 像素背景 -->
         <div class="px-bg"></div>
         <!-- 遮罩 -->
         <div class="mask-bg"></div>
-      </div>
-      <div class="preview-container">
-        <img :src="imgBaseUrl" alt="" class="preview-img" />
 
-        <!-- 裁剪容器 -->
-        <div
-          class="cut-wrapper"
-          style="position: absolute; width: 100%; height: 100%; top: 0; left: 0"
-        >
-          <!-- 裁剪区 -->
+        <div v-loading="loading" class="mb-2 absolute">
+          <input
+            type="file"
+            @change="fileChange"
+            accept=".png,.jpg,.jpeg"
+            class="file-input w-full max-w-xs"
+          />
+        </div>
+
+        <div class="preview-container">
+          <img :src="imgBaseUrl" alt="" class="preview-img" />
+          <!-- 裁剪容器 -->
           <div
-            class="cropper-crop-box"
-            :style="{
-              width: moveElWidth + 'px',
-              height: moveElHeight + 'px',
-              transform: `translate3d(${translateX}px, ${translateY}px, 0px)`
-            }"
-            v-if="imgBaseUrl"
+            class="cut-wrapper"
+            style="
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              top: 0;
+              left: 0;
+            "
           >
-            <!-- 移动板  -->
-            <span
-              class="cropper-face"
-              @mousedown="handleMoveEl"
-              @touchstart="handleMoveEl"
-            ></span>
-            <!-- 尺寸信息 -->
-            <span class="crop-info" style="bottom: -21px"
-              >{{ parseInt(moveElWidth) }} × {{ parseInt(moveElHeight) }}</span
+            <!-- 裁剪区 -->
+            <div
+              class="cropper-crop-box"
+              :style="{
+                width: moveElWidth + 'px',
+                height: moveElHeight + 'px',
+                transform: `translate3d(${translateX}px, ${translateY}px, 0px)`,
+              }"
+              v-if="imgBaseUrl"
             >
-            <!-- 框 -->
-            <span
-              ><span
-                class="crop-line line-n"
-                @mousedown="handleLineDown($event, 'n')"
-                @touchstart="handleLineDown($event, 'n')"
-              ></span
-              ><span
-                class="crop-line line-w"
-                @mousedown="handleLineDown($event, 'w')"
-                @touchstart="handleLineDown($event, 'w')"
-              ></span
-              ><span
-                class="crop-line line-s"
-                @mousedown="handleLineDown($event, 's')"
-                @touchstart="handleLineDown($event, 's')"
-              ></span
-              ><span
-                class="crop-line line-e"
-                @mousedown="handleLineDown($event, 'e')"
-                @touchstart="handleLineDown($event, 'e')"
-              ></span
-              ><span
-                class="crop-point point1 nw"
-                @mousedown="handleLineDown($event, 'nw')"
-                @touchstart="handleLineDown($event, 'nw')"
-              ></span
-              ><span
-                class="crop-point point2 n"
-                @mousedown="handleLineDown($event, 'n')"
-                @touchstart="handleLineDown($event, 'n')"
-              ></span
-              ><span
-                class="crop-point point3 ne"
-                @mousedown="handleLineDown($event, 'ne')"
-                @touchstart="handleLineDown($event, 'ne')"
-              ></span
-              ><span
-                class="crop-point point4 w"
-                @mousedown="handleLineDown($event, 'w')"
-                @touchstart="handleLineDown($event, 'w')"
-              ></span
-              ><span
-                class="crop-point point5 e"
-                @mousedown="handleLineDown($event, 'e')"
-                @touchstart="handleLineDown($event, 'e')"
-              ></span
-              ><span
-                class="crop-point point6 sw"
-                @mousedown="handleLineDown($event, 'sw')"
-                @touchstart="handleLineDown($event, 'sw')"
-              ></span
-              ><span
-                class="crop-point point7 s"
-                @mousedown="handleLineDown($event, 's')"
-                @touchstart="handleLineDown($event, 's')"
-              ></span
-              ><span
-                class="crop-point point8 se"
-                @mousedown="handleLineDown($event, 'se')"
-                @touchstart="handleLineDown($event, 'se')"
-              ></span
-            ></span>
+              <!-- 移动板  -->
+              <span
+                class="cropper-face"
+                @mousedown="handleMoveEl"
+                @touchstart="handleMoveEl"
+              ></span>
+              <!-- 尺寸信息 -->
+              <span class="crop-info" style="bottom: -21px"
+                >{{ parseInt(moveElWidth) }} ×
+                {{ parseInt(moveElHeight) }}</span
+              >
+              <!-- 框 -->
+              <span
+                ><span
+                  class="crop-line line-n"
+                  @mousedown="handleLineDown($event, 'n')"
+                  @touchstart="handleLineDown($event, 'n')"
+                ></span
+                ><span
+                  class="crop-line line-w"
+                  @mousedown="handleLineDown($event, 'w')"
+                  @touchstart="handleLineDown($event, 'w')"
+                ></span
+                ><span
+                  class="crop-line line-s"
+                  @mousedown="handleLineDown($event, 's')"
+                  @touchstart="handleLineDown($event, 's')"
+                ></span
+                ><span
+                  class="crop-line line-e"
+                  @mousedown="handleLineDown($event, 'e')"
+                  @touchstart="handleLineDown($event, 'e')"
+                ></span
+                ><span
+                  class="crop-point point1 nw"
+                  @mousedown="handleLineDown($event, 'nw')"
+                  @touchstart="handleLineDown($event, 'nw')"
+                ></span
+                ><span
+                  class="crop-point point2 n"
+                  @mousedown="handleLineDown($event, 'n')"
+                  @touchstart="handleLineDown($event, 'n')"
+                ></span
+                ><span
+                  class="crop-point point3 ne"
+                  @mousedown="handleLineDown($event, 'ne')"
+                  @touchstart="handleLineDown($event, 'ne')"
+                ></span
+                ><span
+                  class="crop-point point4 w"
+                  @mousedown="handleLineDown($event, 'w')"
+                  @touchstart="handleLineDown($event, 'w')"
+                ></span
+                ><span
+                  class="crop-point point5 e"
+                  @mousedown="handleLineDown($event, 'e')"
+                  @touchstart="handleLineDown($event, 'e')"
+                ></span
+                ><span
+                  class="crop-point point6 sw"
+                  @mousedown="handleLineDown($event, 'sw')"
+                  @touchstart="handleLineDown($event, 'sw')"
+                ></span
+                ><span
+                  class="crop-point point7 s"
+                  @mousedown="handleLineDown($event, 's')"
+                  @touchstart="handleLineDown($event, 's')"
+                ></span
+                ><span
+                  class="crop-point point8 se"
+                  @mousedown="handleLineDown($event, 'se')"
+                  @touchstart="handleLineDown($event, 'se')"
+                ></span
+              ></span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div>
-      <el-card
-        class="output-container flex flex-col justify-center items-center w-[375px] my-5 py-3"
+    <div class="right">
+      <div
+        class="card w-96 bg-base-100 shadow-xl p-6 mb-4 flex flex-col mt-10"
         v-show="imgBaseUrl"
       >
-        <div>
-          <el-button
-            @click="handleCut"
-            type="primary"
-            style="margin-right: 10px"
-            >裁剪</el-button
-          >输出结果：
+        <div class="w-full">
+          <button @click="handleCut" class="btn mr-5">裁剪</button>
+          <div class="my-5">
+            输出结果：({{ outputWidth }}x{{ outputHeight }})
+          </div>
         </div>
-      </el-card>
-    </div>
-    <div>
-      <el-card class="w-[375px] my-5">
-        手动结果修正（10px以内）
-        <br />
-        上：<el-input-number
-          v-model="customTop"
-          :min="-10"
-          :max="10"
-          style="width: 100px"
-        />
-        下：<el-input-number
-          v-model="customBottom"
-          :min="-10"
-          :max="10"
-          style="width: 100px"
-        />
-        <el-button @click="handleCustom"> 修正 </el-button>
-        <div class="flex flex-row my-2 justify-between">
-          <span>输出尺寸：{{ outputWidth }}x{{ outputHeight }}</span>
-          <el-button v-show="imgBaseUrl" @click="save" type="success"
-            >保存</el-button
-          >
+
+        <div class="result-img-container"></div>
+
+        <div class="">
+          <div>手动结果修正（10px以内）</div>
+
+          上：<el-input-number
+            v-model="customTop"
+            :min="-10"
+            :max="10"
+            style="width: 100px"
+          />
+          下：<el-input-number
+            v-model="customBottom"
+            :min="-10"
+            :max="10"
+            style="width: 100px"
+          />
+          <el-button @click="handleCustom"> 修正 </el-button>
+          <div class="flex flex-row my-2 justify-between">
+            <el-button v-show="imgBaseUrl" @click="save" type="success"
+              >保存</el-button
+            >
+          </div>
         </div>
-      </el-card>
+      </div>
     </div>
   </div>
 </template>
@@ -170,7 +179,7 @@ export default {
       moveElHeight: 150,
       previewImgWidth: 0,
       previewImgHeight: 0,
-      isMove: false
+      isMove: false,
     };
   },
   watch: {},
@@ -306,22 +315,22 @@ export default {
 
     fileChange(e) {
       this.reset();
-      this.handleRetry();
+      this.removeBase64Img();
       const [file] = e.target.files;
-      // console.log(file);
+      console.log(file);
       const reader = new FileReader();
       reader.readAsDataURL(file);
       const vm = this;
+
       reader.onload = () => {
         var base64 = reader.result;
         this.imgBaseUrl = base64;
 
         document.querySelector('.preview-img').onload = function () {
-          console.log(this, this.width, this.height);
-          const { width, height } = getComputedStyle(this);
+          const { width, height } = this;
           console.log(width, height);
-          vm.previewImgWidth = vm.moveElWidth = parseInt(width);
-          vm.previewImgHeight = vm.moveElHeight = parseInt(height);
+          vm.previewImgWidth = vm.moveElWidth = width;
+          vm.previewImgHeight = vm.moveElHeight = height;
           vm.handleCut();
         };
       };
@@ -352,11 +361,11 @@ export default {
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = bottom - top - 1;
-        console.log('output img width height', canvas.width, canvas.height);
+        console.log('输出图片 width height', canvas.width, canvas.height);
         vm.outputWidth = canvas.width;
         vm.outputHeight = canvas.height;
         const ctx = canvas.getContext('2d', {
-          willReadFrequently: true
+          willReadFrequently: true,
         });
         ctx.drawImage(
           img,
@@ -367,18 +376,15 @@ export default {
           0,
           0,
           canvas.width,
-          canvas.height
+          canvas.height,
         );
         canvas.style.width = '100px';
         const resultImg = new Image();
         resultImg.src = canvas.toDataURL();
         resultImg.id = 'base64Img';
         resultImg.style.width = '50%';
-        // document.querySelector(".output-container").appendChild(resultImg);
 
-        document
-          .querySelector('.output-container')
-          .insertAdjacentElement('beforeend', resultImg);
+        document.querySelector('.result-img-container').appendChild(resultImg);
         vm.loading = false;
       };
     },
@@ -400,7 +406,7 @@ export default {
       const canvas = document.createElement('canvas');
 
       const ctx = canvas.getContext('2d', {
-        willReadFrequently: true
+        willReadFrequently: true,
       });
 
       const img = new Image();
@@ -424,7 +430,7 @@ export default {
         worker.postMessage({ imageData, width, height, start, end });
       };
     },
-    handleRetry() {
+    removeBase64Img() {
       const imgEl = document.getElementById('base64Img');
       if (imgEl) {
         imgEl.remove();
@@ -444,28 +450,15 @@ export default {
       this.calcData = {};
       this.outputWidth = 0;
       this.outputHeight = 0;
-    }
+    },
   },
-  mounted() {
-    // const vm = this;
-    // document.addEventListener(
-    //   'touchmove',
-    //   function (event) {
-    //     if (vm.isMove) {
-    //       event.preventDefault();
-    //     }
-    //   },
-    //   {
-    //     passive: false
-    //   }
-    // );
-  }
+  mounted() {},
 };
 </script>
 <style scoped>
 .preview-container {
   position: relative;
-  width: 40vw;
+  width: 40%;
   touch-action: none;
 }
 
@@ -479,6 +472,15 @@ export default {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+
+.bg-container {
+  position: relative;
+  touch-action: none;
+  min-width: 360px;
+  min-height: 360px;
+  width: 40vw;
+  height: 40vw;
 }
 .px-bg {
   position: absolute;

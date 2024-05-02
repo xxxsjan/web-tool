@@ -1,6 +1,12 @@
 <template>
   <div>
-    <SvgIcon name="voice" size="30" @click="showVoice" />
+    <div
+      class="flex flex-col justify-center items-center border-2 rounded-xl p-3"
+      @click="showVoice"
+    >
+      <SvgIcon name="voice" size="30" />
+      <div class="text-base">开始录音</div>
+    </div>
 
     <el-dialog
       v-model="dialogVisible"
