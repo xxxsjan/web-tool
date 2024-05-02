@@ -1,56 +1,64 @@
 <template>
-  <div class="package-to-cli">
-    <p>用法：根据依赖包版本信息，转化成命令行操作</p>
-    <el-input
-      v-model="codeLeft"
-      type="textarea"
-      placeholder="Please input"
-      :autosize="{ minRows: 10, maxRows: 15 }"
-      style="width: 50%"
-      resize="none"
-    />
-    <el-card class="my-[10px]">
-      <el-form :model="form" label-width="60px">
-        <el-form-item label="包">
-          <el-radio-group v-model="form.npmName">
-            <el-radio label="npm" />
-            <el-radio label="pnpm" />
-            <el-radio label="yarn" />
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="操作">
-          <el-radio-group v-model="form.operate">
-            <el-radio label="add" />
-            <el-radio label="remove" />
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="环境">
-          <el-radio-group v-model="form.dev">
-            <el-radio label="-S" />
-            <el-radio label="-D" />
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item>
-          <el-button @click="() => toGenerate()">生成</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+  <div class="flex gap-4 mx-8 flex-col md:flex-row">
+    <div class="w-full flex-1">
+      <p class="text-base mb-4">用法：根据依赖包版本信息，转化成命令行操作</p>
+      <textarea
+        class="textarea textarea-bordered w-full"
+        v-model="codeLeft"
+        placeholder="Bio"
+        resize="none"
+        rows="15"
+        @input="handleChange"
+      ></textarea>
+    </div>
+
+    <div class="flex-1">
+      <div class="card w-96 bg-base-100 shadow-xl my-6">
+        <div class="card-body">
+          <h2 class="card-title"></h2>
+          <el-form :model="form" label-width="60px">
+            <el-form-item label="包">
+              <el-radio-group v-model="form.npmName">
+                <el-radio label="npm" />
+                <el-radio label="pnpm" />
+                <el-radio label="yarn" />
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="操作">
+              <el-radio-group v-model="form.operate">
+                <el-radio label="add" />
+                <el-radio label="remove" />
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="环境">
+              <el-radio-group v-model="form.dev">
+                <el-radio label="-S" />
+                <el-radio label="-D" />
+              </el-radio-group>
+            </el-form-item>
+          </el-form>
+          <div class="card-actions justify-end">
+            <button class="btn" @click="() => toGenerate()">生成</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <!-- <LeftToRight
-    v-model:codeLeft="codeLeft"
-    v-model:codeRight="codeRight"
-    @toGenerate="toGenerate"
-  ></LeftToRight> -->
+
   <resultDialog v-model="dialogVisible" :result="codeRight" />
 </template>
 
 <script setup>
 import resultDialog from '@/components/result-dialog.vue';
 defineOptions({
-  name: 'package-to-cli'
+  name: 'package-to-cli',
 });
 const dialogVisible = ref(false);
-
+function handleChange(e) {
+  const textarea = e.target;
+  textarea.style.height = 'auto';
+  textarea.style.height = textarea.scrollHeight + 'px';
+}
 const form = reactive({ npmName: 'pnpm', dev: '-S', operate: 'add' });
 const codeLeft = ref(`{
     "postcss": "8.4.12",
@@ -99,12 +107,5 @@ function toGenerate(code) {
 <style scoped>
 .wrapper {
   grid-template-columns: 1fr 210px 1fr;
-}
-
-.package-to-cli {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
 }
 </style>

@@ -5,7 +5,7 @@ import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-import { getCurrentInstance,onMounted, ref, toRaw, watch } from 'vue';
+import { getCurrentInstance, onMounted, ref, toRaw, watch } from 'vue';
 console.log(getCurrentInstance());
 const glp = getCurrentInstance().appContext.config.globalProperties;
 console.log('glp: ', glp);
@@ -24,7 +24,7 @@ self.MonacoEnvironment = {
       return new TsWorker();
     }
     return new EditorWorker();
-  }
+  },
 };
 const inputEditor = ref(null);
 const outputEditor = ref(null);
@@ -92,15 +92,15 @@ watch(
     //   language: nVal,
     // });
     onFormat(1);
-  }
+  },
 );
 const commonConfig = {
   theme: 'vs-dark',
   formatOnPaste: true, // 粘贴时格式化
   fontSize: 16,
   minimap: {
-    enabled: false
-  }
+    enabled: false,
+  },
 };
 
 const copyResult = () => {
@@ -129,7 +129,7 @@ onMounted(() => {
         align-items: center;
       }`,
       language: language.value,
-      ...commonConfig
+      ...commonConfig,
     });
   }
 
@@ -137,7 +137,7 @@ onMounted(() => {
     outputEditor.value = monaco.editor.create(outputContainerDom, {
       value: JSON.stringify({}),
       language: 'json',
-      ...commonConfig
+      ...commonConfig,
     });
   }
   setTimeout(() => {
@@ -145,18 +145,18 @@ onMounted(() => {
   }, 1111);
   window.addEventListener('resize', () => {
     const editor1 = document.querySelector(
-      '#inputContainer .monaco-editor.vs-dark'
+      '#inputContainer .monaco-editor.vs-dark',
     );
     const editor2 = document.querySelector(
-      '#outputContainer .monaco-editor.vs-dark'
+      '#outputContainer .monaco-editor.vs-dark',
     );
     toRaw(inputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight
+      height: editor1.parentElement.offsetHeight,
     });
     toRaw(outputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight
+      height: editor1.parentElement.offsetHeight,
     });
   });
 });
@@ -181,7 +181,7 @@ onMounted(() => {
               'json',
               'less',
               'scss',
-              'typescript'
+              'typescript',
             ]"
             :key="item"
             :label="item"
