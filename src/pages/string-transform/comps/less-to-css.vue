@@ -1,24 +1,20 @@
 <template>
-  <el-card header="less语法转css" style="width: 700px">
-    <div class="less-to-css flex flex-col justify-center items-center">
-      <el-input
-        v-model="codeLeft"
-        type="textarea"
-        placeholder="Please input"
-        :autosize="{ minRows: 10, maxRows: 15 }"
-        style="width: 50%"
-        resize="none"
-      />
-      <div class="my-[10px]">
+  <div class="card bg-base-100 shadow-xl w-[700px]">
+    <div class="card-body">
+      <div class="card-title">less语法转css</div>
+      <div class="less-to-css flex flex-col justify-center items-center gap-4">
+        <AutoTextarea v-model="codeLeft" />
+
         <el-button @click="() => toGenerate()">生成</el-button>
       </div>
     </div>
     <resultDialog v-model="dialogVisible" :result="codeRight" />
-  </el-card>
+  </div>
 </template>
 
 <script setup lang="ts">
 import less from 'less';
+
 const dialogVisible = ref(false);
 
 const codeLeft = ref(`@color: #f00;

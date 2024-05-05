@@ -7,7 +7,7 @@
         </button>
       </div>
       <div class="flex-1">
-        <a class="btn btn-ghost text-xl" href="/">daisyUI</a>
+        <a class="btn btn-ghost text-xl" href="/">Web Tool</a>
       </div>
 
       <div class="flex-none m-2 relative">

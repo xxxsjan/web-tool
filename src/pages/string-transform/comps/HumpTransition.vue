@@ -1,31 +1,38 @@
 <template>
-  <el-card header="驼峰转换" style="width: 700px">
-    <div>
-      <label>驼峰转换：</label>
-      <el-input v-model="oriVal" style="width: 200px"></el-input>
-    </div>
+  <div class="card bg-base-100 shadow-xl w-[700px]">
+    <div class="card-body">
+      <div class="card-title">驼峰转换</div>
+      <div>
+        <label>驼峰转换：</label>
+        <el-input v-model="oriVal" style="width: 200px"></el-input>
+      </div>
 
-    <el-button @click="() => (resultVal = pascalToKebab(oriVal))"
-      >ToKebab</el-button
-    >
-    <el-button @click="() => (resultVal = camelToKebab(oriVal))"
-      >ToKebab</el-button
-    >
-    <el-button @click="() => (resultVal = kebabToPascal(oriVal))"
-      >ToPascal</el-button
-    >
-    <el-button @click="() => (resultVal = kebabToCamel(oriVal))"
-      >ToCamel</el-button
-    >
+      <div class="flex justify-between">
+        <el-button @click="() => (resultVal = pascalToKebab(oriVal))"
+          >ToKebab</el-button
+        >
+        <el-button @click="() => (resultVal = camelToKebab(oriVal))"
+          >ToKebab</el-button
+        >
+        <el-button @click="() => (resultVal = kebabToPascal(oriVal))"
+          >ToPascal</el-button
+        >
+        <el-button @click="() => (resultVal = kebabToCamel(oriVal))"
+          >ToCamel</el-button
+        >
+      </div>
 
-    <div>
-      <label>结果：</label>
-      <pre>{{ resultVal }}</pre>
-      <el-link v-show="resultVal" type="primary" @click="handleCopy"
-        >复制</el-link
-      >
+      <div class="flex">
+        <div class="mr-4">
+          <span>结果：</span>
+          <span>{{ resultVal }}</span>
+        </div>
+        <el-link v-show="resultVal" type="primary" @click="handleCopy"
+          >复制</el-link
+        >
+      </div>
     </div>
-  </el-card>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -36,7 +43,7 @@ function handleCopy() {
     navigator.clipboard.writeText(resultVal.value);
     ElMessage({
       message: '已复制',
-      type: 'success'
+      type: 'success',
     });
   } catch (error) {
     alert(error);

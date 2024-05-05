@@ -1,26 +1,27 @@
 <template>
-  <div class="string-transform">
-    <el-card
-      header="esm导入 和 commonjs导入语法的相互切换"
-      style="width: 700px"
-    >
-      <el-input
-        v-model="code"
-        type="textarea"
-        placeholder="Please input"
-        :autosize="{ minRows: 10, maxRows: 15 }"
-        style="width: 50%"
-        resize="none"
-      />
+  <div class="">
+    <div class="card bg-base-100 shadow-xl w-[700px]">
+      <div class="card-body">
+        <div class="card-title">
+          <label class="swap">
+            <input type="checkbox" v-model="mode" />
+            <div class="swap-on">esm转cjs(点击切换)</div>
+            <div class="swap-off">cjs转esm(点击切换)</div>
+          </label>
+        </div>
+        <div class="flex flex-col justify-center items-center gap-4">
+          <textarea
+            v-model="code"
+            class="textarea textarea-bordered w-1/2"
+            placeholder="Bio"
+            resize="none"
+            rows="10"
+          ></textarea>
 
-      <div class="my-[10px] flex flex-row justify-center items-center">
-        <el-button @click="changeMode">
-          <el-icon><i-ep-RefreshLeft /></el-icon>
-          生成{{ mode }}</el-button
-        >
-        <el-button @click="run">转换</el-button>
+          <button @click="run" class="btn btn-ghost">转换</button>
+        </div>
       </div>
-    </el-card>
+    </div>
     <resultDialog v-model="dialogVisible" :result="code2" />
   </div>
 </template>
@@ -28,7 +29,7 @@
 <script setup>
 // https://github.com/surmon-china/vue-codemirror
 defineExpose({
-  title: 'esm导入 和 commonjs导入语法的相互切换'
+  title: 'esm导入 和 commonjs导入语法的相互切换',
 });
 const dialogVisible = ref(false);
 const esmText = `import path from "path"
@@ -41,26 +42,22 @@ const code = ref(esmText);
 const code2 = ref(code2DefaultText);
 const mode = ref('commonjs');
 
-function changeMode() {
-  switch (mode.value) {
-    case 'esm':
-      mode.value = 'commonjs';
-      code.value = esmText;
-      code2.value = code2DefaultText;
-      break;
-    case 'commonjs':
-      mode.value = 'esm';
+watch(
+  () => mode.value,
+  value => {
+    if (value) {
       code.value = `const path = require("path")
 const Vue = require('vue');
 const {cloneDeep} = require("lodash-es");
 const json = require("./package.json");
 `;
       code2.value = code2DefaultText;
-      break;
-    default:
-      break;
-  }
-}
+    } else {
+      code.value = esmText;
+      code2.value = code2DefaultText;
+    }
+  },
+);
 
 const run = () => {
   const code1Text = code.value.split('\n');

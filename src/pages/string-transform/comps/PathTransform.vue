@@ -1,29 +1,33 @@
 <template>
-  <el-card header="windows路径转换" style="width: 700px">
-    <div class="less-to-css flex flex-col justify-center items-center">
-      <el-input
-        v-selectCopy
-        v-model="originVal"
-        type="textarea"
-        placeholder="请输入windows的路径"
-        :autosize="{ minRows: 3, maxRows: 15 }"
-        style="width: 50%"
-        resize="none"
-      />
-      <div class="my-[10px]">
-        <el-button @click="toDo">生成</el-button>
+  <div class="card w-[700px] bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">windows路径转换</h2>
+      <div class="less-to-css flex flex-col justify-center items-center">
+        <el-input
+          v-selectCopy
+          v-model="originVal"
+          type="textarea"
+          placeholder="请输入windows的路径"
+          :autosize="{ minRows: 3, maxRows: 15 }"
+          class="w-full"
+          resize="none"
+        />
+        <div class="my-[10px]">
+          <el-button @click="toDo">生成</el-button>
+        </div>
+        <el-input
+          v-show="result"
+          v-model="result"
+          type="textarea"
+          :autosize="{ minRows: 3, maxRows: 15 }"
+          style="width: 50%"
+          resize="none"
+          @focus="$event => $event.target.select()"
+        />
       </div>
-      <el-input
-        v-show="result"
-        v-model="result"
-        type="textarea"
-        :autosize="{ minRows: 3, maxRows: 15 }"
-        style="width: 50%"
-        resize="none"
-        @focus="$event => $event.target.select()"
-      />
     </div>
-  </el-card>
+  </div>
+
   <!-- <resultDialog v-model="dialogVisible" :result="result" /> -->
 </template>
 
@@ -38,7 +42,7 @@ const selectCopy = el => {
 };
 export default {
   name: 'path-transform',
-  directives: { selectCopy }
+  directives: { selectCopy },
 };
 </script>
 

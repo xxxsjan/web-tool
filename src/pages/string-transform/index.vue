@@ -1,25 +1,21 @@
 <template>
   <div
-    class="string-transform flex flex-col justify-center items-center gap-10"
+    class="string-transform pt-10 flex flex-col w-full justify-center items-center"
   >
-    <PathTransform id="PathTransform" />
-    <HumpTransition id="HumpTransition" />
-    <LessToCss id="LessToCss" />
-    <EsmCommonjs id="EsmCommonjs" />
-
-    <el-card
-      class="quick-nav fixed top-2 overflow-auto max-w-max max-h-[500px]"
-    >
-      <div class="flex gap-1">
-        <div
-          class="quick-nav-item m-1 rounded h-7 px-2"
-          v-for="item in list"
-          :key="item"
-        >
-          <a :href="`#${item}`">{{ comToName(item) }}</a>
-        </div>
-      </div>
-    </el-card>
+    <div role="tablist" class="tabs tabs-boxed fixed top-12">
+      <span
+        role="tab"
+        v-for="item in list"
+        :class="['tab', { 'tab-active': curTab === item }]"
+        :key="item"
+        @click="curTab = item"
+        >{{ comToName(item) }}</span
+      >
+    </div>
+    <PathTransform id="PathTransform" v-if="curTab === 'PathTransform'" />
+    <HumpTransition id="HumpTransition" v-if="curTab === 'HumpTransition'" />
+    <LessToCss id="LessToCss" v-if="curTab === 'LessToCss'" />
+    <EsmCommonjs id="EsmCommonjs" v-if="curTab === 'EsmCommonjs'" />
   </div>
 </template>
 
@@ -30,13 +26,14 @@ import LessToCss from './comps/less-to-css.vue';
 import PathTransform from './comps/PathTransform.vue';
 
 const list = ['PathTransform', 'HumpTransition', 'LessToCss', 'EsmCommonjs'];
+const curTab = ref('PathTransform');
 
 function comToName(key: string) {
   return {
     PathTransform: 'windows路径转换',
     HumpTransition: '驼峰转换',
     LessToCss: 'LessToCss',
-    EsmCommonjs: 'esm => commonjs'
+    EsmCommonjs: 'esm => commonjs',
   }[key];
 }
 </script>
