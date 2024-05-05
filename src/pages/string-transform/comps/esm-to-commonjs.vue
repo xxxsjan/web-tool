@@ -27,7 +27,6 @@
 </template>
 
 <script setup>
-// https://github.com/surmon-china/vue-codemirror
 defineExpose({
   title: 'esm导入 和 commonjs导入语法的相互切换',
 });

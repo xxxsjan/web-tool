@@ -1,72 +1,27 @@
 <template>
-  <div class="wrapper">
-    <codemirror
-      class="left"
-      v-model="code"
-      placeholder="Code goes here..."
-      :style="{ height: '600px' }"
-      :autofocus="true"
-      :indent-with-tab="true"
-      :tab-size="2"
-      :extensions="extensions"
-      @ready="handleReady"
-      @change="handleState('change', $event)"
-      @focus="handleState('focus', $event)"
-      @blur="handleState('blur', $event)"
-    />
-    <div class="trans">
-      <el-button @click="getCodemirrorStates">转换➡️</el-button>
+  <div class="w-full h-full flex flex-col gap-2 justify-center items-center">
+    <h2>模版字符串</h2>
+    <auto-textarea v-model="code"></auto-textarea>
+
+    <div class="w-96 flex justify-between">
+      <button class="btn" @click="getCodemirrorStates">转换为字符串拼接</button>
+      <button class="btn" @click="copyRes">复制结果</button>
     </div>
-    <codemirror
-      class="right"
-      v-model="code2"
-      placeholder="Code goes here..."
-      :style="{ height: '600px' }"
-      :autofocus="true"
-      :indent-with-tab="true"
-      :tab-size="2"
-      :extensions="extensions"
-    />
+
+    <auto-textarea v-model="code2" disabled></auto-textarea>
   </div>
 </template>
 
 <script setup>
-// https://github.com/surmon-china/vue-codemirror
-import { onMounted, ref, shallowRef } from 'vue';
-import { Codemirror } from 'vue-codemirror';
-// import { javascript } from '@codemirror/lang-javascript';
-// import { oneDark } from '@codemirror/theme-one-dark';
-const code = ref(`\`
-<div>
+const code = ref(`\`<div>
   <div>\${text}</div>
-</div>
-\``);
-const code2 = ref(`左侧输入后点击转换即可输出`);
-const extensions = [
-  // javascript(),
-  // oneDark,
-];
+</div>\``);
+const code2 = ref(``);
 
-// Codemirror EditorView instance ref
-const view = shallowRef();
-const handleReady = payload => {
-  // https://codemirror.net/docs/ref/#view
-  console.log('payload: ', payload);
-  view.value = payload.view;
-};
-
-// Status is available at all times via Codemirror EditorView
 const getCodemirrorStates = () => {
-  // const state = view.value.state;
-  // const ranges = state.selection.ranges;
-  // const selected = ranges.reduce((r, range) => r + range.to - range.from, 0);
-  // const cursor = ranges[0].anchor;
-  // const length = state.doc.length;
-  // const lines = state.doc.lines;
-  // more state info ...
-  // return ...
-  const code1Text = view.value.state.doc.text;
-  console.log('code1Text: ', code1Text);
+  const code1Text = code.value.split('\n');
+  console.log(code1Text);
+
   code2.value = code1Text.reduce((pre, cur) => {
     let _cur = cur.replace('`', '');
     if (pre === '') {
@@ -94,35 +49,13 @@ const getCodemirrorStates = () => {
     );
   }
 };
-const log = console.log;
-
-function handleChange(e) {
-  log('change', e);
-}
-function handleFocus(e) {
-  log('focus', e);
-}
-function handleBlur(e) {
-  log('blur', e);
-}
-function handleState(state, e) {
-  // log(state, e);
-}
-onMounted(() => {});
+const copyRes = () => {
+  if (!code2.value) {
+    alert('结果为空');
+  }
+  // 复制文本到剪切板
+  navigator.clipboard.writeText(code2.value);
+  alert('复制成功');
+};
 </script>
-<style scoped>
-.wrapper {
-  display: grid;
-  width: 100vw;
-  height: 100%;
-  grid-template-columns: 1fr 100px 1fr;
-  grid-template-rows: 100%;
-}
-
-.trans {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid #333;
-}
-</style>
+<style scoped></style>
