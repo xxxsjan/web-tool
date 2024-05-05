@@ -5,10 +5,9 @@ import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-import { getCurrentInstance,onMounted, ref, toRaw, watch } from 'vue';
-console.log(getCurrentInstance());
-const glp = getCurrentInstance().appContext.config.globalProperties;
-console.log('glp: ', glp);
+import { onMounted, ref, toRaw, watch } from 'vue';
+import DemoChoose from './DemoChoose.vue';
+
 self.MonacoEnvironment = {
   getWorker(_, label) {
     if (label === 'json') {
@@ -24,12 +23,13 @@ self.MonacoEnvironment = {
       return new TsWorker();
     }
     return new EditorWorker();
-  }
+  },
 };
 const inputEditor = ref(null);
 const outputEditor = ref(null);
 const language = ref('html');
 const result = ref('');
+
 function onFormat(type) {
   switch (type) {
     case 1:
@@ -70,16 +70,16 @@ function getEditValue() {
 }
 function onTransform() {
   const beforeBody = getEditValue();
-  console.log('onTransform: ');
-  const prefix = inputForm.value.prefix || 'prefix';
-  const description = inputForm.value.description || 'this is description';
-  const keyName = inputForm.value.snippetName || 'default snippet name';
+
+  const prefix = inputForm.prefix || 'prefix';
+  const description = inputForm.description || 'this is description';
+  const keyName = inputForm.snippetName || 'default snippet name';
   const _result = (result.value = JSON.stringify({
     [keyName]: {
       prefix,
       body: beforeBody,
-      description
-    }
+      description,
+    },
   }));
   toRaw(outputEditor.value).setValue(_result);
   onFormat(2);
@@ -87,29 +87,29 @@ function onTransform() {
 watch(
   () => language.value,
   nVal => {
-    console.log('nVal: ', nVal);
+    console.log('language: ', nVal);
     monaco.editor.setModelLanguage(toRaw(inputEditor.value).getModel(), nVal);
     // toRaw(inputEditor.value).updateOptions({
     //   language: nVal,
     // });
     onFormat(1);
-  }
+  },
 );
 const commonConfig = {
   theme: 'vs-dark',
   formatOnPaste: true, // 粘贴时格式化
-  fontSize: 16,
+  fontSize: 14,
   minimap: {
-    enabled: false
-  }
+    enabled: false,
+  },
 };
-const inputForm = ref({});
+const inputForm = reactive({ prefix: '', description: '', snippetName: '' });
 const copyResult = () => {
   const coptText = result.value.slice(1, -1) || '';
   console.log('coptText: ', coptText);
   if (coptText) {
     navigator.clipboard.writeText(coptText);
-    glp.$message.success('复制成功');
+    ElMessage.success('复制成功');
   }
 };
 
@@ -124,7 +124,7 @@ onMounted(() => {
 <script lang="ts" setup><\/script>
 <style scoped><\/style>`,
       language: 'html',
-      ...commonConfig
+      ...commonConfig,
     });
   }
 
@@ -132,75 +132,89 @@ onMounted(() => {
     outputEditor.value = monaco.editor.create(outputContainerDom, {
       value: JSON.stringify({}),
       language: 'json',
-      ...commonConfig
+      ...commonConfig,
     });
   }
 
   window.addEventListener('resize', () => {
     const editor1 = document.querySelector(
-      '#inputContainer .monaco-editor.vs-dark'
+      '#inputContainer .monaco-editor.vs-dark',
     );
     // const editor2 = document.querySelector(
     //   '#outputContainer .monaco-editor.vs-dark'
     // );
     toRaw(inputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight
+      height: editor1.parentElement.offsetHeight,
     });
     toRaw(outputEditor.value).layout({
       width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight
+      height: editor1.parentElement.offsetHeight,
     });
   });
 });
+
+const useCode = data => {
+  console.log('data: ', data);
+  inputForm.snippetName = data.snippetName;
+  inputForm.prefix = data.prefix;
+  inputForm.description = data.description;
+
+  if (data.code) {
+    toRaw(inputEditor.value).setValue(data.code);
+    onFormat(1);
+  }
+};
 </script>
 
 <template>
-  <div class="wrapper">
+  <div class="w-full h-full grid grid-cols-[1fr_300px_1fr]">
     <div class="left">
       <div
         id="inputContainer"
         ref="inputContainer"
         style="max-width: 100%; height: 80vh"
-      />
-      <div class="m-10">
-        选择编辑器语言
-        <el-select v-model="language" placeholder="language" size="default">
-          <el-option
-            v-for="item in [
-              'css',
-              'html',
-              'javascript',
-              'json',
-              'less',
-              'scss',
-              'typescript'
-            ]"
-            :key="item"
-            :label="item"
-            :value="item"
-          />
-        </el-select>
-      </div>
+      ></div>
     </div>
-    <div class="trans">
-      <el-form :model="inputForm" label-width="120px">
-        <el-form-item label="snippet name">
-          <el-input
+    <div class="flex flex-col items-center justify-center">
+      <div class="flex flex-col gap-5">
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">snippet name</span>
+          </div>
+          <input
             v-model="inputForm.snippetName"
+            type="text"
             placeholder="输入片段名称"
+            class="input input-bordered w-full max-w-xs"
           />
-        </el-form-item>
-        <el-form-item label="prefix">
-          <el-input v-model="inputForm.prefix" placeholder="输入触发指令" />
-        </el-form-item>
-        <el-form-item label="description">
-          <el-input v-model="inputForm.description" placeholder="输入描述" />
-        </el-form-item>
-        <el-form-item>
-          <el-button @click="onTransform" type="primary"> 转换</el-button>
-        </el-form-item>
-      </el-form>
+        </label>
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">prefix</span>
+          </div>
+          <input
+            v-model="inputForm.prefix"
+            type="text"
+            placeholder="输入触发指令"
+            class="input input-bordered w-full max-w-xs"
+          />
+        </label>
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">description</span>
+          </div>
+          <input
+            v-model="inputForm.description"
+            type="text"
+            placeholder="输入描述"
+            class="input input-bordered w-full max-w-xs"
+          />
+        </label>
+        <button @click="onTransform" class="btn">转换</button>
+        <DemoChoose @useCode="useCode" />
+        <button @click="copyResult" class="btn">复制结果</button>
+      </div>
     </div>
 
     <div class="right">
@@ -208,32 +222,26 @@ onMounted(() => {
         id="outputContainer"
         ref="outputContainer"
         style="max-width: 100%; height: 80vh"
-      />
-      <el-button @click="copyResult">复制结果</el-button>
+      ></div>
     </div>
   </div>
+  <div class="m-4">
+    选择编辑器语言
+    <el-select v-model="language" placeholder="language" size="default">
+      <el-option
+        v-for="item in [
+          'css',
+          'html',
+          'javascript',
+          'json',
+          'less',
+          'scss',
+          'typescript',
+        ]"
+        :key="item"
+        :label="item"
+        :value="item"
+      />
+    </el-select>
+  </div>
 </template>
-
-<style scoped>
-.wrapper {
-  display: grid;
-  width: 100vw;
-  height: 100%;
-  grid-template-columns: 1fr 333px 1fr;
-  grid-template-rows: 100%;
-}
-
-.left {
-  overflow: hidden;
-}
-
-.right {
-  overflow: hidden;
-}
-
-.trans {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-</style>
