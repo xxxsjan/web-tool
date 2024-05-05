@@ -1,3 +1,3 @@
 export default {
-  title: '在线预览html代码'
+  title: '📷在线预览html代码'
 };

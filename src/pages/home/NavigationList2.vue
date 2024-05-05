@@ -4,16 +4,18 @@
       <div class="nya-title">
         <i class="eva eva-thermometer-plus-outline"></i><span>工具</span>
       </div>
-      <!-- sm (640px)	max-width: 640px;
-            md (768px)	max-width: 768px;
-            lg (1024px)	max-width: 1024px;
-            xl (1280px)	max-width: 1280px;
-            2xl (1536px)	max-width: 1536px; -->
+      <!-- 
+        sm (640px)	max-width: 640px;
+        md (768px)	max-width: 768px;
+        lg (1024px)	max-width: 1024px;
+        xl (1280px)	max-width: 1280px;
+        2xl (1536px)	max-width: 1536px; 
+      -->
       <div
         class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         <div
-          class="card w-hull bg-base-100 shadow-xl mr-4 mb-4"
+          class="card w-hull bg-base-100 shadow-xl sm:mr-4 mb-4"
           v-for="(item, index) in list"
           :key="index"
           @click="go(item.path)"
@@ -34,7 +36,7 @@ import routes from '@/router/routes';
 const list = ref(routes[0].children.filter(r => r.path !== '/'));
 list.value.push({
   path: '/html/text-reading.html',
-  name: '文字朗读',
+  name: '🔊文字朗读',
 });
 const router = useRouter();
 function go(path) {

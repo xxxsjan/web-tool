@@ -1,5 +1,5 @@
 <template>
-  <div class="home-page min-w-[660px]">
+  <div class="home-page min-w-[390px] w-full">
     <div
       v-if="showWelcome"
       class="text flex flex-col items-center"

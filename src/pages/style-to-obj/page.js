@@ -1,3 +1,3 @@
 export default {
-  title: 'style转对象',
+  title: '🔄style转对象',
 };

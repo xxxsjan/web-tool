@@ -1,3 +1,3 @@
 export default {
-  title: 'vue转jsx语法',
+  title: '🔄vue转jsx语法',
 };

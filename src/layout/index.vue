@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="navbar bg-base-100" v-show="!showWelcome">
+    <div class="navbar bg-base-100 w-full" v-show="!showWelcome">
       <div class="flex-none" v-show="shouldShowBackHomeBtn">
         <button class="btn btn-square btn-ghost" @click="$router.back()">
           <IconArrowLeft class="w-6" />

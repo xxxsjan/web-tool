@@ -1,3 +1,3 @@
 export default {
-  title: '字符转换'
+  title: '🔄字符转换'
 };
