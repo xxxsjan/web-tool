@@ -83,6 +83,7 @@ export default defineConfig(({ command, mode }) => {
             vue: ['vue', 'vue-router'],
             'element-plus': ['element-plus'],
             dayjs: ['dayjs'],
+            'monaco-editor': ['monaco-editor'],
           },
           chunkFileNames(chunkInfo) {
             const { facadeModuleId } = chunkInfo;

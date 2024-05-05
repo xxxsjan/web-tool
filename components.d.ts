@@ -26,7 +26,6 @@ declare module '@vue/runtime-core' {
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     IEpPlus: typeof import('~icons/ep/plus')['default']
-    IEpRefreshLeft: typeof import('~icons/ep/refresh-left')['default']
     LeftToRight: typeof import('./src/components/left-to-right.vue')['default']
     ResultDialog: typeof import('./src/components/result-dialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
