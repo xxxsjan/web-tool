@@ -1,60 +1,76 @@
 <template>
-  <div class="flex flex-col justify-center items-center">
-    <el-upload v-model:file-list="fileList" class="upload-demo1" action="" :auto-upload="false" :limit="1"
-      :on-exceed="handleExceed" ref="upload" :http-request="httpRequest" list-type="picture-card">
-      <template #trigger>
-        <el-icon><i-ep-Plus /></el-icon>
-      </template>
+  <div class="flex flex-col justify-center items-center gap-4">
+    <div class="card w-[700px] bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="card-title">图片转ico</div>
+        <div class="flex gap-4 items-center">
+          <input
+            type="file"
+            class="file-input w-full max-w-xs"
+            @change="fileChange"
+          />
 
-      <template #tip>
-        <div class="el-upload__tip">请选择一张图片</div>
-      </template>
-    </el-upload>
-
-    <div>
-      <el-select placeholder="尺寸" v-model="outputSize" class="w-[100px]">
-        <el-option value="16" label="16x16"></el-option>
-        <el-option value="32" label="32x32"></el-option>
-        <el-option value="48" label="48x48"></el-option>
-        <el-option value="64" label="64x64"></el-option>
-      </el-select>
-      <el-button type="primary" @click="toDo">生成icon文件</el-button>
+          <el-select placeholder="尺寸" v-model="outputSize" class="w-[100px]">
+            <el-option value="16" label="16x16"></el-option>
+            <el-option value="32" label="32x32"></el-option>
+            <el-option value="48" label="48x48"></el-option>
+            <el-option value="64" label="64x64"></el-option>
+          </el-select>
+          <button class="btn" @click="toDo">生成icon文件</button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>图</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in resultArr" :key="index">
+              <th>{{ index + 1 }}</th>
+              <td>
+                <img :src="item.dataURL" alt="" />
+              </td>
+              <td>
+                <button @click="downCanvas(item)">下载</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <DomToSvg />
+
+    <div class="card w-[700px] bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="card-title">dom-to-svg</div>
+        <DomToSvg />
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
 import { genFileId } from 'element-plus';
 
 import DomToSvg from './dom-to-svg.vue';
+
 const upload = ref();
 const fileList = ref([]);
 const outputSize = ref(32);
+const file = ref();
 
-// 超出limit触发
-const handleExceed = files => {
-  console.log('files: ', files, fileList);
-  upload.value.clearFiles();
-  const file = files[0];
-  file.uid = genFileId();
-  // select the file manually. 代码形式添加file文件
-  upload.value.handleStart(file);
-};
-
-function httpRequest(options) {
-  console.log(options);
-  // ipcRenderer.invoke("REQ");
-}
-// function submitUpload() {
-//   upload.value.submit();
-// }
 function toDo() {
-  // console.log(fileList.value[0]);
-  if (fileList.value.length < 1) {
+  const _file = file.value;
+  if (!_file) {
     return;
   }
+
   const fr = new FileReader();
-  const { raw, name: filename } = fileList.value[0];
+
+  const uid = genFileId();
+  const filename = _file.name;
+
+  const raw = _file;
+
   fr.readAsDataURL(raw);
 
   fr.onload = function () {
@@ -65,7 +81,7 @@ function toDo() {
     image2ico(this.result, filename);
   };
 }
-
+const resultArr = ref([]);
 function image2ico(baseurl, filename) {
   const size = outputSize.value;
   const imgEl = document.createElement('img');
@@ -74,11 +90,9 @@ function image2ico(baseurl, filename) {
   imgEl.src = baseurl;
   imgEl.onload = function () {
     var canvas = document.createElement('canvas');
-    // canvas.width = this.width;
+
     canvas.width = size;
-    // canvas.height = this.height;
     canvas.height = size;
-    console.log('canvas: ', canvas);
 
     const ctx = canvas.getContext('2d');
 
@@ -90,25 +104,11 @@ function image2ico(baseurl, filename) {
 
     ctx.drawImage(this, ...data);
 
-    document.body.appendChild(canvas);
-    function blobCallback(iconName) {
-      return function (b) {
-        var a = document.createElement('a');
-        a.textContent = 'Download';
-        a.download = iconName + '.ico';
-        a.href = window.URL.createObjectURL(b);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(b);
-        console.log(a, b);
-      };
-    }
-    canvas.toBlob(
-      blobCallback(iconName),
-      'image/vnd.microsoft.icon',
-      '-moz-parse-options:format=bmp;bpp=32'
-    );
+    var dataURL = canvas.toDataURL();
+    console.log(dataURL);
+
+    resultArr.value.push({ iconName, canvas, dataURL });
+
     function aspectFit(imageWidth, imageHeight, canvasWidth, canvasHeight) {
       const imageRate = imageWidth / imageHeight;
       const canvasRate = canvasWidth / canvasHeight;
@@ -126,4 +126,29 @@ function image2ico(baseurl, filename) {
     }
   };
 }
+
+const downCanvas = ({ canvas, iconName }) => {
+  function blobCallback(iconName) {
+    return function (b) {
+      var a = document.createElement('a');
+      a.textContent = 'Download';
+      a.download = iconName + '.ico';
+      a.href = window.URL.createObjectURL(b);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(b);
+      console.log(a, b);
+    };
+  }
+  canvas.toBlob(
+    blobCallback(iconName),
+    'image/vnd.microsoft.icon',
+    '-moz-parse-options:format=bmp;bpp=32',
+  );
+};
+
+const fileChange = e => {
+  file.value = e.target.files[0];
+};
 </script>
