@@ -11,10 +11,10 @@
       <table class="table">
         <thead>
           <tr>
-            <th>snippetName</th>
+            <th>片段名字</th>
             <th>prefix</th>
-            <th>description</th>
-            <th>code</th>
+            <th>描述</th>
+            <th>代码片段</th>
           </tr>
         </thead>
         <tbody>

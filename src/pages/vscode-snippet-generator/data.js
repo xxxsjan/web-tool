@@ -32,10 +32,55 @@ const demoList = [
             </script>
         </body>
         
-        </html>`,
+</html>`,
     snippetName: 'html-tailwind',
     prefix: 'html-tailwind',
-    description: 'html with tailwind',
+    description: 'tailwind html模板',
+  },
+  {
+    snippetName: 'vue3-setup',
+    prefix: 'v3-setup',
+    description: 'Vue3 setup模板',
+    code: `<template>
+    <div>
+
+    </div>
+</template>
+
+<script setup>
+
+</script>
+
+<style lang="scss" scoped>
+
+</style>
+    `,
+  },
+  {
+    snippetName:'vue3-ts',
+    prefix: 'vue3-ts',
+    description: 'vue3 ts模板',
+    code:`<template>
+    <div>
+
+    </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+    setup () {
+        
+
+        return {}
+    }
+})
+</script>
+
+<style scoped>
+
+</style>`
   },
 ];
 
