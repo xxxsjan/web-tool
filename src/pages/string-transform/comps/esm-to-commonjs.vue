@@ -5,8 +5,10 @@
         <div class="card-title">
           <label class="swap">
             <input type="checkbox" v-model="mode" />
-            <div class="swap-on">esm转cjs(点击切换)</div>
-            <div class="swap-off">cjs转esm(点击切换)</div>
+            <div class="swap-on" @click="mode = 'esm'">esm转cjs(点击切换)</div>
+            <div class="swap-off" @click="mode = 'commonjs'">
+              cjs转esm(点击切换)
+            </div>
           </label>
         </div>
         <div class="flex flex-col justify-center items-center gap-4">
