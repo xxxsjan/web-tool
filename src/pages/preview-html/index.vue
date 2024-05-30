@@ -1,30 +1,41 @@
 <template>
-  <div class="preview-html">
-    <el-input
-      v-model="html"
-      type="textarea"
-      placeholder="输入html"
-      :autosize="{ minRows: 10, maxRows: 15 }"
-      style="width: 33%"
-      resize="none"
-    /><el-input
-      v-model="style"
-      type="textarea"
-      placeholder="输入css样式"
-      :autosize="{ minRows: 10, maxRows: 15 }"
-      style="width: 33%"
-      resize="none"
-    /><el-input
-      v-model="script"
-      type="textarea"
-      placeholder="输入js脚本"
-      :autosize="{ minRows: 10, maxRows: 15 }"
-      style="width: 33%"
-      resize="none"
-    />
-    <el-card style="width: 100%" header="效果预览">
-      <iframe src="/iframe.html" frameborder="0"></iframe>
-    </el-card>
+  <div
+    class="preview-html grid grid-rows-2 grid-cols-3 gap-4 h-[calc(100vh-64px)]"
+  >
+    <div>
+      <h2>HTML</h2>
+      <el-input
+        v-model="html"
+        type="textarea"
+        placeholder="输入html"
+        :autosize="{ minRows: 10, maxRows: 12 }"
+        resize="none"
+        class="w-full"
+      />
+    </div>
+    <div>
+      <h2>CSS</h2>
+      <el-input
+        v-model="style"
+        type="textarea"
+        placeholder="输入css样式"
+        :autosize="{ minRows: 10, maxRows: 12 }"
+        resize="none"
+      />
+    </div>
+    <div>
+      <h2>JavaScript</h2>
+      <el-input
+        v-model="script"
+        type="textarea"
+        placeholder="输入js脚本"
+        :autosize="{ minRows: 10, maxRows: 12 }"
+        resize="none"
+      />
+    </div>
+    <div class="col-span-3 border">
+      <iframe src="/iframe.html" frameborder="0" class="w-full h-full"></iframe>
+    </div>
   </div>
 </template>
 
@@ -65,9 +76,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-iframe {
-  width: 100%;
-  min-height: 400px;
-}
-</style>
+<style scoped></style>
