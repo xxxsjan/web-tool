@@ -1,31 +1,21 @@
 <template>
   <div class="home-page min-w-[390px] w-full">
-    <div
-      v-if="showWelcome"
-      class="text flex flex-col items-center"
-      @click="showWelcome = false"
-    >
+    <div v-if="showWelcome" class="text flex flex-col items-center" @click="showWelcome = false">
       <div class="grid grid-flow-col gap-5 text-center auto-cols-max">
-        <div
-          class="flex flex-col p-2 bg-neutral rounded-box text-neutral-content"
-        >
+        <div class="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
           <span class="countdown font-mono text-5xl">
             <span :style="{ '--value': countdownTime.hours }"></span>
           </span>
           hours
         </div>
 
-        <div
-          class="flex flex-col p-2 bg-neutral rounded-box text-neutral-content"
-        >
+        <div class="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
           <span class="countdown font-mono text-5xl">
             <span :style="{ '--value': countdownTime.minutes }"></span>
           </span>
           min
         </div>
-        <div
-          class="flex flex-col p-2 bg-neutral rounded-box text-neutral-content"
-        >
+        <div class="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
           <span class="countdown font-mono text-5xl">
             <span :style="{ '--value': countdownTime.seconds }"></span>
           </span>
@@ -173,6 +163,7 @@ onUnmounted(() => {
   text-align: center;
   transform: translate(-50%, -50%);
   user-select: none;
+
   .welcome-text {
     font-size: 10vw;
   }
