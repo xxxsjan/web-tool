@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <input type="file" @change="handleFileUpload" accept=".avif" />
+    <input type="file" @change="handleFileUpload" accept=".avif" class="file-input" />
 
     <!-- 预览区域 -->
     <div v-show="showPreview" class="preview-container">
