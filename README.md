@@ -1,9 +1,5 @@
 # web工具箱网站
 
-## 快速体验
-
-- [在线地址](https://web-tool.dolam.top)
-
 ## 功能介绍
 
 - 自定义生成vscode的用户代码片段
