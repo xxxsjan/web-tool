@@ -1,6 +1,6 @@
 <template>
     <div class="navbar bg-base-100 w-full" v-show="shouldShowBackHomeBtn">
-        <div class="flex-none" v-show="shouldShowBackHomeBtn">
+        <!-- <div class="flex-none none" v-show="shouldShowBackHomeBtn">
             <button class="btn btn-square btn-ghost" @click="$router.back()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6">
                     <title>arrow-left</title>
@@ -8,9 +8,12 @@
                         d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
                 </svg>
             </button>
-        </div>
+        </div> -->
         <div class="flex-1">
-            <a class="btn btn-ghost text-xl" href="/">Web Tool</a>
+            <a class="btn btn-ghost text-xl" href="/">
+                <el-icon>
+                    <House />
+                </el-icon>Web Tool</a>
         </div>
 
         <div class="flex-none m-2 relative">
@@ -35,6 +38,7 @@
 </template>
 
 <script setup>
+import { House } from '@element-plus/icons-vue'
 const route = useRoute()
 
 function hashCode(str) {
