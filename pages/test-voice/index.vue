@@ -5,7 +5,6 @@
 </template>
 
 <script setup>
-import AudioPlayer from './AudioPlayer.vue';
 import ReplayVoice from './ReplayVoice.vue';
 </script>
 

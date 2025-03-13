@@ -40,5 +40,6 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
+    '@element-plus/nuxt',
   ],
 });

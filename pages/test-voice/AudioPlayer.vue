@@ -1,12 +1,12 @@
 <template>
   <div class="audio-player">
     <div class="audio-action">
-      <!-- <el-icon size="25" color="#595959" @click="pause" v-if="isPlay"
-        ><VideoPause
-      /></el-icon> -->
-      <!-- <el-icon size="25" color="#595959" @click="play" v-else
-        ><VideoPlay
-      /></el-icon> -->
+      <el-icon size="25" color="#595959" @click="pause" v-if="isPlay">
+        <VideoPause />
+      </el-icon>
+      <el-icon size="25" color="#595959" @click="play" v-else>
+        <VideoPlay />
+      </el-icon>
     </div>
 
     <div class="music-wave">
@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-// import { VideoPause, VideoPlay } from '@element-plus/icons-vue';
+import { VideoPause, VideoPlay } from '@element-plus/icons-vue';
 // https://web-tool.dolam.fun/ikun/%E9%B8%A1.wav
 const props = defineProps<{ src: string }>();
 const audioRef = shallowRef(null);
