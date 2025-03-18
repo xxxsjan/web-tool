@@ -170,11 +170,7 @@ const useCode = data => {
 <template>
   <div class="w-full h-full grid grid-cols-[1fr_300px_1fr]">
     <div class="left">
-      <div
-        id="inputContainer"
-        ref="inputContainer"
-        style="max-width: 100%; height: 80vh"
-      ></div>
+      <div id="inputContainer" ref="inputContainer" style="max-width: 100%; height: 80vh"></div>
     </div>
     <div class="flex flex-col items-center justify-center">
       <div class="flex flex-col gap-5">
@@ -182,34 +178,22 @@ const useCode = data => {
           <div class="label">
             <span class="label-text">snippet name</span>
           </div>
-          <input
-            v-model="inputForm.snippetName"
-            type="text"
-            placeholder="输入片段名称"
-            class="input input-bordered w-full max-w-xs"
-          />
+          <input v-model="inputForm.snippetName" type="text" placeholder="输入片段名称"
+            class="input input-bordered w-full max-w-xs" />
         </label>
         <label class="form-control w-full max-w-xs">
           <div class="label">
             <span class="label-text">prefix</span>
           </div>
-          <input
-            v-model="inputForm.prefix"
-            type="text"
-            placeholder="输入触发指令"
-            class="input input-bordered w-full max-w-xs"
-          />
+          <input v-model="inputForm.prefix" type="text" placeholder="输入触发指令"
+            class="input input-bordered w-full max-w-xs" />
         </label>
         <label class="form-control w-full max-w-xs">
           <div class="label">
             <span class="label-text">description</span>
           </div>
-          <input
-            v-model="inputForm.description"
-            type="text"
-            placeholder="输入描述"
-            class="input input-bordered w-full max-w-xs"
-          />
+          <input v-model="inputForm.description" type="text" placeholder="输入描述"
+            class="input input-bordered w-full max-w-xs" />
         </label>
         <button @click="onTransform" class="btn">转换</button>
         <DemoChoose @useCode="useCode" />
@@ -218,30 +202,21 @@ const useCode = data => {
     </div>
 
     <div class="right">
-      <div
-        id="outputContainer"
-        ref="outputContainer"
-        style="max-width: 100%; height: 80vh"
-      ></div>
+      <div id="outputContainer" ref="outputContainer" style="max-width: 100%; height: 80vh"></div>
     </div>
   </div>
   <div class="m-4">
     选择编辑器语言
-    <el-select v-model="language" placeholder="language" size="default">
-      <el-option
-        v-for="item in [
-          'css',
-          'html',
-          'javascript',
-          'json',
-          'less',
-          'scss',
-          'typescript',
-        ]"
-        :key="item"
-        :label="item"
-        :value="item"
-      />
-    </el-select>
+    <select v-model="language" placeholder="language" size="default" class="select select-bordered">
+      <option v-for="item in [
+            'css',
+            'html',
+            'javascript',
+            'json',
+            'less',
+            'scss',
+            'typescript',
+          ]" :key="item" :label="item" :value="item">{{ item }}</option>
+    </select>
   </div>
 </template>

@@ -22,8 +22,8 @@
 
 <style scoped>
 .footer {
-    position: fixed;
-    bottom: 0;
+    /* position: fixed; */
+    /* bottom: 0; */
     width: 100%;
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);

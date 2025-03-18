@@ -9,7 +9,7 @@ onMounted(() => {
     let count_particles, stats, update;
     stats = new Stats();
     stats.setMode(0);
-    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.position = 'sticky';
     stats.domElement.style.right = '0px';
     stats.domElement.style.bottom = '18px';
 
