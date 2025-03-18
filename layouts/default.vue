@@ -2,8 +2,8 @@
     <div>
         <AppHeader />
         <slot />
+        <AppFooter />
         <ParticlesJs />
         <StatsJs />
-        <!-- <AppFooter /> -->
     </div>
 </template>

@@ -1,6 +1,6 @@
 <template>
     <div class="count-particles">
-        <span class="js-count-particles">--</span>
+        <!-- <span class="js-count-particles">--</span> -->
     </div>
 </template>
 
@@ -12,13 +12,15 @@ onMounted(() => {
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.right = '0px';
     stats.domElement.style.bottom = '18px';
+
     document.body.appendChild(stats.domElement);
     count_particles = document.querySelector('.js-count-particles');
     update = function () {
         stats.begin();
         stats.end();
+        // 获取并显示粒子数量
         if (
-            window.pJSDom[0].pJS.particles &&
+            count_particles && window.pJSDom[0].pJS.particles &&
             window.pJSDom[0].pJS.particles.array
         ) {
             count_particles.innerText =
@@ -32,7 +34,7 @@ onMounted(() => {
 
 <style lang="scss">
 .count-particles {
-    background: #000022;
+    //  background: #000022;
     position: absolute;
     bottom: 0px;
     right: 0;
