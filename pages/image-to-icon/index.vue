@@ -37,12 +37,7 @@
       </div>
     </div>
 
-    <div class="card w-[700px] bg-base-100 shadow-xl">
-      <div class="card-body">
-        <div class="card-title">dom-to-svg</div>
-        <DomToSvg />
-      </div>
-    </div>
+    <DomToSvg />
   </div>
 </template>
 <script setup>
