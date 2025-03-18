@@ -10,7 +10,7 @@
             </button>
         </div> -->
         <div class="flex-1">
-            <a class="btn btn-ghost text-xl" href="/">
+            <a class="btn btn-ghost text-xl" href="/home">
                 <el-icon>
                     <House />
                 </el-icon>Web Tool</a>
@@ -34,7 +34,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script setup>
@@ -65,7 +64,6 @@ function getFingerprint() {
 }
 const finger = ref('')
 
-const showWelcome = true
 const shouldShowBackHomeBtn = computed(() => {
     return route && route.path !== '/';
 });

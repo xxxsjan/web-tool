@@ -1,5 +1,5 @@
 <template>
-    <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+    <footer class="footer footer-center p-4 bg-base-300 text-base-content" v-if="!showWelcome">
         <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
                 <a href="https://github.com/xxxsjan" target="_blank" class="link link-hover">
@@ -17,7 +17,9 @@
 </template>
 
 <script setup lang="ts">
-// 组件逻辑
+import { useHomeStore } from '@/stores/home';
+const homeStore = useHomeStore();
+const { showWelcome, } = storeToRefs(homeStore);
 </script>
 
 <style scoped>

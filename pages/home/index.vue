@@ -1,15 +1,16 @@
 <template>
     <div class="home-page min-w-[390px] w-full">
-        <Welcome @click="toHome"></Welcome>
-        <canvas id="bg"></canvas>
+        <NavigationList />
     </div>
 </template>
 
 <script setup lang="ts">
-import Welcome from './_components/Welcome.vue';
-import { useRouter } from 'nuxt/app';
+import NavigationList from './_components/NavigationList.vue';
 
-const router = useRouter();
+// import { useHomeStore } from '@/stores/home';
+// const homeStore = useHomeStore();
+// const { showWelcome, } = storeToRefs(homeStore);
+// const setShowWelcome = homeStore.setShowWelcome;
 
 let canvasWidth: number, canvasHeight: number;
 
@@ -27,10 +28,7 @@ function initCanvas() {
     return canvas;
 }
 let canvas: HTMLCanvasElement, stop: () => void;
-const toHome = () => {
-    stop && stop();
-    router.push('/home');
-};
+
 onMounted(() => {
     canvas = initCanvas();
     stop = start();
@@ -99,7 +97,9 @@ onMounted(() => {
 onUnmounted(() => {
     stop && stop();
 });
+
 </script>
+
 
 <style lang="scss">
 .home-page {

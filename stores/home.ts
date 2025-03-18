@@ -1,5 +1,5 @@
 export const useHomeStore = defineStore(
-  "home",
+  'home',
   () => {
     const showWelcome = ref(true);
 
@@ -15,5 +15,5 @@ export const useHomeStore = defineStore(
   //   https://prazdevs.github.io/pinia-plugin-persistedstate/frameworks/nuxt.html
   {
     persist: true,
-  }
+  },
 );

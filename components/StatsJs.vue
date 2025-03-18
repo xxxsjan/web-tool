@@ -7,11 +7,11 @@
 <script setup>
 onMounted(() => {
     let count_particles, stats, update;
-    stats = new Stats();
+    stats = window.stats = new Stats();
     stats.setMode(0);
-    stats.domElement.style.position = 'sticky';
-    stats.domElement.style.right = '0px';
-    stats.domElement.style.bottom = '18px';
+    stats.domElement.style.position = 'fixed';
+    stats.domElement.style.left = '0px';
+    stats.domElement.style.top = '0px';
 
     document.body.appendChild(stats.domElement);
     count_particles = document.querySelector('.js-count-particles');
