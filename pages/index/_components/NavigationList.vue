@@ -4,13 +4,6 @@
             <div class="nya-title">
                 <i class="eva eva-thermometer-plus-outline"></i><span>工具</span>
             </div>
-            <!-- 
-          sm (640px)	max-width: 640px;
-          md (768px)	max-width: 768px;
-          lg (1024px)	max-width: 1024px;
-          xl (1280px)	max-width: 1280px;
-          2xl (1536px)	max-width: 1536px; 
-        -->
             <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 <div class="card w-hull bg-base-100 shadow-xl sm:mr-4 mb-4" v-for="(item, index) in list" :key="index"
                     @click="go(item.path)">
@@ -25,19 +18,26 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'nuxt/app';
 const router = useRouter();
-const pageModule = import.meta.glob('../**/page.js', {
-    eager: true, // 同步加载 直接获取对象
-    import: 'default' // 直接获取default
+const pageModule = import.meta.glob('/pages/**/page.js', {
+    eager: true,
+    import: 'default'
 });
+interface RouteItem {
+    path: string
+    name: string
+    meta?: {
+        title?: string
+        name?: string
+    }
+}
+
 const autoRoutes = Object.entries(pageModule)
-    .map(([pageJsPath, meta]) => {
-        const pageName = pageJsPath.replace(
-            /(.\/)(.+)(\/page\.js)/,
-            '$2'
-        );
+    .map(([pageJsPath, meta]): RouteItem => {
+        console.log('pageJsPath: ', pageJsPath);
+        const pageName = pageJsPath.replace(/^\/pages\/(.+)\/page\.js$/, '$1');
 
         const routePathArr = pageName.split('/');
         const name = routePathArr[routePathArr.length - 1];
@@ -49,21 +49,28 @@ const autoRoutes = Object.entries(pageModule)
         };
     })
 
-const list = [...autoRoutes,
-{
-    path: '/html/text-reading.html',
-    name: '🔊文字朗读',
-}
+const list: RouteItem[] = [
+    ...autoRoutes,
+    {
+        path: '/html/text-reading.html',
+        name: '🔊文字朗读',
+    }
 ]
 
-function go(path) {
-    if (path.includes('.html')) {
-        window.open(path);
-    } else {
-        router.push(path);
+async function go(path: string) {
+    try {
+        // 确保路径以斜杠开头
+        const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+        if (normalizedPath.includes('.html')) {
+            window.open(normalizedPath);
+        } else {
+            await router.push(normalizedPath);
+        }
+    } catch (error) {
+        console.error('Navigation failed:', error);
     }
 }
-
 </script>
 
 <style lang="scss" scoped>

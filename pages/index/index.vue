@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import Welcome from './Welcome.vue';
-import NavigationList from './NavigationList.vue';
+import Welcome from './_components/Welcome.vue';
+import NavigationList from './_components/NavigationList.vue';
 
 import { useHomeStore } from '@/stores/home';
 
@@ -116,4 +116,4 @@ onUnmounted(() => {
     // height: 100vh;
     //box-sizing: border-box;
 }
-</style>
+</style>.
