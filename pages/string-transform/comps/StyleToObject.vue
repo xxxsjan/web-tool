@@ -160,7 +160,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="wrapper grid w-full h-full grid-cols-[1fr_120px_1fr]">
+  <div class="card bg-base-100 shadow-sm p-2 grid w-[70vw]  max-w-[1800px] h-full grid-cols-[1fr_120px_1fr]">
     <div class="left">
       <div id="inputContainer" ref="inputContainer" style="height: 70vh"></div>
       <div class="m-2">
@@ -169,24 +169,16 @@ onMounted(() => {
             <span class="label-text"> 选择编辑器语言</span>
             <span class="label-text-alt"></span>
           </div>
-          <select
-            class="select select-bordered w-full max-w-xs"
-            v-model="language"
-          >
-            <option
-              v-for="item in [
-                'css',
-                'html',
-                'javascript',
-                'json',
-                'less',
-                'scss',
-                'typescript',
-              ]"
-              :key="item"
-              :label="item"
-              :value="item"
-            >
+          <select class="select select-bordered w-full max-w-xs" v-model="language">
+            <option v-for="item in [
+            'css',
+            'html',
+            'javascript',
+            'json',
+            'less',
+            'scss',
+            'typescript',
+          ]" :key="item" :label="item" :value="item">
               {{ item }}
             </option>
           </select>
@@ -199,7 +191,7 @@ onMounted(() => {
     </div>
 
     <div class="right">
-      <div id="outputContainer" ref="outputContainer" style="height: 70vh" ></div>
+      <div id="outputContainer" ref="outputContainer" style="height: 70vh"></div>
     </div>
   </div>
 </template>
