@@ -1,5 +1,5 @@
 <template>
-  <div class="less-to-css flex flex-col justify-center items-center">
+  <div class="w-2/3 less-to-css flex flex-col justify-center items-center">
     <h1>{{ pageTitle }}</h1>
 
     <textarea v-model="codeLeft" class="textarea" placeholder="Please input" rows="10" style="width: 50%"

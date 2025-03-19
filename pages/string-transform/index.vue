@@ -13,7 +13,7 @@
 
     <StyleToObject id="StyleToObject" v-if="curTab === 'StyleToObject'" />
     <TemplateToNormal id="TemplateToNormal" v-if="curTab === 'TemplateToNormal'" />
-
+    <VueToJsx id="VueToJsx" v-if="curTab === 'VueToJsx'" />
   </div>
 </template>
 
@@ -24,8 +24,10 @@ import LessToCss from './comps/less-to-css.vue';
 import PathTransform from './comps/PathTransform.vue';
 import StyleToObject from './comps/StyleToObject.vue';
 import TemplateToNormal from './comps/TemplateToNormal.vue';
+// 🔄vue转jsx语法
+import VueToJsx from './comps/VueToJsx.vue';
 
-const list = ['PathTransform', 'HumpTransition', 'LessToCss', 'EsmCommonjs', 'StyleToObject', 'TemplateToNormal'];
+const list = ['PathTransform', 'HumpTransition', 'LessToCss', 'EsmCommonjs', 'StyleToObject', 'TemplateToNormal', 'VueToJsx'];
 const curTab = ref('PathTransform');
 
 function comToName(key: string) {
@@ -36,6 +38,7 @@ function comToName(key: string) {
     EsmCommonjs: 'esm => commonjs',
     StyleToObject: '🔄style转对象',
     TemplateToNormal: '🔄模板字符转普通字符',
+    VueToJsx: '🔄vue转jsx语法',
   }[key];
 }
 </script>
