@@ -257,11 +257,14 @@
       }
       window.popup = null; // 替换原来的 let popup
       let isRunning = false; // 标志位，用于判断是否正在运行
+      let popupList = [];
       function closePopup() {
-        if (window.popup && !window.popup.closed) {
-          log(`已关闭窗口`);
-          window.popup.close();
-        }
+        popupList.forEach(popup => {
+          if (popup && !popup.closed) {
+            popup.close();
+          }
+        });
+        log(`已关闭窗口`);
       }
       async function openSmallWindow(urls) {
         console.log('urls: ', urls);
@@ -288,27 +291,23 @@
             const url = urls[i];
             log(`正在打开第 ${i + 1} 个网页: ${url}`);
             await new Promise((resolve, reject) => {
-              window.popup = window.open(
-                // 使用 window.popup
+              const popup = window.open(
                 url,
                 '_blank',
                 'width=600,height=400,toolbar=no,status=no,menubar=no,scrollbars=yes',
               );
-              if (!window.popup) {
-                // 使用 window.popup
+              popupList.push(popup);
+              if (!popup) {
                 log(`❌ ${url} 打开失败，检查“弹出式窗口和重定向”权限是否开启`);
                 reject(url + '打开失败');
                 return;
               }
               const left = (screen.width - 600) / 2;
               const top = (screen.height - 400) / 2;
-              window.popup.moveTo(left, top); // 使用 window.popup
+              popup.moveTo(left, top);
 
               let checkLoading = setInterval(function () {
-                if (
-                  window.popup &&
-                  window.popup.document.readyState === 'complete'
-                ) {
+                if (popup && popup.document.readyState === 'complete') {
                   clearInterval(checkLoading);
                   log(`✅ 第 ${i + 1} 个页面加载完成：${url}`);
                   setTimeout(() => {
