@@ -13,8 +13,8 @@
     <meta http-equiv="Cache-Control" content="no-transform" />
     <meta http-equiv="Cache-Control" content="no-siteapp" />
     <link rel="shortcut icon" href="open/favicon.ico" />
-    <script src="open/jquery-1.10.2.min.js"></script>
-    <script src="open/cookie.js"></script>
+    <script src="js/jquery-1.10.2.min.js"></script>
+    <script src="js/cookie.js"></script>
     <style>
       body {
         margin: 0;
@@ -120,68 +120,140 @@
         }
       }
     </style>
-  </head>
-  <body>
-    <style type="text/css">
-      body {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
-        min-width: 800px !important;
+    <style>
+      /* 基础样式 */
+      .page-wrapper {
+        margin: 0;
+        padding: 0;
+        min-width: 800px;
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+      }
+
+      /* 主容器 */
+      .url-opener {
+        padding: 20px;
+      }
+
+      .url-opener__container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .url-opener__content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 文本区域 */
+      .url-input {
+        flex: 1;
+        min-height: 300px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+        resize: vertical;
+      }
+
+      .url-counter {
+        display: block;
+        margin: 10px 0;
+        color: #666;
+      }
+
+      /* 控制面板 */
+      .control-panel {
+        margin: 15px 0;
+      }
+
+      .control-panel__label {
+        margin-right: 10px;
+        color: #333;
+      }
+
+      .control-panel__input {
+        width: 60px;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      /* 按钮 */
+      .action-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+
+      .action-button--stop {
+        background-color: #f44336;
+      }
+
+      .action-button:hover {
+        background-color: #45a049;
+      }
+
+      .action-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
       }
     </style>
-    <div class="opener_wrapper">
-      <div class="container">
-        <div class="opener_box">
+  </head>
+  <body>
+    <!-- 更新对应的 HTML 类名 -->
+    <div class="url-opener">
+      <div class="url-opener__container">
+        <div class="url-opener__content">
           <div style="display: flex; justify-content: flex-end">
-            <label class="urls_count_label" id="urlsCountLabel">0 条记录</label>
+            <label class="url-counter" id="urlsCountLabel">0 条记录</label>
           </div>
 
           <div style="display: flex; gap: 20px" class="mb-4">
-            <textarea class="urls_list" id="urlsList" rows="22"></textarea>
+            <textarea class="url-input" id="urlsList" rows="22"></textarea>
             <textarea
               id="logArea"
               readonly
-              style="
-                flex: 1;
-                min-height: 300px;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                line-height: 1.5;
-                resize: vertical;
-              "
+              class="url-input url-input--readonly"
               disabled
             ></textarea>
           </div>
-          <div class="options">
-            <label>间隔时间：</label
-            ><input type="text" id="openInterval" value="1000" />
-            <label>（单位：毫秒）</label> &nbsp;&nbsp;
 
-            <!-- <input type="checkbox" checked="checked" id="removeOpenedUrl" /> -->
-            <!-- <label>移除已打开的网页</label> -->
+          <div class="control-panel">
+            <label class="control-panel__label">间隔时间：</label>
+            <input
+              type="text"
+              id="openInterval"
+              class="control-panel__input"
+              value="3000"
+            />
+            <label class="control-panel__label">（单位：毫秒）</label>
           </div>
-          <button class="open_btn" id="openBtn">批量打开网页</button>
 
+          <button class="action-button" id="openBtn">批量打开网页</button>
           <button
-            class="open_btn"
+            class="action-button action-button--stop"
             id="stopBtn"
-            style="background-color: #f44336; display: none"
+            style="display: none"
           >
             停止打开
           </button>
-          <div class="clearfix"></div>
         </div>
-        <div class="clearfix"></div>
       </div>
     </div>
 
     <script>
       function disabledBtn() {
-        $('#openBtn').attr('disabled', false);
-        $('#openInterval').attr('disabled', false);
-        $('#removeOpenedUrl').attr('disabled', false);
+        $('.action-button').attr('disabled', false);
+        $('.control-panel__input').attr('disabled', false);
       }
       window.popup = null; // 替换原来的 let popup
       let isRunning = false; // 标志位，用于判断是否正在运行
@@ -263,7 +335,7 @@
       });
       function log(message) {
         const time = new Date().toLocaleTimeString();
-        const logArea = $('#logArea');
+        const logArea = $('.url-input--readonly');
         logArea.val(logArea.val() + `[${time}] ${message}\n`);
         logArea.scrollTop(logArea[0].scrollHeight);
       }
@@ -303,14 +375,13 @@ douyin.com`);
           $(this).select();
         });
 
-        $('#openBtn').click(function () {
+        $('.action-button').click(function () {
           OpenedCount = 0;
-          openInterval = parseInt($('#openInterval').val());
-          removeOpenedUrl = $('#removeOpenedUrl').is(':checked');
+          openInterval = parseInt($('.control-panel__input').val());
 
           disabledBtn();
 
-          var content = $('#urlsList').val();
+          var content = $('.url-input').val();
 
           var lines = content.split('\n');
           var urlArray = [];
@@ -477,7 +548,7 @@ douyin.com`);
           urlArray.push(line);
         }
         var lineCount = urlArray.length;
-        $('#urlsCountLabel').html(lineCount + ' 条记录');
+        $('.url-counter').html(lineCount + ' 条记录');
       }
 
       /* ]]> */
