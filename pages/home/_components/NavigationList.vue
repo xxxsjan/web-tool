@@ -54,6 +54,10 @@ const list: RouteItem[] = [
     {
         path: '/html/text-reading.html',
         name: '🔊文字朗读',
+    },
+    {
+        path: '/openurl/index.html',
+        name: '🚀批量打开网页',
     }
 ]
 
