@@ -1,8 +1,9 @@
 <template>
   <div class="string-transform pt-10 flex flex-col w-full justify-center items-center">
-    <div role="tablist" class="tabs tabs-boxed fixed top-12">
-      <span role="tab" v-for="item in list" :class="['tab', { 'tab-active': curTab === item }]" :key="item"
-        @click="curTab = item">{{ comToName(item) }}</span>
+
+    <div class="tabs tabs-box mb-2">
+      <input type="radio" name="my_tabs_1" class="tab" :aria-label="comToName(item)" v-for="item in list" :key="item"
+        :checked="curTab === item" @click="curTab = item" />
     </div>
     <PathTransform id="PathTransform" v-if="curTab === 'PathTransform'" />
     <HumpTransition id="HumpTransition" v-if="curTab === 'HumpTransition'" />
