@@ -16,8 +16,11 @@
                 </el-icon>Web Tool</a>
         </div>
 
-        <div class="flex-none m-2 relative">
-            <div class="tooltip tooltip-left" :data-tip="finger">
+        <div class="flex-none m-2 relative flex gap-1 items-center">
+            <span>
+                {{ finger }}
+            </span>
+            <div>
                 <span class="absolute -top-2 -right-2 flex h-2 w-2">
                     <span
                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
@@ -47,7 +50,7 @@ function hashCode(str) {
         const char = str.charCodeAt(i);
         hash = (hash << 5) - hash + char;
     }
-    return hash;
+    return Math.abs(hash);
 }
 function getFingerprint() {
     const canvas = document.createElement('canvas');
@@ -68,6 +71,6 @@ const shouldShowBackHomeBtn = computed(() => {
     return route && route.path !== '/';
 });
 onMounted(() => {
-    finger.value = getFingerprint()
+    finger.value = getFingerprint() + '，你好'
 })
 </script>
