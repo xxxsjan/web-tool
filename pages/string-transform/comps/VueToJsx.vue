@@ -1,7 +1,7 @@
 <template>
   <div class="w-2/3 less-to-css flex flex-col justify-center items-center">
-    <textarea v-model="codeLeft" class="textarea" placeholder="Please input" rows="10" style="width: 50%"
-      resize="none" />
+    <textarea v-model="codeLeft" class="textarea textarea-bordered w-full min-h-[200px]" placeholder="Please input"
+      rows="10" style="width: 50%" resize="none" />
     <div class="my-[10px]">
       <button class="btn" @click="() => toGenerate()">生成</button>
     </div>

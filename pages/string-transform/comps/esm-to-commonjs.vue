@@ -7,8 +7,8 @@
         </div>
 
         <div class="flex flex-col justify-center items-center gap-4">
-          <textarea v-model="code" class="textarea textarea-bordered w-1/2" placeholder="Bio" resize="none"
-            rows="10"></textarea>
+          <textarea v-model="code" class="textarea textarea-bordered w-full min-h-[200px]" placeholder="Bio"
+            resize="none" rows="10"></textarea>
           <div class="w-1/2 flex justify-between items-center">
             <span @click="mode = mode === 'esm' ? 'commonjs' : 'esm'">切换</span>
             <button @click="run" class="btn btn-ghost">转换</button>
