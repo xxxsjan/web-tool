@@ -1,29 +1,54 @@
 <template>
-  <div class="card w-[700px] bg-base-100 shadow-xl">
-    <div class="card-body">
-      <div class="bg-[#cccccc] flex flex-col gap-4 items-center p-4">
+  <div class="card w-[90vw] max-w-3xl bg-base-100 shadow-xl"> <!-- 响应式宽度 -->
+    <div class="card-body space-y-6">
+      <h2 class="card-title text-2xl text-gray-700">
+        <i class="eva eva-code-download mr-2"></i>DOM转图片工具
+      </h2>
 
-        <div class="w-full max-w-[600px]">
-          <textarea v-model="domContent" class="w-full min-h-[200px] p-2 rounded" placeholder="请输入HTML内容"></textarea>
-        </div>
+      <!-- 输入区域 -->
+      <div class="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200">
+        <div>输入HTML内容</div>
+        <textarea v-model="domContent" class="textarea textarea-bordered h-48 font-mono text-sm w-full"
+          placeholder="请输入要转换的HTML代码..."></textarea>
+      </div>
 
-        <div class="preview-container" ref="previewRef"></div>
-
-        <div class="flex gap-4 items-center">
-          <button @click="customToDo" class="btn">DOM转图片</button>
-          <a href="https://cdkm.com/cn/svg-to-jpg" target="_blank" class="link">在线SVG转JPG</a>
+      <!-- 预览区域 -->
+      <div class="preview-container min-h-[200px] bg-white rounded-lg border-2 border-gray-200 p-4" ref="previewRef">
+        <div v-if="!previewRef?.firstElementChild" class="text-gray-400 text-center py-10">
+          <i class="eva eva-image-outline text-3xl block mb-2"></i>
+          预览区域
         </div>
       </div>
 
+      <!-- 操作按钮组 -->
+      <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <button @click="customToDo"
+          class="btn btn-primary w-full sm:w-auto bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+          :disabled="isLoading">
+          <i class="eva eva-image" v-if="!isLoading"></i>
+          <span class="loading loading-dots" v-else></span>
+          {{ isLoading ? '转换中...' : '生成PNG图片' }}
+        </button>
+
+        <div class="divider sm:hidden">或</div>
+
+        <a href="https://cdkm.com/cn/svg-to-jpg" target="_blank" class="btn btn-outline btn-info w-full sm:w-auto">
+          <i class="eva eva-external-link mr-2"></i>
+          在线SVG转JPG
+        </a>
+      </div>
+
+      <!-- 错误提示 -->
+      <div v-if="error" class="alert alert-error shadow-lg">
+        <i class="eva eva-alert-triangle"></i>
+        <span>{{ error }}</span>
+      </div>
     </div>
   </div>
-
 </template>
 
 <script lang="ts" setup>
 import domtoimage from 'dom-to-image';
-import { elementToSVG, inlineResources } from 'dom-to-svg';
-const result = ref('');
 const domContent = ref(`<div class="addPost">
           <div class="addPost-main">
             <div class="addPost-i">
@@ -36,31 +61,88 @@ const domContent = ref(`<div class="addPost">
           </div>
         </div>`)
 const previewRef = ref<HTMLElement>();
+const isLoading = ref(false); // 新增加载状态
+const error = ref(''); // 新增错误状态
 
 function customToDo() {
-  if (!domContent.value) return;
+  if (!domContent.value) {
+    error.value = '请输入HTML内容';
+    return;
+  }
 
-  previewRef.value.innerHTML = domContent.value;
-  // 获取预览容器中的第一个DOM元素
-  const firstDom = previewRef.value?.firstElementChild;
-  if (!firstDom) return;
-  // 转换为图片
-  domtoimage.toPng(firstDom)
-    .then(function (dataUrl) {
-      // 下载图片
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = 'custom-dom.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    })
-    .catch(function (error) {
-      console.error('转换失败:', error);
-    });
+  isLoading.value = true;
+  error.value = '';
+
+  try {
+    previewRef.value.innerHTML = domContent.value;
+    const firstDom = previewRef.value?.firstElementChild;
+
+    if (!firstDom) {
+      throw new Error('未检测到有效DOM元素');
+    }
+
+    domtoimage.toPng(firstDom)
+      .then(dataUrl => {
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `dom-export-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(err => {
+        error.value = `转换失败: ${err.message}`;
+      })
+      .finally(() => {
+        isLoading.value = false;
+      });
+
+  } catch (err) {
+    error.value = err.message;
+    isLoading.value = false;
+  }
+}
+</script>
+
+<style scoped>
+/* 新增加载动画 */
+.loading-dots {
+  --dot-size: 6px;
+  width: calc(var(--dot-size) * 3 + 8px);
 }
 
-</script>
+.loading-dots::after {
+  content: '...';
+  animation: dots 1.5s infinite steps(4);
+}
+
+@keyframes dots {
+  25% {
+    content: '.';
+  }
+
+  50% {
+    content: '..';
+  }
+
+  75% {
+    content: '...';
+  }
+}
+
+.preview-container {
+  min-height: 200px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-container img {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+</style>
 
 <style>
 .addPost {
