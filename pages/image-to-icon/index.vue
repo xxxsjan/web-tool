@@ -6,7 +6,7 @@
         <div class="flex gap-4 items-center">
           <input type="file" class="file-input w-full max-w-xs" @change="fileChange" />
 
-          <select placeholder="尺寸" v-model="outputSize" class="w-[100px]">
+          <select placeholder="尺寸" v-model="outputSize" class="select w-[100px]">
             <option value="16" label="16x16"></option>
             <option value="32" label="32x32"></option>
             <option value="48" label="48x48"></option>
@@ -14,8 +14,8 @@
           </select>
           <button class="btn" @click="toDo">生成icon文件</button>
         </div>
-        <h1>结果：</h1>
-        <table class="table">
+        <h1>生成结果：</h1>
+        <table class="table" v-if="resultArr.length">
           <thead>
             <tr>
               <th>图</th>

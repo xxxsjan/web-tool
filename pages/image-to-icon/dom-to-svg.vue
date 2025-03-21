@@ -1,8 +1,7 @@
 <template>
   <div class="card w-[700px] bg-base-100 shadow-xl">
     <div class="card-body">
-      <div class="card-title">dom-to-svg</div>
-      <div class="dom-to-svg bg-[#cccccc] flex flex-col gap-4 items-center p-4">
+      <div class="bg-[#cccccc] flex flex-col gap-4 items-center p-4">
 
         <div class="w-full max-w-[600px]">
           <textarea v-model="domContent" class="w-full min-h-[200px] p-2 rounded" placeholder="请输入HTML内容"></textarea>
@@ -10,16 +9,12 @@
 
         <div class="preview-container" ref="previewRef"></div>
 
-        <div class="flex gap-4">
-          <button @click="toDo" class="btn">转图片</button>
-          <button @click="customToDo" class="btn">自定义DOM转图片</button>
-          <!-- <button @click="toSvg" class="btn">toSvg</button> -->
+        <div class="flex gap-4 items-center">
+          <button @click="customToDo" class="btn">DOM转图片</button>
+          <a href="https://cdkm.com/cn/svg-to-jpg" target="_blank" class="link">在线SVG转JPG</a>
         </div>
-        <!-- <div v-html="result"></div> -->
       </div>
-      <div>
-        <a href="https://cdkm.com/cn/svg-to-jpg" target="_blank" class="link">在线SVG转JPG</a>
-      </div>
+
     </div>
   </div>
 
@@ -41,46 +36,13 @@ const domContent = ref(`<div class="addPost">
           </div>
         </div>`)
 const previewRef = ref<HTMLElement>();
-function toDo() {
-  const node = document.querySelector('.addPost')!;
 
-  domtoimage
-    .toPng(node)
-    .then(function (dataUrl) {
-      var img = new Image();
-      img.src = dataUrl;
-      img.onload = function () {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-
-        ctx?.drawImage(img, 0, 0);
-        // document.body.appendChild(canvas);
-        // return
-        canvas.toBlob(function (blob) {
-          console.log(blob);
-          const url = window.URL.createObjectURL(blob!);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'addPost.png';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        });
-      };
-    })
-    .catch(function (error) {
-      console.error('wrong!', error);
-    });
-}
 function customToDo() {
   if (!domContent.value) return;
 
   previewRef.value.innerHTML = domContent.value;
   // 获取预览容器中的第一个DOM元素
   const firstDom = previewRef.value?.firstElementChild;
-  console.log('firstDom: ', firstDom);
   if (!firstDom) return;
   // 转换为图片
   domtoimage.toPng(firstDom)
@@ -92,22 +54,12 @@ function customToDo() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-
-      // 清理临时容器
-      // document.body.removeChild(container);
     })
     .catch(function (error) {
       console.error('转换失败:', error);
-      // document.body.removeChild(container);
     });
 }
-async function toSvg() {
-  const svgDocument = elementToSVG(document.querySelector('.addPost')!);
-  await inlineResources(svgDocument.documentElement);
-  const svgString = new XMLSerializer().serializeToString(svgDocument);
-  console.log('svgString: ', svgString);
-  result.value = svgString;
-}
+
 </script>
 
 <style>
