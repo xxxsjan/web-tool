@@ -4,11 +4,14 @@
             <div class="nya-title">
                 <i class="eva eva-thermometer-plus-outline"></i><span>工具</span>
             </div>
-            <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <div class="card w-hull bg-base-100 shadow-xl sm:mr-4 mb-4" v-for="(item, index) in list" :key="index"
+            <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"> <!-- 增加间隙 -->
+                <div v-for="(item, index) in list" :key="index"
+                    class="card bg-base-100 shadow-md hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
                     @click="go(item.path)">
-                    <div class="card-body">
-                        <h2 class="card-title">
+                    <div class="card-body p-6">
+                        <h2 class="card-title text-lg text-gray-700">
+                            <i
+                                class="eva eva-arrow-forward-outline text-blue-500 group-hover:text-blue-600 mr-2 transition-colors"></i>
                             {{ item?.meta?.title || item.meta?.name || item.name }}
                         </h2>
                     </div>
@@ -31,6 +34,7 @@ interface RouteItem {
     meta?: {
         title?: string
         name?: string
+        icon?: string // 新增图标类型
     }
 }
 
