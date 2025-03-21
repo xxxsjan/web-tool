@@ -8,7 +8,14 @@
 onMounted(() => {
     let count_particles, stats, update;
     stats = window.stats = new Stats();
+    // 0 - 显示 FPS (每秒帧数) 
+    // 1 - 显示 MS (每帧渲染时间)
+    // 2 - 显示 MB (内存占用)
     stats.setMode(0);
+
+    // const fpsPanel = stats.domElement.children[0];
+    // fpsPanel.style.backgroundColor = 'transparent';`
+
     stats.domElement.style.position = 'fixed';
     stats.domElement.style.left = '0px';
     stats.domElement.style.top = '0px';
@@ -60,8 +67,17 @@ onMounted(() => {
 }
 
 #stats {
-    border-radius: 3px 3px 0 0;
+    // border-radius: 3px 3px 0 0;
     overflow: hidden;
+    // background-color: transparent;
+
+    // #fpsGraph {
+    // background-color: red !important;
+    // }
+
+    // #fpsGraph>span {
+    // background-color: transparent !important;
+    // }
 }
 
 .count-particles {
