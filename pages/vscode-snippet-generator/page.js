@@ -1,3 +1,3 @@
 export default {
-  title: '📝vscode代码片段生成',
+  title: '⛏️vscode代码片段生成',
 };

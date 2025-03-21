@@ -1,3 +1,3 @@
 export default {
-  title: '🍕svg预览',
+  title: '🎨svg预览',
 };

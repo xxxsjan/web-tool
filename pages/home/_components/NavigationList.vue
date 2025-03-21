@@ -59,7 +59,7 @@ const list: RouteItem[] = [
         path: '/openurl/index.html',
         name: '🚀批量打开网页',
     }
-]
+].sort((a, b) => a.name.localeCompare(b.name, 'zh'))  // 添加中文排序
 
 async function go(path: string) {
     try {
