@@ -24,6 +24,7 @@
       <div id="container">
         <video id="gum" autoplay muted></video>
         <div class="controls">
+          <select id="cameraSelect" class="camera-selector"></select>
           <button id="record" disabled>开始录制</button>
           <button id="play" disabled>播放</button>
           <button id="download" disabled>下载</button>
@@ -61,6 +62,7 @@
       playButton = document.querySelector('#play');
       downloadButton = document.querySelector('#download');
       tEL = document.getElementById('tEl');
+      cameraSelect = document.querySelector('#cameraSelect');
       constructor() {
         const constraints = {
           audio: true,
@@ -82,6 +84,7 @@
         this.downloadButton.onclick = () => this.download();
         this.gumVideo2.width = constraints.video.width;
         this.gumVideo2.height = constraints.video.height;
+        this.initCameraSelection();
         // 获取摄像头流媒体
         this.getUserMedia(
           constraints,
@@ -101,6 +104,66 @@
             console.log('navigator.getUserMedia error: ', error);
           },
         );
+      }
+      // 新增摄像头初始化方法
+      async initCameraSelection() {
+        try {
+          // 先获取基础权限
+          await navigator.mediaDevices.getUserMedia({ video: true });
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+          // 去重处理
+          const uniqueDevices = [
+            ...new Map(videoDevices.map(d => [d.deviceId, d])).values(),
+          ];
+
+          this.cameraSelect.innerHTML = uniqueDevices
+            .map(
+              device =>
+                `<option value="${device.deviceId}">${
+                  device.label || '摄像头'
+                }</option>`,
+            )
+            .join('');
+
+          this.cameraSelect.onchange = () => this.switchCamera();
+        } catch (error) {
+          console.error('摄像头初始化失败:', error);
+        }
+      }
+      // 新增切换摄像头方法
+      async switchCamera() {
+        if (this.mediaRecorder?.state === 'recording') {
+          alert('请先停止当前录制');
+          return;
+        }
+
+        const deviceId = this.cameraSelect.value;
+        const constraints = {
+          audio: true,
+          video: {
+            deviceId: { exact: deviceId },
+            width: 400,
+            height: 400,
+            frameRate: 60,
+          },
+        };
+
+        try {
+          // 停止原有流
+          this.stream?.getTracks().forEach(track => track.stop());
+
+          // 获取新流
+          const newStream = await navigator.mediaDevices.getUserMedia(
+            constraints,
+          );
+          this.stream = newStream;
+          this.gumVideo.srcObject = newStream;
+        } catch (error) {
+          console.error('摄像头切换失败:', error);
+          alert('摄像头切换失败，请检查设备连接');
+        }
       }
       // 获取摄像头流媒体
       getUserMedia(constraints, success, error) {
