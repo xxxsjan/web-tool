@@ -1,9 +1,9 @@
 <template>
     <div class="index_page px-[6vw]">
         <div class="nya-container">
-            <div class="nya-title">
-                <i class="eva eva-thermometer-plus-outline"></i><span>工具</span>
-            </div>
+            <h3 class="text-lg font-semibold text-gray-500 mb-4 ml-2 border-l-4 border-blue-500 pl-3">
+                工具
+             </h3>
             <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"> <!-- 增加间隙 -->
                 <div v-for="(item, index) in list" :key="index"
                     class="card bg-base-100 shadow-md hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
