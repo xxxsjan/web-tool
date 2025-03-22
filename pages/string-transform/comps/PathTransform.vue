@@ -1,5 +1,5 @@
 <template>
-  <div class="card w-[700px] bg-base-100 shadow-xl">
+  <div class="card w-full bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title">windows路径转换</h2>
       <div class="less-to-css flex flex-col justify-center items-center">

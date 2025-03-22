@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <div class="card bg-base-100 shadow-xl w-[700px]">
+    <div class="card bg-base-100 shadow-xl w-full">
       <div class="card-body">
         <div class="card-title">
           {{ mode === 'esm' ? 'esm转cjs' : 'cjs转esm' }}

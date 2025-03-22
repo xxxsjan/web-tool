@@ -160,7 +160,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="card bg-base-100 shadow-sm p-2 grid w-[70vw]  max-w-[1800px] h-full grid-cols-[1fr_120px_1fr]">
+  <div class="card bg-base-100 shadow-sm p-2 grid w-full h-full grid-cols-[1fr_120px_1fr]">
     <div class="left">
       <div id="inputContainer" ref="inputContainer" style="height: 70vh"></div>
       <div class="m-2">

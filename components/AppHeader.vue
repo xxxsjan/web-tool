@@ -71,6 +71,6 @@ const shouldShowBackHomeBtn = computed(() => {
     return route && route.path !== '/';
 });
 onMounted(() => {
-    finger.value = getFingerprint() + '，你好'
+    finger.value = '用户 ' + getFingerprint()
 })
 </script>
