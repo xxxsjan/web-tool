@@ -25,9 +25,18 @@
               </div>
             </div>
           </div>
+          <!-- 新增实时文字展示 -->
+          <div class="mt-4 p-4 bg-gray-100 rounded-lg max-h-40 overflow-y-auto">
+            <div v-if="transcript" class="text-sm text-gray-700">{{ transcript }}</div>
+            <div v-else class="text-gray-400 text-sm">语音识别准备中...</div>
+          </div>
         </div>
         <div class="flex justify-center">
           <AudioPlayer class="mb-10" v-if="!isStart && hasVoice" :src="recordedAudio" />
+        </div>
+        <div v-if="transcript && !isStart" class="mt-4 p-4 bg-gray-100 rounded-lg max-w-md">
+          <div class="text-sm font-medium text-gray-600">识别结果：</div>
+          <div class="text-gray-800 mt-1">{{ transcript }}</div>
         </div>
         <div class="modal-action">
           <form method="dialog">
@@ -39,12 +48,11 @@
                 开始录音
               </div>
               <button v-else @click="handleStop" class="btn"> 停止录音 </button>
-              <button v-if="!isStart && hasVoice" @click="submit" class="btn">
+              <!-- <button v-if="!isStart && hasVoice" @click="submit" class="btn">
                 发送
-              </button>
+              </button> -->
             </div>
           </form>
-
         </div>
       </div>
     </dialog>
@@ -55,9 +63,27 @@
 import Recorder from 'js-audio-recorder';
 // import SvgIcon from '~/components/SvgIcon.vue';
 import { Microphone } from '@element-plus/icons-vue';
-
+import { ref } from 'vue'
 import AudioPlayer from './AudioPlayer.vue';
+const transcript = ref('')
+let recognition = null
+if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  recognition = new SpeechRecognition()
+  recognition.continuous = true
+  recognition.interimResults = true
+  recognition.lang = 'zh-CN'
 
+  recognition.onresult = (event) => {
+    const current = event.resultIndex
+    const results = event.results[current]
+    transcript.value = results[0].transcript
+  }
+
+  recognition.onerror = (event) => {
+    console.error('语音识别错误:', event.error)
+  }
+}
 const showVoice = () => {
   document.getElementById('my_modal_1').showModal()
 };
@@ -94,7 +120,6 @@ const submit = () => {
   console.log(data.duration);
   emit('submit', recordedAudio.value);
   handleClose();
-
 };
 let isStart = ref(false);
 // 录音按钮的点击事件
@@ -117,6 +142,12 @@ const voice = () => {
       console.log(`${error.name} : ${error.message}`);
     },
   );
+  // 启动语音识别
+  if (recognition) {
+    recognition.start()
+  } else {
+    console.warn('该浏览器不支持语音识别')
+  }
 };
 
 let hasVoice = ref(false);
@@ -131,6 +162,12 @@ const handleStop = () => {
   data.mation = false;
   isStart.value = false;
   hasVoice.value = true;
+
+  // 停止语音识别
+  if (recognition) {
+    recognition.stop()
+    transcript.value = '' // 清空识别结果
+  }
 };
 
 const handleDestroy = () => {
@@ -143,6 +180,15 @@ const handleDestroy = () => {
 </script>
 
 <style lang="scss" scoped>
+.max-h-40 {
+  max-height: 10rem;
+}
+
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #93c5fd transparent;
+}
+
 .ap {
   position: relative;
   height: 50px;
