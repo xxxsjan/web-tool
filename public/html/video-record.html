@@ -11,10 +11,67 @@
         flex-wrap: wrap;
         justify-content: center;
         align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: #f5f5f5;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      video {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        background: #000;
+        max-width: 100%;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .camera-selector {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        min-width: 200px;
       }
 
-      .controls {
-        padding: 0 10px;
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        background: #2196f3;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      button:hover {
+        background: #1976d2;
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        background: #bbdefb;
+        cursor: not-allowed;
+      }
+
+      #tEl {
+        padding: 8px 12px;
+        background: #fff;
+        border-radius: 6px;
+        border: 1px solid #eee;
+        min-width: 120px;
+        text-align: center;
+      }
+      #tEl:empty::before {
+        content: '准备就绪';
+        color: #999;
+      }
+      .time-display {
+        color: #333; /* 新增文字颜色 */
+        min-width: 120px;
       }
     </style>
   </head>
@@ -22,20 +79,21 @@
   <body>
     <div class="layui-body">
       <div id="container">
-        <video id="gum" autoplay muted></video>
+        <div class="video-preview">
+          <video id="gum" autoplay muted></video>
+          <video
+            id="gum2"
+            controls
+            style="display: none; margin-top: 20px"
+          ></video>
+        </div>
         <div class="controls">
           <select id="cameraSelect" class="camera-selector"></select>
           <button id="record" disabled>开始录制</button>
           <button id="play" disabled>播放</button>
           <button id="download" disabled>下载</button>
-          <span id="tEl"></span>
+          <span id="tEl" class="time-display">准备就绪</span>
         </div>
-        <video
-          id="gum2"
-          controls="controls"
-          autoplay
-          style="display: none"
-        ></video>
       </div>
     </div>
   </body>
@@ -112,6 +170,7 @@
           await navigator.mediaDevices.getUserMedia({ video: true });
           const devices = await navigator.mediaDevices.enumerateDevices();
           const videoDevices = devices.filter(d => d.kind === 'videoinput');
+          console.log('videoDevices: ', videoDevices);
 
           // 去重处理
           const uniqueDevices = [
