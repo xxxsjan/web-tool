@@ -1,6 +1,10 @@
 # Web Tool Box 网页工具箱
 
-一个集成多种实用开发工具的在线网站。
+![Nuxt](https://img.shields.io/badge/Nuxt-3.8.2-green)
+![Node](https://img.shields.io/badge/Node-18.17.1-blue)
+![License](https://img.shields.io/badge/License-MIT-orange)
+
+🔧 开发者必备的多功能在线工具箱，整合高频使用的代码转换、图片处理工具链
 
 ## 功能特性
 
@@ -32,10 +36,19 @@
 
 ## 技术栈
 
-- 框架：Nuxt.js 3
-- UI：Tailwind CSS + DaisyUI + Element Plus
-- 图片处理：dom-to-image
-- 工具库：JSZip、file-saver
+- **核心框架**: Nuxt.js 3 (基于 Vue 3 的 SSR 框架)
+- **UI 组件**:
+  - DaisyUI (导航栏、卡片布局、主题切换)
+  - Element Plus (表单控件、对话框、通知组件)
+- **样式方案**: Tailwind CSS + PostCSS (原子化样式系统)
+- **图片处理**:
+  - dom-to-image (DOM转PNG/JPG)
+  - sharp (高性能图片处理)
+- **工具库**:
+  - JSZip (前端文件压缩)
+  - file-saver (浏览器文件保存)
+  - marked (Markdown解析)
+- **代码质量**: ESLint + Prettier (代码规范)
 
 ## 本地开发
 
@@ -47,4 +60,9 @@ npm install
 npm run dev
 
 # 构建生产版本
-npm run build```
+npm run build
+
+
+## 许可证
+
+[MIT License](LICENSE)```
