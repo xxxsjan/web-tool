@@ -1,6 +1,18 @@
 <template>
   <div class="container">
-    <input type="file" @change="handleFileUpload" accept=".avif" class="file-input" />
+    <!-- 修改文件上传区域 -->
+    <div class="upload-container">
+      <label class="upload-area">
+        <input type="file" @change="handleFileUpload" accept=".avif" class="file-input" />
+        <div class="upload-content">
+          <el-icon size="40">
+            <Upload />
+          </el-icon>
+          <p class="upload-text">点击选择 AVIF 文件 或 拖放至此</p>
+          <p class="upload-subtext">支持单文件转换，最大 10MB</p>
+        </div>
+      </label>
+    </div>
 
     <!-- 预览区域 -->
     <div v-show="showPreview" class="preview-container">
@@ -10,8 +22,10 @@
       <!-- <h3 style="margin-top: 20px;">转换后 PNG 预览：</h3> -->
       <!-- <img :src="previewImageUrl" class="preview-image" /> -->
 
+      <!-- 优化下载链接 -->
       <a v-show="downloadUrl" :href="downloadUrl" :download="downloadFilename" class="download-link">
-        下载 PNG
+
+        立即下载 PNG
       </a>
     </div>
 
@@ -25,6 +39,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { Upload } from '@element-plus/icons-vue';
 
 // 响应式数据
 const previewCanvas = ref(null);
@@ -89,45 +104,101 @@ const resetState = () => {
 <style scoped>
 .container {
   max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.upload-container {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.upload-area {
+  display: block;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  background: #f8fafc;
+  border-color: #3b82f6;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  stroke: #64748b;
+}
+
+.upload-text {
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.upload-subtext {
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
 .preview-container {
-  margin-top: 20px;
-  border: 1px solid #eee;
-  padding: 15px;
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8fafc;
   border-radius: 8px;
-}
-
-.preview-image {
-  max-width: 100%;
-  border: 1px solid #ddd;
-  margin-top: 10px;
 }
 
 canvas {
   max-width: 100%;
-  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* 优化下载链接 */
 .download-link {
-  display: inline-block;
-  margin-top: 15px;
-  padding: 8px 15px;
-  background: #007bff;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: #3b82f6;
   color: white;
-  text-decoration: none;
-  border-radius: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.download-link:hover {
+  background: #2563eb;
+}
+
+.download-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  stroke: white;
 }
 
 .loading {
-  color: #666;
-  margin-top: 10px;
+  padding: 16px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  text-align: center;
 }
 
 .error {
-  color: #dc3545;
-  margin-top: 10px;
+  padding: 16px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
 }
 </style>
