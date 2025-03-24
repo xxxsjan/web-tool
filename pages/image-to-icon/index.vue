@@ -54,12 +54,15 @@
       </div>
     </div>
 
+    <AvifToPng />
+
     <DomToSvg />
   </div>
 </template>
 <script setup>
 // import { genFileId } from 'element-plus';
 import DomToSvg from './dom-to-svg.vue';
+import AvifToPng from './avif-to-png.vue'
 
 const outputSize = ref(32);
 const file = ref();

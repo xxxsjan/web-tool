@@ -1,5 +1,7 @@
 <template>
-  <div class="container">
+  <div class="card w-[90vw] max-w-3xl bg-base-100 shadow-xl p-6">
+    <h2 class="card-title text-2xl text-gray-700 mb-2">avif转png</h2>
+
     <!-- 修改文件上传区域 -->
     <div class="upload-container">
       <label class="upload-area">
@@ -102,15 +104,6 @@ const resetState = () => {
 </script>
 
 <style scoped>
-.container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 30px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
 .upload-container {
   border: 2px dashed #cbd5e1;
   border-radius: 8px;

@@ -1,3 +1,3 @@
 export default {
-  title: '🎨图片转icon',
+  title: '🎨图片转换工具',
 };
