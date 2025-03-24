@@ -13,7 +13,6 @@
                     {{ downloading ? `下载中 ${progress}%` : '打包下载' }}
                 </button>
             </div>
-
             <!-- 图片展示区 -->
             <div class="flex flex-wrap gap-2" v-if="imageUrls.length">
                 <div v-for="(url, index) in imageUrls" :key="index" class="relative group">
@@ -49,7 +48,7 @@ function handleParse() {
         // 如果是img标签，提取src
         if (match.startsWith('<img')) {
             const srcMatch = match.match(/src="([^"]+)"/)
-            return srcMatch ? srcMatch[1] : ''
+            return srcMatch ? srcMatch[1].replaceAll('amp;', '') : ''
         }
         // 如果是直接的URL
         return match
