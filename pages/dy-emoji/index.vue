@@ -29,15 +29,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import domText from './dom'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 const inputText = ref(domText)
 const imageUrls = ref<string[]>([])
 
+// 新增本地存储键名
+const STORAGE_KEY = 'cached-emoji-input'
+
+// 新增挂载时读取缓存
+onMounted(() => {
+    const cached = localStorage.getItem(STORAGE_KEY)
+    if (cached) {
+        inputText.value = cached
+    }
+})
+
 function handleParse() {
     if (!inputText.value) return
+
+    // 新增保存到本地存储
+    localStorage.setItem(STORAGE_KEY, inputText.value)
 
     // 匹配图片URL的正则表达式
     const imgRegex = /<img[^>]+src="([^">]+)"|https?:\/\/[^<\s]+?\.(jpg|jpeg|png|gif|webp)/gi
