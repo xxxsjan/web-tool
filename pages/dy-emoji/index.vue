@@ -14,14 +14,21 @@
                 </button>
             </div>
             <!-- 图片展示区 -->
-            <div class="flex flex-wrap gap-2" v-if="imageUrls.length">
+            <div class="flex flex-wrap gap-2 relative" v-if="imageUrls.length" ref="imageContainer">
                 <div v-for="(url, index) in imageUrls" :key="index" class="relative group">
                     <img :src="url" class="w-[100px] h-[100px] object-cover rounded"
-                        @error="handleImageError($event, index)">
-                    <div
+                        @error="handleImageError($event, index)" @contextmenu.prevent="handleRightClick($event, url)">
+                    <!-- <div
                         class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <a :href="url" target="_blank" class="hover:text-blue-300">查看原图</a>
-                    </div>
+                    </div> -->
+                    <!-- 新增右键菜单 -->
+                </div>
+                <div v-if="showContextMenu" class="absolute bg-white shadow-lg rounded p-2 text-sm"
+                    :style="{ left: `${menuX}px`, top: `${menuY}px` }">
+                    <button class="hover:bg-gray-100 px-2 py-1 w-full text-left"
+                        @click="downloadSingleImage">下载图片</button>
+                    <a :href="url" target="_blank" class="hover:bg-gray-100 px-2 py-1 w-full text-left">查看原图</a>
                 </div>
             </div>
         </div>
@@ -35,10 +42,15 @@ import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 const inputText = ref(domText)
 const imageUrls = ref<string[]>([])
-
+// 新增右键菜单状态
+const showContextMenu = ref(false)
+const menuX = ref(0)
+const menuY = ref(0)
+let currentDownloadUrl = ''
 // 新增本地存储键名
 const STORAGE_KEY = 'cached-emoji-input'
-
+// 在 script 中添加 ref
+const imageContainer = ref<HTMLElement | null>(null)
 // 新增挂载时读取缓存
 onMounted(() => {
     const cached = localStorage.getItem(STORAGE_KEY)
@@ -92,7 +104,8 @@ async function handleDownloadAll() {
             const blob = await response.blob()
             const { pathname } = new URL(url)
             const filename = pathname.split('/').pop() || `image_${i + 1}`
-            const extension = 'png'
+            const mimeType = blob.type
+            const extension = mimeType.split('/')[1] || 'png'
             zip.file(`${filename}.${extension}`, blob)
 
             // 更新进度
@@ -110,6 +123,48 @@ async function handleDownloadAll() {
     } finally {
         downloading.value = false
         progress.value = 0
+    }
+}
+// 右键点击处理
+function handleRightClick(event: MouseEvent, url: string) {
+    event.preventDefault()
+    currentDownloadUrl = url
+    showContextMenu.value = true
+    const container = imageContainer.value
+    if (container) {
+        const rect = container.getBoundingClientRect()
+        menuX.value = event.clientX - rect.left
+        menuY.value = event.clientY - rect.top
+    }
+    // 点击其他地方关闭菜单
+    setTimeout(() => {
+        document.addEventListener('click', closeContextMenu)
+        window.addEventListener('scroll', closeContextMenu)
+    }, 10)
+}
+// 关闭右键菜单
+function closeContextMenu() {
+    showContextMenu.value = false
+    document.removeEventListener('click', closeContextMenu)
+    window.removeEventListener('scroll', closeContextMenu)
+}
+// 单个下载逻辑
+async function downloadSingleImage() {
+    if (!currentDownloadUrl) return
+
+    try {
+        const response = await fetch(currentDownloadUrl)
+        const blob = await response.blob()
+        const urlObj = new URL(currentDownloadUrl)
+        console.log('urlObj: ', urlObj);
+        const filename = urlObj.pathname.split('/').pop() || 'image'
+        const mimeType = blob.type
+        const extension = mimeType.split('/')[1] || 'png'
+        saveAs(blob, `${filename}.${extension}`)
+    } catch (error) {
+        console.error('下载失败:', error)
+    } finally {
+        closeContextMenu()
     }
 }
 </script>
