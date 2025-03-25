@@ -12,7 +12,15 @@
                     :disabled="!imageUrls.length || downloading">
                     {{ downloading ? `下载中 ${progress}%` : '打包下载' }}
                 </button>
+                <!-- 新增教程按钮 -->
+                <button class="btn btn-link" @click="showTutorial = true">这里获取文本</button>
             </div>
+
+            <!-- 新增教程弹窗 -->
+            <Model :show="showTutorial" @close="showTutorial = false">
+                <img src="/tutorial.png" alt="教程" class="max-h-[80vh] mx-auto" />
+            </Model>
+
             <!-- 图片展示区 -->
             <div class="flex flex-wrap gap-2 relative" v-if="imageUrls.length" ref="imageContainer">
                 <div v-for="(url, index) in imageUrls" :key="index" class="relative group">
@@ -43,6 +51,7 @@ import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 const inputText = ref(domText)
 const imageUrls = ref<string[]>([])
+const showTutorial = ref(false)
 // 新增右键菜单状态
 const showContextMenu = ref(false)
 const menuX = ref(0)
