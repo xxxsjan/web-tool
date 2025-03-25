@@ -28,7 +28,8 @@
                     :style="{ left: `${menuX}px`, top: `${menuY}px` }">
                     <button class="hover:bg-gray-100 px-2 py-1 w-full text-left"
                         @click="downloadSingleImage">下载图片</button>
-                    <a :href="url" target="_blank" class="hover:bg-gray-100 px-2 py-1 w-full text-left">查看原图</a>
+                    <button class="hover:bg-gray-100 px-2 py-1 w-full text-left"
+                        @click="openOriginalImage">查看原图</button>
                 </div>
             </div>
         </div>
@@ -147,6 +148,11 @@ function closeContextMenu() {
     showContextMenu.value = false
     document.removeEventListener('click', closeContextMenu)
     window.removeEventListener('scroll', closeContextMenu)
+}
+// 在 script 部分新增方法
+function openOriginalImage() {
+    window.open(currentDownloadUrl, '_blank')
+    closeContextMenu()
 }
 // 单个下载逻辑
 async function downloadSingleImage() {

@@ -35,7 +35,7 @@ const resetTimer = () => {
     clearTimeout(inactivityTimer)
     inactivityTimer = setTimeout(() => {
         showLockScreen.value = true
-    }, 5000)
+    }, 15000)
 }
 
 const setupEventListeners = () => {
