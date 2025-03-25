@@ -6,6 +6,7 @@
         <ParticlesJs />
         <!-- <StatsJs v-if="route.path === '/'" /> -->
         <Lock v-if="showLockScreen" @unlock="resetTimer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" />
+        <Analytics />
     </div>
 </template>
 
@@ -13,7 +14,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import Lock from './Lock.vue'
 import { useRoute } from 'nuxt/app'
-
+import { Analytics } from '@vercel/analytics/nuxt';
 const route = useRoute()
 const showLockScreen = ref(false)
 let inactivityTimer = null
