@@ -82,7 +82,7 @@ const extractUrl = async () => {
     const url = matches[2]; // 链接
     // const postLinkText = matches[3].trim(); // 链接后的文本（可选）
 
-    if (!url) throw new Error('链接域名不正确');
+    if (!url) throw new Error('未找到抖音链接');
     const { data, error } = await useFetch('/api/test', {
       params: { url },
     });
@@ -91,7 +91,7 @@ const extractUrl = async () => {
     const res = data.value.data.url.split('?')[0];
     extractedUrl.value = `${preLinkText}${res} `;
   } else {
-    errorMessage.value = '未找到抖音链接';
+    errorMessage.value = '匹配错误';
   }
 };
 
