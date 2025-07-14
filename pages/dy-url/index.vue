@@ -57,9 +57,7 @@
 <script setup>
 import { ref } from 'vue';
 
-const inputText = ref(
-  '7.97 去抖音看看【眼镜小强的作品】我看后台，这个问题有1000万人答错了，还有多少人... https://v.douyin.com/v6XeU2tWdmU/ 05/23 rE:/ z@T.lP',
-);
+const inputText = ref('');
 const extractedUrl = ref('');
 const errorMessage = ref('');
 const copyStatus = ref('复制');
