@@ -73,7 +73,7 @@ const extractUrl = async () => {
     return;
   }
 
-  const dyUrlRegex = /^.*?】(.+?)(https?:\/\/v\.douyin\.com\/\w+\/).*?/s;
+  const dyUrlRegex = /^.*?】(.+?)(https?:\/\/v\.douyin\.com\/\w+\/)(.*)$/s;
   const matches = inputText.value.match(dyUrlRegex);
 
   if (matches) {
