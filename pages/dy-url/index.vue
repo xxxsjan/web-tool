@@ -79,12 +79,14 @@ const extractUrl = async () => {
   if (matches) {
     const preLinkText = matches[1].trim(); // 链接前的文本
     const url = matches[2]; // 链接
-    const postLinkText = matches[3].trim(); // 链接后的文本（可选）
+    // const postLinkText = matches[3].trim(); // 链接后的文本（可选）
 
-    const { data } = await useFetch('/api/test', {
+    if (!url) throw new Error('未找到有效的链接');
+    const { data, error } = await useFetch('/api/test', {
       params: { url },
     });
-    console.log('data: ', data);
+    if (error.value) throw new Error(error.value.message || 'API请求失败');
+    if (!data.value?.data?.url) throw new Error('无效的API响应格式');
     const res = data.value.data.url.split('?')[0];
     extractedUrl.value = `${preLinkText}${res} `;
   } else {
