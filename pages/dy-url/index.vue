@@ -75,20 +75,20 @@ const extractUrl = async () => {
     return;
   }
 
-  // 抖音链接正则表达式
-  const dyUrlRegex = /https?:\/\/(?:v\.)?douyin\.com\/[a-zA-Z0-9]+\//g;
+  const dyUrlRegex = /^(.+?)(https?:\/\/v\.douyin\.com\/\w+\/)(.*)$/s;
   const matches = inputText.value.match(dyUrlRegex);
 
-  if (matches && matches.length > 0) {
-    const url = matches[0];
+  if (matches) {
+    const preLinkText = matches[1].trim(); // 链接前的文本
+    const url = matches[2]; // 链接
+    const postLinkText = matches[3].trim(); // 链接后的文本（可选）
 
     const { data } = await useFetch('/api/test', {
       params: { url },
     });
     console.log('data: ', data);
-    const res = data.value.data.url.split('?')[0]
-    extractedUrl.value = res;
-
+    const res = data.value.data.url.split('?')[0];
+    extractedUrl.value = `${preLinkText}${res} `;
   } else {
     errorMessage.value = '未找到抖音链接';
   }
