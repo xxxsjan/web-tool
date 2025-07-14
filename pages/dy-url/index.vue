@@ -73,15 +73,16 @@ const extractUrl = async () => {
     return;
   }
 
-  const dyUrlRegex = /^(.+?)(https?:\/\/v\.douyin\.com\/\w+\/)(.*)$/s;
+  const dyUrlRegex = /^.*?】(.+?)(https?:\/\/v\.douyin\.com\/\w+\/).*?/s;
   const matches = inputText.value.match(dyUrlRegex);
 
   if (matches) {
+    console.log('matches: ', matches);
     const preLinkText = matches[1].trim(); // 链接前的文本
     const url = matches[2]; // 链接
     // const postLinkText = matches[3].trim(); // 链接后的文本（可选）
 
-    if (!url) throw new Error('未找到有效的链接');
+    if (!url) throw new Error('链接域名不正确');
     const { data, error } = await useFetch('/api/test', {
       params: { url },
     });
