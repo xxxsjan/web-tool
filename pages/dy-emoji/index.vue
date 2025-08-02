@@ -24,6 +24,13 @@
         </button>
         <a
           class="btn btn-link"
+          href="https://www.iloveimg.com/zh-cn/convert-to-jpg/webp-to-jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          >webp-to-jpg</a
+        >
+        <a
+          class="btn btn-link"
           href="https://imagetostl.com/cn/convert/file/webp/to/gif"
           target="_blank"
           rel="noopener noreferrer"
