@@ -74,9 +74,13 @@
           <button
             class="hover:bg-gray-100 px-2 py-1 w-full text-left"
             @click="downloadSingleImage"
+            v-if="currentDownloadUrl.indexOf('awebp') === -1"
           >
-            下载图片
+            {{
+              currentDownloadUrl.indexOf('webp') > -1 ? '下载为jpg' : '下载图片'
+            }}
           </button>
+
           <button
             class="hover:bg-gray-100 px-2 py-1 w-full text-left"
             @click="openOriginalImage"
@@ -211,9 +215,64 @@ function openOriginalImage() {
   window.open(currentDownloadUrl, '_blank');
   closeContextMenu();
 }
+function convertWebpToJpgAndDownload(webpUrl, fileName = 'image.jpg') {
+  // 创建 img 元素加载 WebP 图片
+  const img = new Image();
+
+  // 允许跨域图片（如果图片来自其他域名）
+  img.crossOrigin = 'anonymous';
+
+  img.onload = function () {
+    // 创建 canvas 元素
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 设置 canvas 尺寸与图片一致
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // 将图片绘制到 canvas
+    ctx.drawImage(img, 0, 0);
+
+    // 将 canvas 内容导出为 JPG（quality 0-1，1 为最高质量）
+    const jpgDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+    // 创建下载链接
+    const link = document.createElement('a');
+    link.href = jpgDataUrl;
+    link.download = fileName; // 下载的文件名
+
+    // 触发下载
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  img.onerror = function () {
+    console.error('WebP 图片加载失败');
+  };
+
+  // 开始加载 WebP 图片
+  img.src = webpUrl;
+}
+function downJpg() {
+  if (!currentDownloadUrl) return;
+
+  const urlObj = new URL(currentDownloadUrl);
+  const pathname = urlObj.pathname;
+  if (pathname.endsWith('webp')) {
+    const filename = urlObj.pathname.split('/').pop() || 'image';
+    convertWebpToJpgAndDownload(currentDownloadUrl, `${filename.split('~')[0]}.jpg`);
+    return;
+  }
+}
 // 单个下载逻辑
 async function downloadSingleImage() {
   if (!currentDownloadUrl) return;
+  if (currentDownloadUrl.indexOf('webp') > -1) {
+    downJpg();
+    return;
+  }
 
   try {
     const response = await fetch(currentDownloadUrl);

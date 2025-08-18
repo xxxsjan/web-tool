@@ -5,7 +5,7 @@
         <!-- <AppFooter /> -->
         <ParticlesJs />
         <!-- <StatsJs v-if="route.path === '/'" /> -->
-        <Lock v-if="showLockScreen" @unlock="resetTimer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" />
+        <!-- <Lock v-if="showLockScreen" @unlock="resetTimer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" /> -->
         <Analytics />
     </div>
 </template>
