@@ -14,6 +14,9 @@ export default defineNuxtConfig({
         {
           src: 'lib/stats.js',
         },
+        {
+          src: 'lib/gif.js',
+        },
       ],
     },
   },

@@ -1,5 +1,12 @@
 <template>
   <div class="w-full max-w-[1000px] mx-auto p-4">
+    <!-- <img
+      id="test"
+      src="https://p26-im-emoticon-sign.byteimg.com/tos-cn-o-0812/oYDYBiQWEczAPoZjIBDAOBiAd4l0EgfY68Adkb~tplv-0wx4r9yasq-awebp-resize:0:0.awebp?biz_tag=aweme_im&lk3s=91c5b7cb&s=im_123&sc=emotion&x-expires=1787050928&x-signature=%2Fx%2FNhMwJ2EOCSvMYGca4WATW%2F7c%3D"
+      alt=""
+      @click="downloadGif"
+      crossorigin="anonymous"
+    /> -->
     <div class="flex flex-col gap-4">
       <!-- 输入框 -->
       <textarea
@@ -59,6 +66,8 @@
             class="w-[100px] h-[100px] object-cover rounded"
             @error="handleImageError($event, index)"
             @contextmenu.prevent="handleRightClick($event, url)"
+            :id="getId(url)"
+            crossOrigin="anonymous"
           />
           <!-- <div
                         class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -80,7 +89,13 @@
               currentDownloadUrl.indexOf('webp') > -1 ? '下载为jpg' : '下载图片'
             }}
           </button>
-
+          <button
+            class="hover:bg-gray-100 px-2 py-1 w-full text-left"
+            @click="downloadGif"
+            v-else
+          >
+            下载动图
+          </button>
           <button
             class="hover:bg-gray-100 px-2 py-1 w-full text-left"
             @click="openOriginalImage"
@@ -262,9 +277,51 @@ function downJpg() {
   const pathname = urlObj.pathname;
   if (pathname.endsWith('webp')) {
     const filename = urlObj.pathname.split('/').pop() || 'image';
-    convertWebpToJpgAndDownload(currentDownloadUrl, `${filename.split('~')[0]}.jpg`);
+    convertWebpToJpgAndDownload(
+      currentDownloadUrl,
+      `${filename.split('~')[0]}.jpg`,
+    );
     return;
   }
+}
+function getId(url: string) {
+  if (url) {
+    const filename = new URL(url).pathname.split('/').pop() || 'image';
+
+    return filename.split('~')[0];
+  }
+  return Date.now() + '';
+}
+
+function downloadGif() {
+  if (!currentDownloadUrl) return;
+  // const currentDownloadUrl = 'https://www.diydoutu.com/bq/2435.gif';
+  // const currentDownloadUrl =
+  //   'https://p26-im-emoticon-sign.byteimg.com/tos-cn-o-0812/oYDYBiQWEczAPoZjIBDAOBiAd4l0EgfY68Adkb~tplv-0wx4r9yasq-awebp-resize:0:0.awebp?biz_tag=aweme_im&lk3s=91c5b7cb&s=im_123&sc=emotion&x-expires=1787050928&x-signature=%2Fx%2FNhMwJ2EOCSvMYGca4WATW%2F7c%3D';
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function () {
+    console.log(img.width, img.height);
+    // https://github.com/jnordberg/gif.js
+    const gif = new GIF({
+      workers: 2, // 使用 2 个工作线程
+      quality: 10, // 质量（1-10，10 最高）
+      width: img.width,
+      height: img.height,
+    });
+    console.log(gif);
+    gif.addFrame(img, { delay: 200 }); // delay 为帧延迟（毫秒）
+    gif.on('finished', function (blob: Blob) {
+      console.log('blob: ', blob);
+      window.open(URL.createObjectURL(blob));
+    });
+    gif.render();
+  };
+  img.onerror = function () {
+    console.error('WebP 图片加载失败');
+  };
+  img.src = currentDownloadUrl;
 }
 // 单个下载逻辑
 async function downloadSingleImage() {
