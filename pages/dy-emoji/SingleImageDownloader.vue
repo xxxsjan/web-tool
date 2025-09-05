@@ -33,7 +33,7 @@ async function handleDownload() {
   if (!imageUrl.value.trim()) return;
 
   const url = imageUrl.value.trim();
-  downloading.value = true;
+  // downloading.value = true;
 
   try {
     if (url.indexOf('webp') > -1) {
