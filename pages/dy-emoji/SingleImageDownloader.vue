@@ -7,7 +7,7 @@
         placeholder="单独输入图片地址进行下载"
         @keyup.enter="handleDownload"
       />
-      <button 
+      <button
         class="btn btn-info"
         @click="handleDownload"
         :disabled="!imageUrl.trim() || downloading"
@@ -30,10 +30,10 @@ const downloading = ref(false);
 // 处理图片下载
 async function handleDownload() {
   if (!imageUrl.value.trim()) return;
-  
+
   const url = imageUrl.value.trim();
   downloading.value = true;
-  
+
   try {
     if (url.indexOf('webp') > -1) {
       // 处理webp格式图片，转换为jpg
@@ -44,11 +44,20 @@ async function handleDownload() {
     } else {
       // 处理普通图片格式
       const response = await fetch(url);
-      const blob = await response.blob();
+      const contentTypeValue = response.headers.get('content-type') || '';
+      const imgType = contentTypeValue.split('/')[1];
       const urlObj = new URL(url);
       const filename = urlObj.pathname.split('/').pop() || 'single_image';
+
+      if (imgType === 'webp') {
+        convertWebpToJpgAndDownload(url, `${filename}.jpg`);
+        return;
+      }
+      const blob = await response.blob();
+
       const mimeType = blob.type;
       const extension = mimeType.split('/')[1] || 'png';
+
       saveAs(blob, `${filename}.${extension}`);
       downloading.value = false;
     }
@@ -116,7 +125,7 @@ function handleAnimatedWebpDownload(url) {
       downloading.value = false;
       return;
     }
-    
+
     const gif = new GIF({
       workers: 2,
       quality: 10,

@@ -125,7 +125,7 @@ import domText from './dom';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 // 新增：导入单图下载组件
-import SingleImageDownloader from '../../components/SingleImageDownloader.vue';
+import SingleImageDownloader from './SingleImageDownloader.vue';
 import CopyBtn from './CopyBtn.vue';
 const inputText = ref(domText);
 const imageUrls = ref<string[]>([]);
