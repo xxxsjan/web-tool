@@ -15,6 +15,9 @@
         placeholder="请输入包含图片链接的文本"
       ></textarea>
 
+      <!-- 新增：引用单图下载组件 -->
+      <SingleImageDownloader />
+
       <!-- 按钮 -->
       <div class="flex justify-center gap-4">
         <button class="btn btn-primary" @click="handleParse">解析图片</button>
@@ -102,6 +105,14 @@
           >
             查看原图
           </button>
+          <!-- 使用新的Tailwind版本复制按钮组件 -->
+          <div class="px-2 py-1 w-full">
+            <CopyBtn
+              :text="currentDownloadUrl"
+              buttonText="复制图片地址"
+              successText="已复制地址"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -113,6 +124,9 @@ import { ref, onMounted } from 'vue';
 import domText from './dom';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+// 新增：导入单图下载组件
+import SingleImageDownloader from '../../components/SingleImageDownloader.vue';
+import CopyBtn from './CopyBtn.vue';
 const inputText = ref(domText);
 const imageUrls = ref<string[]>([]);
 const showTutorial = ref(false);
