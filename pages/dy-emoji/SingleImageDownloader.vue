@@ -33,35 +33,28 @@ async function handleDownload() {
   if (!imageUrl.value.trim()) return;
 
   const url = imageUrl.value.trim();
-  // downloading.value = true;
+  downloading.value = true;
 
   try {
-    if (url.indexOf('webp') > -1) {
-      // 处理webp格式图片，转换为jpg
-      convertWebpToJpgAndDownload(url, 'single_image.jpg');
-    } else if (url.indexOf('awebp') > -1) {
-      // 处理动图awebp格式
-      handleAnimatedWebpDownload(url);
-    } else {
-      // 处理普通图片格式
-      const response = await fetch(url);
-      const contentTypeValue = response.headers.get('content-type') || '';
-      const imgType = contentTypeValue.split('/')[1];
-      const urlObj = new URL(url);
-      const filename = urlObj.pathname.split('/').pop() || 'single_image';
+    const response = await fetch(url);
+    const contentTypeValue = response.headers.get('content-type') || '';
+    const imgType = contentTypeValue.split('/')[1];
+    const urlObj = new URL(url);
+    const filename = urlObj.pathname.split('/').pop() || 'filename';
 
-      if (imgType === 'webp') {
-        convertWebpToJpgAndDownload(url, `${filename}.jpg`);
-        return;
-      }
-      const blob = await response.blob();
-
-      const mimeType = blob.type;
-      const extension = mimeType.split('/')[1] || 'png';
-
-      saveAs(blob, `${filename}.${extension}`);
+    if (imgType === 'webp') {
+      console.log('imgType: ', imgType);
+      await convertWebpToJpgAndDownload(url, `${filename}.jpg`);
       downloading.value = false;
+      return;
     }
+    const blob = await response.blob();
+
+    const mimeType = blob.type;
+    const extension = mimeType.split('/')[1] || 'png';
+
+    saveAs(blob, `${filename}.${extension}`);
+    downloading.value = false;
   } catch (error) {
     console.error('单图下载失败:', error);
     alert('下载失败，请检查图片地址是否正确');
@@ -69,9 +62,6 @@ async function handleDownload() {
   }
 }
 
-
-
-// 处理动图awebp下载
 function handleAnimatedWebpDownload(url) {
   const img = new Image();
   img.crossOrigin = 'anonymous';
