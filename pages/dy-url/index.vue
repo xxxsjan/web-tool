@@ -24,6 +24,13 @@
       提取抖音链接
     </button>
 
+    <button
+      @click="test2"
+      class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
+    >
+      test2
+    </button>
+
     <div
       v-if="extractedUrl"
       class="mt-6 p-4 border border-gray-300 rounded-md bg-gray-50"
@@ -107,6 +114,12 @@ const copyToClipboard = async () => {
   } catch (err) {
     errorMessage.value = '复制失败，请手动复制';
   }
+};
+const test2 = async () => {
+  const { data, error } = await useFetch('/api/test2', {
+    params: {},
+  });
+  console.log(data);
 };
 </script>
 
