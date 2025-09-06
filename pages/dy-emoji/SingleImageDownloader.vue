@@ -44,7 +44,7 @@ async function handleDownload() {
 
     if (imgType === 'webp') {
       console.log('imgType: ', imgType);
-      await convertWebpToJpgAndDownload(url, `${filename}.jpg`);
+      await convertWebpToJpgAndDownload(url, `${filename}.jpeg`);
       downloading.value = false;
       return;
     }

@@ -1,7 +1,7 @@
 // 将WebP转换为JPG并下载
 export const convertWebpToJpgAndDownload = (
   webpUrl,
-  fileName = 'image.jpg',
+  fileName: string = 'image.jpg',
 ) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -17,7 +17,15 @@ export const convertWebpToJpgAndDownload = (
 
       ctx.drawImage(img, 0, 0);
 
-      const jpgDataUrl = canvas.toDataURL('image/png', 0.95);
+      const typeMap: any = {
+        jpg: 'image/jpeg',
+        png: 'image/png',
+        jpeg: 'image/png',
+      };
+      const fileType = fileName.split('.')[1] || 'png';
+      console.log('fileType: ', fileType);
+
+      const jpgDataUrl = canvas.toDataURL(typeMap[fileType], 0.95);
 
       const link = document.createElement('a');
       link.href = jpgDataUrl;
