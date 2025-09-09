@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { copyToClipboard } from './utils';
 
 // 定义组件的props
 interface CopyBtnProps {
@@ -115,13 +116,8 @@ async function handleCopy() {
   isCopying.value = true;
 
   try {
-    // 尝试使用现代浏览器的剪贴板API
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(props.text);
-    } else {
-      // 降级方案：使用传统的execCommand方法
-      fallbackCopyText(props.text);
-    }
+    // 使用 utils.ts 中实现的 copyToClipboard 函数
+    await copyToClipboard(props.text);
 
     // 显示复制成功状态
     isCopied.value = true;
@@ -145,32 +141,5 @@ async function handleCopy() {
   }
 }
 
-// 降级复制方案
-function fallbackCopyText(text: string) {
-  const textArea = document.createElement('textarea');
-  textArea.value = text;
-
-  // 避免在某些移动设备上弹出键盘
-  textArea.style.position = 'fixed';
-  textArea.style.left = '-999999px';
-  textArea.style.top = '-999999px';
-  textArea.style.opacity = '0';
-
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-
-  try {
-    const successful = document.execCommand('copy');
-    if (!successful) {
-      throw new Error('execCommand failed');
-    }
-  } catch (err) {
-    throw err;
-  } finally {
-    document.body.removeChild(textArea);
-  }
-}
+// 移除不再需要的内联 fallbackCopyText 函数
 </script>
-
-<!-- 移除了内联style标签，完全使用Tailwind CSS类 -->

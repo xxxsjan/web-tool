@@ -48,3 +48,59 @@ export const convertWebpToJpgAndDownload = (
     img.src = webpUrl;
   });
 };
+
+
+// 兼容很好的复制方法
+export const copyToClipboard = (text: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    // 优先使用现代浏览器的 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => resolve(text))
+        .catch(err => {
+          console.warn('Clipboard API 失败，尝试备选方案', err);
+          fallbackCopyToClipboard(text, resolve, reject);
+        });
+    } else {
+      // 回退到传统方法
+      fallbackCopyToClipboard(text, resolve, reject);
+    }
+  });
+};
+
+/**
+ * 传统的复制到剪贴板方法，作为备选方案
+ */
+function fallbackCopyToClipboard(
+  text: string,
+  resolve: (value: string) => void,
+  reject: (reason?: any) => void
+): void {
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    
+    // 防止滚动条出现
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    // 执行复制命令
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    if (successful) {
+      resolve(text);
+    } else {
+      reject(new Error('复制失败'));
+    }
+  } catch (err) {
+    reject(err);
+  }
+}
