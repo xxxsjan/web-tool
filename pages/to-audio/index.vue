@@ -45,8 +45,8 @@
             <label class="block mb-2 text-gray-700">选择文件（最大200M）</label>
             <input
               type="file"
+              accept="video/*"
               @change="handleFileSelect"
-              accept=".mp4,.avi,.mov,.wav,.mp3,.flac,.ogg"
               class="border border-gray-300 rounded-md p-2 w-full"
             />
             <p v-if="selectedFile" class="mt-2 text-sm text-gray-600">
@@ -142,19 +142,15 @@
         >
           <h3 class="font-medium text-green-800 mb-2">转换成功！</h3>
           <p class="text-green-700 mb-3">文件已准备好下载和试听</p>
-          
+
           <!-- 新增试听功能 -->
           <div class="mb-4">
             <p class="text-sm text-gray-600 mb-2">试听转换结果：</p>
-            <audio
-              :src="conversionResult.audioUrl"
-              controls
-              class="w-full"
-            >
+            <audio :src="conversionResult.audioUrl" controls class="w-full">
               您的浏览器不支持音频播放
             </audio>
           </div>
-          
+
           <a
             :href="conversionResult.downloadUrl"
             download
@@ -174,7 +170,34 @@
         </div>
       </div>
     </main>
-
+    <div class="field-box">
+      <h6>步骤：</h6>
+      <p>
+        1.
+        点击“文件”或“链接”按钮切换本地文件或在线文件。点击“选择文件”按钮选择本地文件或输入在线文件URL。源文件也可以是视频格式。视频和音频文件大小限制为200M。您可以使用<a
+          href="/cn/analyze.html"
+          >文件分析器</a
+        >来获取源音频的详细信息，例如曲目名称、流派、比特率和采样率等。
+      </p>
+      <p>
+        2. 设置目标音频格式、比特率和采样率。目标音频格式可以是<a
+          href="/cn/format/wav/"
+          >WAV</a
+        >，<a href="/cn/format/wma/">WMA</a>，<a href="/cn/format/mp3/">MP3</a
+        >，<a href="/cn/format/ogg/">OGG</a>，<a href="/cn/format/aac/">AAC</a
+        >，<a href="/cn/format/au/">AU</a>，<a href="/cn/format/flac/">FLAC</a
+        >，<a href="/cn/format/m4a/">M4A</a>，<a href="/cn/format/mka/">MKA</a
+        >，<a href="/cn/format/aiff/">AIFF</a>，<a href="/cn/format/opus/"
+          >OPUS</a
+        >或<a href="/cn/format/ra/">RA</a>。
+      </p>
+      <p>
+        3.
+        点击“开始转换”按钮开始转换。如果转换失败该转换器会自动切换其它服务器重试提交，请耐心等待。输出文件将会列在“转换结果”下面。点击
+        <i class="fa fa-download"></i> 图标显示文件二维码或将文件保存到Google
+        Drive或Dropbox。
+      </p>
+    </div>
     <!-- 页脚 -->
     <footer class="bg-gray-800 text-white py-6">
       <div class="container mx-auto px-4 text-center">
@@ -191,7 +214,7 @@ definePageMeta({
   title: '音频转换工具',
   meta: [
     { charset: 'utf-8' },
-    { 
+    {
       hid: 'description',
       name: 'description',
       content: '在线音频转换工具，支持多种格式转换和试听',
@@ -260,46 +283,43 @@ const convertAudio = async () => {
   conversionResult.value = null;
 
   try {
-    // 模拟转换过程的延时
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     let downloadUrl = '#';
     let audioUrl = '#';
     let originalFileName = 'converted';
-    
-    // 处理本地文件的情况
+
     if (sourceType.value === 'file' && selectedFile.value) {
-      // 保留原文件名（不包括扩展名）
-      originalFileName = selectedFile.value.name.substring(0, selectedFile.value.name.lastIndexOf('.')) || selectedFile.value.name;
-      
-      // 对于实际项目，这里应该是发送到后端处理后的URL
-      // 这里我们创建一个Blob URL来模拟转换结果
+      originalFileName =
+        selectedFile.value.name.substring(
+          0,
+          selectedFile.value.name.lastIndexOf('.'),
+        ) || selectedFile.value.name;
+
       const blob = new Blob([await selectedFile.value.arrayBuffer()], {
-        type: selectedFile.value.type
+        type: selectedFile.value.type,
       });
-      
-      // 创建可下载的URL
+
       downloadUrl = URL.createObjectURL(blob);
       audioUrl = downloadUrl;
     }
-    
-    // 对于URL的情况，可以直接使用原URL进行试听
+
     if (sourceType.value === 'url' && fileUrl.value) {
-      // 从URL中提取文件名
       const urlParts = fileUrl.value.split('/');
-      const urlFileName = urlParts[urlParts.length - 1].split('?')[0].split('#')[0];
-      originalFileName = urlFileName.substring(0, urlFileName.lastIndexOf('.')) || urlFileName;
-      
+      const urlFileName = urlParts[urlParts.length - 1]
+        .split('?')[0]
+        .split('#')[0];
+      originalFileName =
+        urlFileName.substring(0, urlFileName.lastIndexOf('.')) || urlFileName;
+
       audioUrl = fileUrl.value;
     }
-
-    // 使用原文件名 + 新扩展名作为下载文件名
     const outputFilename = `${originalFileName}.${targetFormat.value.toLowerCase()}`;
-    
+
     conversionResult.value = {
       filename: outputFilename,
       downloadUrl: downloadUrl,
-      audioUrl: audioUrl
+      audioUrl: audioUrl,
     };
   } catch (err) {
     errorMessage.value = '转换失败，请稍后重试';
