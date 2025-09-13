@@ -215,7 +215,6 @@
 
       <!-- 页脚信息 -->
       <div class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-        <p>使用 FFmpeg 进行视频到音频的转换</p>
         <p class="mt-1">支持的格式: MP4, AVI, MKV, MOV 等</p>
       </div>
     </div>
