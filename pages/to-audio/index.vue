@@ -265,11 +265,15 @@ const convertAudio = async () => {
     
     let downloadUrl = '#';
     let audioUrl = '#';
+    let originalFileName = 'converted';
     
     // 处理本地文件的情况
     if (sourceType.value === 'file' && selectedFile.value) {
+      // 保留原文件名（不包括扩展名）
+      originalFileName = selectedFile.value.name.substring(0, selectedFile.value.name.lastIndexOf('.')) || selectedFile.value.name;
+      
       // 对于实际项目，这里应该是发送到后端处理后的URL
-      // 这里我们创建一个Blob URL来模拟转换结果，以便可以试听
+      // 这里我们创建一个Blob URL来模拟转换结果
       const blob = new Blob([await selectedFile.value.arrayBuffer()], {
         type: selectedFile.value.type
       });
@@ -280,13 +284,20 @@ const convertAudio = async () => {
     }
     
     // 对于URL的情况，可以直接使用原URL进行试听
-    // 注意：实际项目中应该使用后端转换后的URL
     if (sourceType.value === 'url' && fileUrl.value) {
+      // 从URL中提取文件名
+      const urlParts = fileUrl.value.split('/');
+      const urlFileName = urlParts[urlParts.length - 1].split('?')[0].split('#')[0];
+      originalFileName = urlFileName.substring(0, urlFileName.lastIndexOf('.')) || urlFileName;
+      
       audioUrl = fileUrl.value;
     }
 
+    // 使用原文件名 + 新扩展名作为下载文件名
+    const outputFilename = `${originalFileName}.${targetFormat.value.toLowerCase()}`;
+    
     conversionResult.value = {
-      filename: `converted.${targetFormat.value.toLowerCase()}`,
+      filename: outputFilename,
       downloadUrl: downloadUrl,
       audioUrl: audioUrl
     };
