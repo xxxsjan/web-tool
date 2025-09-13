@@ -1,26 +1,35 @@
 <template>
-  <div class="index_page px-[6vw]">
-    <div class="nya-container">
+  <div class="relative px-[6vw] py-20 mx-auto box-sizing-border">
+    <div class="relative">
       <h3
-        class="text-lg font-semibold text-gray-500 mb-4 ml-2 border-l-4 border-blue-500 pl-3"
+        class="text-xl font-bold text-gray-800 dark:text-white mb-6 ml-2 border-l-4 border-blue-500 pl-3 transition-all duration-300 hover:border-blue-600"
       >
         工具
       </h3>
       <div
-        class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
       >
         <div
           v-for="(item, index) in list"
           :key="index"
-          class="card bg-base-100 shadow-md hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer hover:-translate-y-1 border border-transparent hover:border-blue-100 dark:hover:border-blue-900"
           @click="go(item.path)"
         >
-          <div class="card-body p-6">
-            <h2 class="card-title text-lg text-gray-700">
+          <div class="p-6 flex items-center">
+            <div
+              class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+            >
               <i
-                class="eva eva-arrow-forward-outline text-blue-500 group-hover:text-blue-600 mr-2 transition-colors"
+                class="eva eva-arrow-forward-outline text-blue-600 dark:text-blue-400 group-hover:rotate-90 transition-transform duration-300"
               ></i>
-              {{ item?.meta?.title || item.meta?.name || item.name }}
+              {{
+                (item?.meta?.title || item.meta?.name || item.name).slice(0, 2)
+              }}
+            </div>
+            <h2
+              class="text-lg text-gray-700 dark:text-gray-200 font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 truncate"
+            >
+              {{ (item?.meta?.title || item.meta?.name || item.name).slice(2) }}
             </h2>
           </div>
         </div>
@@ -42,7 +51,7 @@ interface RouteItem {
   meta?: {
     title?: string;
     name?: string;
-    icon?: string; // 新增图标类型
+    icon?: string;
   };
 }
 
@@ -90,42 +99,6 @@ async function go(path: string) {
 }
 </script>
 
-<style lang="scss" scoped>
-.index_page {
-  position: relative;
-  box-sizing: border-box;
-  margin: 88px auto;
-
-  --theme: #249ffd;
-  --color-text: #2f3e4c;
-}
-
-.nya-container {
-  position: relative;
-}
-
-.nya-container .nya-title {
-  background-color: var(--theme);
-  border-radius: 0.5rem;
-  box-shadow: 0 0.3125rem 0.5rem rgba(36, 159, 253, 0.302);
-  color: #fff;
-  font-size: 0;
-  font-weight: 700;
-  left: 1.875rem;
-  padding: 0.5rem 0.9375rem;
-  position: absolute;
-  top: -3rem;
-}
-
-.nya-container .nya-title i {
-  font-size: 1.25rem;
-  margin-right: 0.3125rem;
-  vertical-align: middle;
-}
-
-.nya-container .nya-title span {
-  font-size: 1.0625rem;
-  line-height: 1.25rem;
-  vertical-align: middle;
-}
+<style scoped>
+/* 仅保留绝对必要的样式，完全基于Tailwind类实现 */
 </style>
