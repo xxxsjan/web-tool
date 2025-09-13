@@ -1,14 +1,32 @@
 <template>
   <div class="wrapper w-full h-full grid grid-cols-[1fr_100px_1fr]">
-    <codemirror class="left" v-model="code" placeholder="Code goes here..." :style="{ height: '600px' }"
-      :autofocus="true" :indent-with-tab="true" :tab-size="2" :extensions="extensions" @ready="handleReady"
-      @change="handleState('change', $event)" @focus="handleState('focus', $event)"
-      @blur="handleState('blur', $event)" />
+    <codemirror
+      class="left"
+      v-model="code"
+      placeholder="Code goes here..."
+      :style="{ height: '600px' }"
+      :autofocus="true"
+      :indent-with-tab="true"
+      :tab-size="2"
+      :extensions="extensions"
+      @ready="handleReady"
+      @change="handleState('change', $event)"
+      @focus="handleState('focus', $event)"
+      @blur="handleState('blur', $event)"
+    />
     <div class="flex justify-center items-center border">
       <button class="btn" @click="getCodemirrorStates">转换➡️</button>
     </div>
-    <codemirror class="right" v-model="code2" placeholder="Code goes here..." :style="{ height: '600px' }"
-      :autofocus="true" :indent-with-tab="true" :tab-size="2" :extensions="extensions" />
+    <codemirror
+      class="right"
+      v-model="code2"
+      placeholder="Code goes here..."
+      :style="{ height: '600px' }"
+      :autofocus="true"
+      :indent-with-tab="true"
+      :tab-size="2"
+      :extensions="extensions"
+    />
   </div>
 </template>
 
