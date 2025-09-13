@@ -10,8 +10,8 @@
         >
           视频转音频工具
         </h1>
-        <p class="text-gray-600 dark:text-gray-300">频转音频失败
-          轻松将您的视频文件转换为高质量音频
+        <p class="text-gray-600 dark:text-gray-300">
+          频转音频失败 轻松将您的视频文件转换为高质量音频
         </p>
       </div>
 
@@ -117,6 +117,51 @@
             >
               您的浏览器不支持视频播放
             </video>
+          </div>
+        </div>
+
+        <!-- 音频格式选择区域 -->
+        <div v-if="selectedFile" class="mt-6">
+          <label
+            class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2"
+          >
+            选择输出音频格式
+          </label>
+          <div class="relative">
+            <select
+              v-model="selectedFormat"
+              :disabled="isConverting"
+              class="block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200"
+            >
+              <option value="mp3">MP3</option>
+              <option value="wav">WAV</option>
+              <option value="wma">WMA</option>
+              <option value="ogg">OGG</option>
+              <option value="aac">AAC</option>
+              <option value="au">AU</option>
+              <option value="flac">FLAC</option>
+              <option value="m4a">M4A</option>
+              <option value="mka">MKA</option>
+              <option value="aiff">AIFF</option>
+              <option value="opus">OPUS</option>
+              <option value="ra">RA</option>
+            </select>
+            <div
+              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -242,6 +287,7 @@
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                 />
               </svg>
+              <i class="fa fa-download mr-2"></i>
               下载音频文件
             </a>
           </div>
@@ -266,6 +312,7 @@ const selectedFile = ref(null);
 const videoUrl = ref('');
 const audioUrl = ref('');
 const audioFileName = ref('converted-audio.mp3');
+const selectedFormat = ref('mp3'); // 默认选择MP3格式
 
 // 转换相关状态
 const isConverting = ref(false);
@@ -316,6 +363,7 @@ const resetState = () => {
   conversionProgress.value = 0;
   conversionStatus.value = '准备转换...';
   errorMessage.value = '';
+  selectedFormat.value = 'mp3'; // 重置为默认格式
 
   // 清理URL对象，避免内存泄漏
   if (videoUrl.value) {
@@ -380,6 +428,7 @@ const convertToAudio = async () => {
     // 创建FormData对象
     const formData = new FormData();
     formData.append('video', selectedFile.value);
+    formData.append('format', selectedFormat.value); // 使用用户选择的格式
 
     // 模拟进度（实际项目中可以移除这部分）
     await simulateProgress();
@@ -408,7 +457,7 @@ const convertToAudio = async () => {
     // 获取文件名
     const contentDisposition = response.headers.get('content-disposition');
     if (contentDisposition) {
-      const match = contentDisposition.match(/filename="([^"]+)"/);
+      const match = contentDisposition.match(/filename="([^\"]+)"/);
       if (match && match[1]) {
         audioFileName.value = match[1];
       } else {
@@ -417,7 +466,7 @@ const convertToAudio = async () => {
         const nameWithoutExt =
           originalName.substring(0, originalName.lastIndexOf('.')) ||
           originalName;
-        audioFileName.value = `${nameWithoutExt}.mp3`;
+        audioFileName.value = `${nameWithoutExt}.${selectedFormat.value}`;
       }
     }
 
@@ -444,6 +493,8 @@ onMounted(() => {
 </script>
 
 <style>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
