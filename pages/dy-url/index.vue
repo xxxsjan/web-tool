@@ -24,12 +24,11 @@
       提取抖音链接
     </button>
 
-    <button
+    <!-- <button
       @click="test2"
-      class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
     >
       test2
-    </button>
+    </button> -->
 
     <div
       v-if="extractedUrl"
