@@ -47,6 +47,9 @@
           >webp to gif</a
         >
       </div>
+      <div>
+        https://www.douyin.com/video/
+      </div>
 
       <!-- 新增教程弹窗 -->
       <Model :show="showTutorial" @close="showTutorial = false">

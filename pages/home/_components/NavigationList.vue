@@ -19,9 +19,6 @@
             <div
               class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
             >
-              <i
-                class="eva eva-arrow-forward-outline text-blue-600 dark:text-blue-400 group-hover:rotate-90 transition-transform duration-300"
-              ></i>
               {{
                 (item?.meta?.title || item.meta?.name || item.name).slice(0, 2)
               }}
