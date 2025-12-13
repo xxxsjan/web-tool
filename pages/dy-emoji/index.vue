@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full max-w-[1000px] mx-auto p-4">
+  <div class="w-full max-w-[1000px] mx-auto p-6">
     <!-- <img
       id="test"
       src="https://p26-im-emoticon-sign.byteimg.com/tos-cn-o-0812/oYDYBiQWEczAPoZjIBDAOBiAd4l0EgfY68Adkb~tplv-0wx4r9yasq-awebp-resize:0:0.awebp?biz_tag=aweme_im&lk3s=91c5b7cb&s=im_123&sc=emotion&x-expires=1787050928&x-signature=%2Fx%2FNhMwJ2EOCSvMYGca4WATW%2F7c%3D"
@@ -7,47 +7,116 @@
       @click="downloadGif"
       crossorigin="anonymous"
     /> -->
-    <div class="flex flex-col gap-4">
-      <!-- 输入框 -->
-      <textarea
-        v-model="inputText"
-        class="textarea textarea-bordered w-full min-h-[200px]"
-        placeholder="请输入包含图片链接的文本"
-      ></textarea>
-
-      <!-- 新增：引用单图下载组件 -->
-      <SingleImageDownloader />
-
-      <!-- 按钮 -->
-      <div class="flex justify-center gap-4">
-        <button class="btn btn-primary" @click="handleParse">解析图片</button>
-        <button
-          class="btn btn-secondary"
-          @click="handleDownloadAll"
-          :disabled="!imageUrls.length || downloading"
-        >
-          {{ downloading ? `下载中 ${progress}%` : '打包下载' }}
-        </button>
-        <!-- 新增教程按钮 -->
-        <button class="btn btn-link" @click="showTutorial = true">
-          这里获取文本
-        </button>
-        <a
-          class="btn btn-link"
-          href="https://www.iloveimg.com/zh-cn/convert-to-jpg/webp-to-jpg"
-          target="_blank"
-          rel="noopener noreferrer"
-          >webp-to-jpg</a
-        >
-        <a
-          class="btn btn-link"
-          href="https://imagetostl.com/cn/convert/file/webp/to/gif"
-          target="_blank"
-          rel="noopener noreferrer"
-          >webp to gif</a
-        >
+    <div class="flex flex-col gap-6">
+      <!-- 页面标题 -->
+      <div class="text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">抖音表情包提取工具</h1>
+        <p class="text-gray-600">输入包含图片链接的文本，一键提取和下载表情包</p>
       </div>
-      <div>视频评论区保存法： https://www.douyin.com/video/</div>
+
+      <!-- 输入框 -->
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text font-medium">输入文本内容</span>
+          <span class="label-text-alt">{{ imageUrls.length }} 张图片</span>
+        </label>
+        <textarea
+          v-model="inputText"
+          class="textarea textarea-bordered w-full min-h-[200px] focus:textarea-primary"
+          placeholder="请输入包含图片链接的文本，或粘贴抖音评论区的HTML内容"
+        ></textarea>
+      </div>
+
+      <!-- 单图下载组件 -->
+      <div class="bg-base-200 rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-3 text-center">单图下载工具</h3>
+        <SingleImageDownloader />
+      </div>
+
+      <!-- 操作按钮区域 -->
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-center gap-3 flex-wrap">
+          <button class="btn btn-primary btn-md" @click="handleParse">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            解析图片
+          </button>
+          <button
+            class="btn btn-secondary btn-md"
+            @click="handleDownloadAll"
+            :disabled="!imageUrls.length || downloading"
+          >
+            <svg v-if="!downloading" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <svg v-else class="animate-spin w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            {{ downloading ? `下载中 ${progress}%` : '打包下载' }}
+          </button>
+        </div>
+        
+        <!-- 视频号跳转区域 -->
+        <div class="bg-base-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold mb-3 text-center">视频评论区保存法</h3>
+          <div class="flex gap-3 items-center justify-center">
+            <div class="form-control">
+              <input
+                v-model="videoId"
+                type="text"
+                placeholder="请输入抖音视频号"
+                class="input input-bordered input-sm w-64 focus:input-primary"
+                @keyup.enter="goToVideo"
+              />
+            </div>
+            <button class="btn btn-accent btn-sm" @click="goToVideo">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+              </svg>
+              跳转
+            </button>
+          </div>
+          <p class="text-sm text-base-content/70 mt-2 text-center">
+            输入抖音视频号，快速跳转到视频页面提取评论表情包
+          </p>
+        </div>
+      </div>
+
+      <!-- 工具链接区域 -->
+      <div class="bg-base-200 rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-3 text-center">相关工具</h3>
+        <div class="flex justify-center gap-3 flex-wrap">
+          <button class="btn btn-ghost btn-sm" @click="showTutorial = true">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            使用教程
+          </button>
+          <a
+            class="btn btn-ghost btn-sm"
+            href="https://www.iloveimg.com/zh-cn/convert-to-jpg/webp-to-jpg"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+            </svg>
+            webp转jpg
+          </a>
+          <a
+            class="btn btn-ghost btn-sm"
+            href="https://imagetostl.com/cn/convert/file/webp/to/gif"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4"></path>
+            </svg>
+            webp转gif
+          </a>
+        </div>
+      </div>
 
       <!-- 新增教程弹窗 -->
       <Model :show="showTutorial" @close="showTutorial = false">
@@ -55,64 +124,79 @@
       </Model>
 
       <!-- 图片展示区 -->
-      <div
-        class="flex flex-wrap gap-2 relative"
-        v-if="imageUrls.length"
-        ref="imageContainer"
-      >
-        <div
-          v-for="(url, index) in imageUrls"
-          :key="index"
-          class="relative group"
-        >
-          <img
-            :src="url"
-            class="w-[100px] h-[100px] object-cover rounded"
-            @error="handleImageError($event, index)"
-            @contextmenu.prevent="handleRightClick($event, url)"
-            :id="getId(url)"
-            crossOrigin="anonymous"
-          />
-          <!-- <div
-                        class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <a :href="url" target="_blank" class="hover:text-blue-300">查看原图</a>
-                    </div> -->
-          <!-- 新增右键菜单 -->
+      <div v-if="imageUrls.length" class="space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold">提取的图片</h3>
+          <div class="text-sm text-base-content/70">
+            共 {{ imageUrls.length }} 张图片
+          </div>
         </div>
         <div
-          v-if="showContextMenu"
-          class="absolute bg-white shadow-lg rounded p-2 text-sm"
-          :style="{ left: `${menuX}px`, top: `${menuY}px` }"
+          class="flex flex-wrap gap-3 relative bg-base-200 rounded-lg p-4"
+          ref="imageContainer"
         >
-          <button
-            class="hover:bg-gray-100 px-2 py-1 w-full text-left"
-            @click="downloadSingleImage"
-            v-if="currentDownloadUrl.indexOf('awebp') === -1"
+          <div
+            v-for="(url, index) in imageUrls"
+            :key="index"
+            class="relative group cursor-pointer"
           >
-            {{
-              currentDownloadUrl.indexOf('webp') > -1 ? '下载为jpg' : '下载图片'
-            }}
-          </button>
-          <button
-            class="hover:bg-gray-100 px-2 py-1 w-full text-left"
-            @click="downloadGif"
-            v-else
-          >
-            下载动图
-          </button>
-          <button
-            class="hover:bg-gray-100 px-2 py-1 w-full text-left"
-            @click="openOriginalImage"
-          >
-            查看原图
-          </button>
-          <!-- 使用新的Tailwind版本复制按钮组件 -->
-          <div class="px-2 py-1 w-full">
-            <CopyBtn
-              :text="currentDownloadUrl"
-              buttonText="复制图片地址"
-              successText="已复制地址"
+            <img
+              :src="url"
+              class="w-[100px] h-[100px] object-cover rounded-lg border-2 border-transparent hover:border-primary transition-all duration-200 hover:shadow-lg"
+              @error="handleImageError($event, index)"
+              @contextmenu.prevent="handleRightClick($event, url)"
+              :id="getId(url)"
+              crossOrigin="anonymous"
             />
+            <!-- 悬停效果 -->
+            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <div class="text-white text-xs font-medium">右键操作</div>
+            </div>
+          </div>
+          <!-- 右键菜单 -->
+          <div
+            v-if="showContextMenu"
+            class="absolute bg-base-100 shadow-xl rounded-lg p-2 text-sm border border-base-300 z-50"
+            :style="{ left: `${menuX}px`, top: `${menuY}px` }"
+          >
+            <button
+              class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
+              @click="downloadSingleImage"
+              v-if="currentDownloadUrl.indexOf('awebp') === -1"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              {{ currentDownloadUrl.indexOf('webp') > -1 ? '下载为jpg' : '下载图片' }}
+            </button>
+            <button
+              class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
+              @click="downloadGif"
+              v-else
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4"></path>
+              </svg>
+              下载动图
+            </button>
+            <button
+              class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
+              @click="openOriginalImage"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              查看原图
+            </button>
+            <div class="border-t border-base-300 my-1"></div>
+            <div class="px-1">
+              <CopyBtn
+                :text="currentDownloadUrl"
+                buttonText="复制图片地址"
+                successText="已复制地址"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -133,6 +217,7 @@ import CopyBtn from './CopyBtn.vue';
 const inputText = ref(domText);
 const imageUrls = ref<string[]>([]);
 const showTutorial = ref(false);
+const videoId = ref('7582872812784798995'); // 新增视频号输入
 // 新增右键菜单状态
 const showContextMenu = ref(false);
 const menuX = ref(0);
@@ -173,6 +258,13 @@ function handleParse() {
       return match;
     })
     .filter(Boolean);
+}
+
+// 新增跳转到视频页面的函数
+function goToVideo() {
+  if (!videoId.value.trim()) return;
+  const url = `https://www.douyin.com/video/${videoId.value.trim()}`;
+  window.open(url, '_blank');
 }
 
 function handleImageError(event: Event, index: number) {
