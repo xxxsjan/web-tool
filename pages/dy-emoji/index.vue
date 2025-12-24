@@ -248,6 +248,12 @@
               :id="getId(url)"
               crossOrigin="anonymous"
             />
+            <span
+              v-if="url.indexOf('awebp') === -1"
+              class="absolute bottom-1 right-1 bg-primary text-primary-content text-xs px-2 py-1 rounded-full shadow-lg font-medium"
+            >
+              webp
+            </span>
             <!-- 悬停效果 -->
             <div
               class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100"
