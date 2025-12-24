@@ -244,7 +244,6 @@
               :src="url"
               class="w-[100px] h-[100px] object-cover rounded-lg border-2 border-transparent hover:border-primary transition-all duration-200 hover:shadow-lg"
               @error="handleImageError($event, index)"
-              @contextmenu.prevent="handleRightClick($event, url)"
               :id="getId(url)"
               crossOrigin="anonymous"
             />
@@ -257,6 +256,7 @@
             <!-- 悬停效果 -->
             <div
               class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100"
+              @contextmenu.prevent="handleRightClick($event, url)"
             >
               <div class="text-white text-xs font-medium">右键操作</div>
             </div>
