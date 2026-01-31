@@ -31,12 +31,6 @@
         ></textarea>
       </div>
 
-      <!-- 单图下载组件 -->
-      <div class="bg-base-200 rounded-lg p-4">
-        <h3 class="text-lg font-semibold mb-3 text-center">单图下载工具</h3>
-        <SingleImageDownloader />
-      </div>
-
       <!-- 操作按钮区域 -->
       <div class="flex flex-col gap-4">
         <div class="flex justify-center gap-3 flex-wrap">
@@ -130,7 +124,132 @@
           </p>
         </div>
       </div>
-
+      <!-- 图片展示区 -->
+      <div class="h-[500px] overflow-auto">
+        <div v-if="imageUrls.length" class="space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold">提取的图片</h3>
+            <div class="text-sm text-base-content/70">
+              共 {{ imageUrls.length }} 张图片
+            </div>
+          </div>
+          <div
+            class="flex flex-wrap gap-3 relative bg-base-200 rounded-lg p-4"
+            ref="imageContainer"
+          >
+            <div
+              v-for="(url, index) in imageUrls"
+              :key="index"
+              class="relative group cursor-pointer"
+            >
+              <img
+                :src="url"
+                class="w-[100px] h-[100px] object-cover rounded-lg border-2 border-transparent hover:border-primary transition-all duration-200 hover:shadow-lg"
+                @error="handleImageError($event, index)"
+                :id="getId(url)"
+                crossOrigin="anonymous"
+              />
+              <span
+                v-if="url.indexOf('awebp') === -1"
+                class="absolute bottom-1 right-1 bg-primary text-primary-content text-xs px-2 py-1 rounded-full shadow-lg font-medium"
+              >
+                webp
+              </span>
+              <!-- 悬停效果 -->
+              <div
+                class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                @contextmenu.prevent="handleRightClick($event, url)"
+              >
+                <div class="text-white text-xs font-medium">右键操作</div>
+              </div>
+            </div>
+            <!-- 右键菜单 -->
+            <div
+              v-if="showContextMenu"
+              class="absolute bg-base-100 shadow-xl rounded-lg p-2 text-sm border border-base-300 z-50"
+              :style="{ left: `${menuX}px`, top: `${menuY}px` }"
+            >
+              <button
+                class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
+                @click="downloadSingleImage"
+                v-if="currentDownloadUrl.indexOf('awebp') === -1"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+                {{
+                  currentDownloadUrl.indexOf('webp') > -1
+                    ? '下载为jpg'
+                    : '下载图片'
+                }}
+              </button>
+              <button
+                class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
+                @click="downloadGif"
+                v-else
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4"
+                  ></path>
+                </svg>
+                下载动图
+              </button>
+              <button
+                class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
+                @click="openOriginalImage"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+                查看原图
+              </button>
+              <div class="border-t border-base-300 my-1"></div>
+              <div class="px-1">
+                <CopyBtn
+                  :text="currentDownloadUrl"
+                  buttonText="复制图片地址"
+                  successText="已复制地址"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- 工具链接区域 -->
       <div class="bg-base-200 rounded-lg p-4">
         <h3 class="text-lg font-semibold mb-3 text-center">相关工具</h3>
@@ -213,7 +332,7 @@
                 d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4"
               ></path>
             </svg>
-            webp-to-gif
+            webp-to-gif(可url)
           </a>
         </div>
       </div>
@@ -223,129 +342,10 @@
         <img src="/tutorial.png" alt="教程" class="max-h-[80vh] mx-auto" />
       </Model>
 
-      <!-- 图片展示区 -->
-      <div v-if="imageUrls.length" class="space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-semibold">提取的图片</h3>
-          <div class="text-sm text-base-content/70">
-            共 {{ imageUrls.length }} 张图片
-          </div>
-        </div>
-        <div
-          class="flex flex-wrap gap-3 relative bg-base-200 rounded-lg p-4"
-          ref="imageContainer"
-        >
-          <div
-            v-for="(url, index) in imageUrls"
-            :key="index"
-            class="relative group cursor-pointer"
-          >
-            <img
-              :src="url"
-              class="w-[100px] h-[100px] object-cover rounded-lg border-2 border-transparent hover:border-primary transition-all duration-200 hover:shadow-lg"
-              @error="handleImageError($event, index)"
-              :id="getId(url)"
-              crossOrigin="anonymous"
-            />
-            <span
-              v-if="url.indexOf('awebp') === -1"
-              class="absolute bottom-1 right-1 bg-primary text-primary-content text-xs px-2 py-1 rounded-full shadow-lg font-medium"
-            >
-              webp
-            </span>
-            <!-- 悬停效果 -->
-            <div
-              class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100"
-              @contextmenu.prevent="handleRightClick($event, url)"
-            >
-              <div class="text-white text-xs font-medium">右键操作</div>
-            </div>
-          </div>
-          <!-- 右键菜单 -->
-          <div
-            v-if="showContextMenu"
-            class="absolute bg-base-100 shadow-xl rounded-lg p-2 text-sm border border-base-300 z-50"
-            :style="{ left: `${menuX}px`, top: `${menuY}px` }"
-          >
-            <button
-              class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
-              @click="downloadSingleImage"
-              v-if="currentDownloadUrl.indexOf('awebp') === -1"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
-              </svg>
-              {{
-                currentDownloadUrl.indexOf('webp') > -1
-                  ? '下载为jpg'
-                  : '下载图片'
-              }}
-            </button>
-            <button
-              class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
-              @click="downloadGif"
-              v-else
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4"
-                ></path>
-              </svg>
-              下载动图
-            </button>
-            <button
-              class="hover:bg-base-200 px-3 py-2 w-full text-left rounded-md transition-colors duration-150 flex items-center gap-2"
-              @click="openOriginalImage"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                ></path>
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                ></path>
-              </svg>
-              查看原图
-            </button>
-            <div class="border-t border-base-300 my-1"></div>
-            <div class="px-1">
-              <CopyBtn
-                :text="currentDownloadUrl"
-                buttonText="复制图片地址"
-                successText="已复制地址"
-              />
-            </div>
-          </div>
-        </div>
+      <!-- 单图下载组件 -->
+      <div class="bg-base-200 rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-3 text-center">单图下载工具</h3>
+        <SingleImageDownloader />
       </div>
     </div>
   </div>
