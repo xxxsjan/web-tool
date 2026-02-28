@@ -328,7 +328,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import domText from './dom';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -340,7 +340,10 @@ import CopyBtn from './CopyBtn.vue';
 const inputText = ref(domText);
 const imageUrls = ref<string[]>([]);
 const showTutorial = ref(false);
-const videoId = ref('7582872812784798995'); // 新增视频号输入
+// 新增视频号输入 支持本地缓存
+const VIDEO_ID_STORAGE_KEY = 'cached-video-id';
+const cachedVideoId = localStorage.getItem(VIDEO_ID_STORAGE_KEY);
+const videoId = ref(cachedVideoId || '7582872812784798995'); // 新增视频号输入 
 // 新增右键菜单状态
 const showContextMenu = ref(false);
 const menuX = ref(0);
@@ -355,6 +358,13 @@ onMounted(() => {
   const cached = localStorage.getItem(STORAGE_KEY);
   if (cached) {
     inputText.value = cached;
+  }
+});
+
+// 监听 videoId 变化并保存到本地缓存
+watch(videoId, (newValue) => {
+  if (newValue) {
+    localStorage.setItem(VIDEO_ID_STORAGE_KEY, newValue);
   }
 });
 
