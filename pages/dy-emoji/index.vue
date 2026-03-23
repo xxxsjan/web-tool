@@ -342,8 +342,7 @@ const imageUrls = ref<string[]>([]);
 const showTutorial = ref(false);
 // 新增视频号输入 支持本地缓存
 const VIDEO_ID_STORAGE_KEY = 'cached-video-id';
-const cachedVideoId = localStorage.getItem(VIDEO_ID_STORAGE_KEY);
-const videoId = ref(cachedVideoId || '7582872812784798995'); // 新增视频号输入 
+const videoId = ref('7582872812784798995'); // 新增视频号输入 
 // 新增右键菜单状态
 const showContextMenu = ref(false);
 const menuX = ref(0);
@@ -355,15 +354,22 @@ const STORAGE_KEY = 'cached-emoji-input';
 const imageContainer = ref<HTMLElement | null>(null);
 // 新增挂载时读取缓存
 onMounted(() => {
-  const cached = localStorage.getItem(STORAGE_KEY);
-  if (cached) {
-    inputText.value = cached;
+  if (typeof localStorage !== 'undefined') {
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) {
+      inputText.value = cached;
+    }
+    // 读取视频号缓存
+    const cachedVideoId = localStorage.getItem(VIDEO_ID_STORAGE_KEY);
+    if (cachedVideoId) {
+      videoId.value = cachedVideoId;
+    }
   }
 });
 
 // 监听 videoId 变化并保存到本地缓存
 watch(videoId, (newValue) => {
-  if (newValue) {
+  if (newValue && typeof localStorage !== 'undefined') {
     localStorage.setItem(VIDEO_ID_STORAGE_KEY, newValue);
   }
 });
@@ -372,7 +378,9 @@ function handleParse() {
   if (!inputText.value) return;
 
   // 新增保存到本地存储
-  localStorage.setItem(STORAGE_KEY, inputText.value);
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, inputText.value);
+  }
 
   // 匹配图片URL的正则表达式
   const imgRegex =
