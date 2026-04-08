@@ -68,6 +68,9 @@
             </svg>
             webp转gif
           </a>
+          <a href="https://www.freeconvert.com/zh/webp-to-gif">
+            freeconvert
+          </a>
 
           <a
             class="btn btn-ghost btn-sm"
