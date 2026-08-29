@@ -1,97 +1,237 @@
 <template>
-  <div class="flex flex-col justify-center items-center lg:flex-row lg:items-start gap-5">
-    <div class="left">
-      <div class="bg-container flex justify-center items-center">
-        <!-- 像素背景 -->
-        <div class="px-bg"></div>
-        <!-- 遮罩 -->
-        <div class="mask-bg"></div>
+  <div class="cut-page w-full max-w-6xl mx-auto px-4 py-8 sm:px-6">
+    <header class="text-center mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-base-content mb-2">
+        图片去黑边
+      </h1>
+      <p class="text-sm sm:text-base text-base-content/60 max-w-md mx-auto">
+        框选区域后自动检测并裁掉上下黑边，支持像素级微调后导出
+      </p>
+    </header>
 
-        <div v-loading="loading" class="mb-2 absolute" v-if="!imgBaseUrl">
-          <input type="file" @change="fileChange" accept=".png,.jpg,.jpeg" class="file-input w-full max-w-xs" />
-        </div>
+    <div
+      class="flex flex-col xl:flex-row justify-center items-stretch gap-6 xl:gap-8"
+    >
+      <!-- 预览 / 裁剪区 -->
+      <div class="flex-1 flex flex-col items-center min-w-0">
+        <div
+          class="bg-container flex justify-center items-center rounded-2xl overflow-hidden border border-base-300/60 shadow-lg"
+          v-loading="loading"
+        >
+          <div class="px-bg"></div>
+          <div class="mask-bg" v-show="imgBaseUrl"></div>
 
-        <div class="preview-container">
-          <img :src="imgBaseUrl" alt="" class="preview-img" />
-          <!-- 裁剪容器 -->
-          <div class="cut-wrapper" style="
-              position: absolute;
-              width: 100%;
-              height: 100%;
-              top: 0;
-              left: 0;
-            ">
-            <!-- 裁剪区 -->
-            <div class="cropper-crop-box" :style="{
-              width: moveElWidth + 'px',
-              height: moveElHeight + 'px',
-              transform: `translate3d(${translateX}px, ${translateY}px, 0px)`,
-            }" v-if="imgBaseUrl">
-              <!-- 移动板  -->
-              <span class="cropper-face" @mousedown="handleMoveEl" @touchstart="handleMoveEl"></span>
-              <!-- 尺寸信息 -->
-              <span class="crop-info" style="bottom: -21px">{{ parseInt(moveElWidth) }} ×
-                {{ parseInt(moveElHeight) }}</span>
-              <!-- 框 -->
-              <span><span class="crop-line line-n" @mousedown="handleLineDown($event, 'n')"
-                  @touchstart="handleLineDown($event, 'n')"></span><span class="crop-line line-w"
-                  @mousedown="handleLineDown($event, 'w')" @touchstart="handleLineDown($event, 'w')"></span><span
-                  class="crop-line line-s" @mousedown="handleLineDown($event, 's')"
-                  @touchstart="handleLineDown($event, 's')"></span><span class="crop-line line-e"
-                  @mousedown="handleLineDown($event, 'e')" @touchstart="handleLineDown($event, 'e')"></span><span
-                  class="crop-point point1 nw" @mousedown="handleLineDown($event, 'nw')"
-                  @touchstart="handleLineDown($event, 'nw')"></span><span class="crop-point point2 n"
-                  @mousedown="handleLineDown($event, 'n')" @touchstart="handleLineDown($event, 'n')"></span><span
-                  class="crop-point point3 ne" @mousedown="handleLineDown($event, 'ne')"
-                  @touchstart="handleLineDown($event, 'ne')"></span><span class="crop-point point4 w"
-                  @mousedown="handleLineDown($event, 'w')" @touchstart="handleLineDown($event, 'w')"></span><span
-                  class="crop-point point5 e" @mousedown="handleLineDown($event, 'e')"
-                  @touchstart="handleLineDown($event, 'e')"></span><span class="crop-point point6 sw"
-                  @mousedown="handleLineDown($event, 'sw')" @touchstart="handleLineDown($event, 'sw')"></span><span
-                  class="crop-point point7 s" @mousedown="handleLineDown($event, 's')"
-                  @touchstart="handleLineDown($event, 's')"></span><span class="crop-point point8 se"
-                  @mousedown="handleLineDown($event, 'se')" @touchstart="handleLineDown($event, 'se')"></span></span>
+          <!-- 空状态上传 -->
+          <label
+            v-if="!imgBaseUrl"
+            class="upload-zone absolute inset-4 z-10 flex flex-col items-center justify-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-base-content/25 hover:border-primary hover:bg-base-100/40 transition-colors"
+          >
+            <span
+              class="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                />
+              </svg>
+            </span>
+            <span class="text-base-content font-medium">点击或拖入图片</span>
+            <span class="text-xs text-base-content/50">支持 PNG / JPG / JPEG</span>
+            <input
+              type="file"
+              @change="fileChange"
+              accept=".png,.jpg,.jpeg"
+              class="sr-only"
+            />
+          </label>
+
+          <div class="preview-container" :class="{ 'has-img': imgBaseUrl }">
+            <img v-show="imgBaseUrl" :src="imgBaseUrl" alt="" class="preview-img" />
+            <div class="cut-wrapper">
+              <div
+                class="cropper-crop-box"
+                :style="{
+                  width: moveElWidth + 'px',
+                  height: moveElHeight + 'px',
+                  transform: `translate3d(${translateX}px, ${translateY}px, 0px)`,
+                }"
+                v-if="imgBaseUrl"
+              >
+                <span
+                  class="cropper-face"
+                  @mousedown="handleMoveEl"
+                  @touchstart="handleMoveEl"
+                ></span>
+                <span class="crop-info">
+                  {{ parseInt(moveElWidth) }} × {{ parseInt(moveElHeight) }}
+                </span>
+                <span>
+                  <span
+                    class="crop-line line-n"
+                    @mousedown="handleLineDown($event, 'n')"
+                    @touchstart="handleLineDown($event, 'n')"
+                  ></span>
+                  <span
+                    class="crop-line line-w"
+                    @mousedown="handleLineDown($event, 'w')"
+                    @touchstart="handleLineDown($event, 'w')"
+                  ></span>
+                  <span
+                    class="crop-line line-s"
+                    @mousedown="handleLineDown($event, 's')"
+                    @touchstart="handleLineDown($event, 's')"
+                  ></span>
+                  <span
+                    class="crop-line line-e"
+                    @mousedown="handleLineDown($event, 'e')"
+                    @touchstart="handleLineDown($event, 'e')"
+                  ></span>
+                  <span
+                    class="crop-point point1 nw"
+                    @mousedown="handleLineDown($event, 'nw')"
+                    @touchstart="handleLineDown($event, 'nw')"
+                  ></span>
+                  <span
+                    class="crop-point point2 n"
+                    @mousedown="handleLineDown($event, 'n')"
+                    @touchstart="handleLineDown($event, 'n')"
+                  ></span>
+                  <span
+                    class="crop-point point3 ne"
+                    @mousedown="handleLineDown($event, 'ne')"
+                    @touchstart="handleLineDown($event, 'ne')"
+                  ></span>
+                  <span
+                    class="crop-point point4 w"
+                    @mousedown="handleLineDown($event, 'w')"
+                    @touchstart="handleLineDown($event, 'w')"
+                  ></span>
+                  <span
+                    class="crop-point point5 e"
+                    @mousedown="handleLineDown($event, 'e')"
+                    @touchstart="handleLineDown($event, 'e')"
+                  ></span>
+                  <span
+                    class="crop-point point6 sw"
+                    @mousedown="handleLineDown($event, 'sw')"
+                    @touchstart="handleLineDown($event, 'sw')"
+                  ></span>
+                  <span
+                    class="crop-point point7 s"
+                    @mousedown="handleLineDown($event, 's')"
+                    @touchstart="handleLineDown($event, 's')"
+                  ></span>
+                  <span
+                    class="crop-point point8 se"
+                    @mousedown="handleLineDown($event, 'se')"
+                    @touchstart="handleLineDown($event, 'se')"
+                  ></span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
+        <p
+          v-if="imgBaseUrl"
+          class="mt-3 text-xs text-base-content/50 text-center"
+        >
+          拖动选区移动，拖角点调整范围
+        </p>
       </div>
-    </div>
 
-    <div class="right">
-      <div class="card w-96 bg-base-100 shadow-xl p-6 mb-4 flex flex-col mt-10" v-show="imgBaseUrl">
-        <div class="w-full">
-          <div class="flex justify-between">
-            <button @click="handleCut" class="btn mr-5">裁剪</button>
-
-            <button class="btn" @click="reset">
-
-              重选图片
+      <!-- 操作面板 -->
+      <aside
+        v-show="imgBaseUrl"
+        class="w-full xl:w-80 shrink-0"
+      >
+        <div
+          class="rounded-2xl border border-base-300/60 bg-base-100/85 backdrop-blur-sm shadow-lg p-5 sm:p-6 flex flex-col gap-5"
+        >
+          <div class="flex gap-2">
+            <button
+              @click="handleCut"
+              class="btn btn-primary flex-1"
+              :disabled="loading"
+            >
+              {{ loading ? '处理中…' : '去黑边' }}
+            </button>
+            <button class="btn btn-ghost border border-base-300" @click="reset">
+              重选
             </button>
           </div>
-          <div class="my-5">
-            输出结果：({{ outputWidth }}x{{ outputHeight }})
-          </div>
+
+          <section class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="font-medium text-base-content">输出预览</span>
+              <span
+                v-if="outputWidth"
+                class="badge badge-sm badge-ghost font-mono"
+              >
+                {{ outputWidth }}×{{ outputHeight }}
+              </span>
+            </div>
+            <div
+              class="result-img-container min-h-[120px] max-h-[50vh] rounded-xl border border-dashed border-base-300 bg-base-200/50 flex items-center justify-center overflow-auto p-3"
+            ></div>
+          </section>
+
+          <section class="space-y-3 pt-1 border-t border-base-300/50">
+            <div class="text-sm font-medium text-base-content">
+              边缘微调
+              <span class="font-normal text-base-content/50">（±10px）</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="flex items-center gap-2 text-sm text-base-content/70">
+                上
+                <el-input-number
+                  v-model="customTop"
+                  :min="-10"
+                  :max="10"
+                  size="small"
+                  controls-position="right"
+                  style="width: 100px"
+                />
+              </label>
+              <label class="flex items-center gap-2 text-sm text-base-content/70">
+                下
+                <el-input-number
+                  v-model="customBottom"
+                  :min="-10"
+                  :max="10"
+                  size="small"
+                  controls-position="right"
+                  style="width: 100px"
+                />
+              </label>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-outline flex-1" @click="handleCustom">
+                应用修正
+              </button>
+              <button
+                class="btn btn-sm btn-success flex-1"
+                @click="save"
+                :disabled="!outputWidth"
+              >
+                保存图片
+              </button>
+            </div>
+          </section>
         </div>
-
-        <div class="result-img-container"></div>
-
-        <div class="">
-          <div>手动结果修正（10px以内）</div>
-
-          上：<el-input-number v-model="customTop" :min="-10" :max="10" style="width: 100px" />
-          下：<el-input-number v-model="customBottom" :min="-10" :max="10" style="width: 100px" />
-          <button class="btn" @click="handleCustom"> 修正 </button>
-          <div class="flex flex-row my-2 justify-between">
-            <button class="btn" v-show="imgBaseUrl" @click="save" type="success">保存</button>
-          </div>
-        </div>
-      </div>
+      </aside>
     </div>
   </div>
 </template>
 <script>
-
-
 export default {
   name: 'cut-image',
 
@@ -256,13 +396,20 @@ export default {
         var base64 = reader.result;
         this.imgBaseUrl = base64;
 
-        document.querySelector('.preview-img').onload = function () {
-          const { width, height } = this;
-          console.log(width, height);
-          vm.previewImgWidth = vm.moveElWidth = width;
-          vm.previewImgHeight = vm.moveElHeight = height;
-          vm.handleCut();
-        };
+        this.$nextTick(() => {
+          const previewImg = document.querySelector('.preview-img');
+          if (!previewImg) return;
+          previewImg.onload = function () {
+            const { width, height } = this;
+            console.log(width, height);
+            vm.previewImgWidth = vm.moveElWidth = width;
+            vm.previewImgHeight = vm.moveElHeight = height;
+            vm.handleCut();
+          };
+          if (previewImg.complete && previewImg.naturalWidth) {
+            previewImg.onload();
+          }
+        });
       };
     },
     save() {
@@ -308,13 +455,16 @@ export default {
           canvas.width,
           canvas.height,
         );
-        canvas.style.width = '100px';
         const resultImg = new Image();
         resultImg.src = canvas.toDataURL();
         resultImg.id = 'base64Img';
-        resultImg.style.width = '50%';
+        resultImg.alt = '裁剪结果';
 
-        document.querySelector('.result-img-container').appendChild(resultImg);
+        const container = document.querySelector('.result-img-container');
+        if (container) {
+          container.innerHTML = '';
+          container.appendChild(resultImg);
+        }
         vm.loading = false;
       };
     },
@@ -383,103 +533,90 @@ export default {
       this.removeBase64Img();
     },
   },
-  mounted() { },
+  mounted() {},
 };
 </script>
 <style scoped>
-.preview-container {
-  position: relative;
-  width: 40%;
-  touch-action: none;
-}
-
-.cut-wrapper {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
 .bg-container {
   position: relative;
   touch-action: none;
-  min-width: 360px;
-  min-height: 360px;
-  width: 40vw;
-  height: 40vw;
+  width: min(100%, 520px);
+  aspect-ratio: 1;
+  min-height: 280px;
 }
 
 .px-bg {
   position: absolute;
-  left: 0;
-  top: 0;
-  box-sizing: border-box;
+  inset: 0;
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  direction: ltr;
-  text-align: left;
-  width: 100%;
-  height: 100%;
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAA3NCSVQICAjb4U/gAAAABlBMVEXMzMz////TjRV2AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAABFJREFUCJlj+M/AgBVhF/0PAH6/D/HkDxOGAAAAAElFTkSuQmCC');
+  opacity: 0.55;
 }
 
 .mask-bg {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  pointer-events: none;
 }
 
-.cropper-view-box {
+.preview-container {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+  z-index: 1;
+}
+
+.preview-container.has-img {
+  display: inline-block;
+}
+
+.preview-img {
   display: block;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
-  outline: 1px solid #39f;
-  outline-color: rgba(51, 153, 255, 0.75);
+  max-width: 100%;
+  max-height: min(70vh, 520px);
+  width: auto;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.cut-wrapper {
+  position: absolute;
+  inset: 0;
   user-select: none;
 }
 
-.cropper-view-box img {
-  user-select: none;
-  text-align: left;
-  max-width: none;
-  max-height: none;
+.cropper-crop-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  outline: 1px solid rgba(59, 130, 246, 0.9);
 }
 
 .cropper-face {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-color: #fff;
-  opacity: 0.3;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.12);
   cursor: move;
 }
 
 .crop-info {
   position: absolute;
-  left: 0px;
-  min-width: 65px;
+  left: 0;
+  bottom: -24px;
+  min-width: 72px;
+  padding: 0 6px;
   text-align: center;
-  color: white;
+  color: #fff;
   line-height: 20px;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(15, 23, 42, 0.85);
+  border-radius: 4px;
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .crop-line {
@@ -520,79 +657,88 @@ export default {
 
 .crop-point {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  opacity: 0.75;
-  /* background-color: #39f; */
-  background-color: red;
+  width: 10px;
+  height: 10px;
+  opacity: 1;
+  background-color: #3b82f6;
+  border: 2px solid #fff;
   border-radius: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .point1 {
-  top: -4px;
-  left: -4px;
+  top: -5px;
+  left: -5px;
   cursor: nw-resize;
 }
 
 .point2 {
   top: -5px;
   left: 50%;
-  margin-left: -3px;
+  margin-left: -5px;
   cursor: n-resize;
 }
 
 .point3 {
-  top: -4px;
-  right: -4px;
+  top: -5px;
+  right: -5px;
   cursor: ne-resize;
 }
 
 .point4 {
   top: 50%;
-  left: -4px;
-  margin-top: -3px;
+  left: -5px;
+  margin-top: -5px;
   cursor: w-resize;
 }
 
 .point5 {
   top: 50%;
-  right: -4px;
-  margin-top: -3px;
+  right: -5px;
+  margin-top: -5px;
   cursor: e-resize;
 }
 
 .point6 {
   bottom: -5px;
-  left: -4px;
+  left: -5px;
   cursor: sw-resize;
 }
 
 .point7 {
   bottom: -5px;
   left: 50%;
-  margin-left: -3px;
+  margin-left: -5px;
   cursor: s-resize;
 }
 
 .point8 {
   bottom: -5px;
-  right: -4px;
+  right: -5px;
   cursor: se-resize;
+}
+
+.result-img-container :deep(img),
+.result-img-container img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
 }
 
 @media screen and (max-width: 500px) {
   .crop-point {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    opacity: 0.45;
-    background-color: #39f;
-    border-radius: 100%;
+    width: 18px;
+    height: 18px;
+    opacity: 0.9;
   }
 
   .point1 {
-    top: -10px;
-    left: -10px;
+    top: -9px;
+    left: -9px;
   }
 
   .point2,
@@ -603,23 +749,18 @@ export default {
   }
 
   .point3 {
-    top: -10px;
-    right: -10px;
-  }
-
-  .point4 {
-    top: 0;
-    left: 0;
+    top: -9px;
+    right: -9px;
   }
 
   .point6 {
-    bottom: -10px;
-    left: -10px;
+    bottom: -9px;
+    left: -9px;
   }
 
   .point8 {
-    bottom: -10px;
-    right: -10px;
+    bottom: -9px;
+    right: -9px;
   }
 }
 </style>
