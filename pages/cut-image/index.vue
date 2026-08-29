@@ -1,79 +1,72 @@
 <template>
-  <div class="cut-page w-full max-w-6xl mx-auto px-3 py-5 sm:px-6 sm:py-8">
-    <header class="text-center mb-5 sm:mb-8 px-1">
-      <h1 class="text-xl sm:text-3xl font-bold text-base-content mb-1.5 sm:mb-2">
+  <div class="cut-page box-border mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    <header class="mb-6 text-center sm:mb-8">
+      <h1 class="mb-2 text-xl font-bold text-base-content sm:text-3xl">
         图片去黑边
       </h1>
-      <p class="text-xs sm:text-base text-base-content/60 max-w-md mx-auto leading-relaxed">
+      <p
+        class="mx-auto max-w-md text-xs leading-relaxed text-base-content/60 sm:text-base"
+      >
         框选区域后自动检测并裁掉上下黑边，支持像素级微调后导出
       </p>
     </header>
 
-    <div
-      class="cut-workspace grid gap-4 sm:gap-6 lg:gap-8 lg:items-start"
-      :class="
-        imgBaseUrl
-          ? 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]'
-          : 'grid-cols-1 justify-items-center'
-      "
-    >
-      <!-- 预览 / 裁剪区 -->
+    <!-- 空状态：整块水平居中 -->
+    <div v-if="!imgBaseUrl" class="mx-auto w-full max-w-md">
       <div
-        class="flex flex-col items-center min-w-0 w-full"
-        :class="imgBaseUrl ? '' : 'max-w-md'"
+        class="bg-container is-empty relative flex w-full items-center justify-center overflow-hidden rounded-2xl border border-base-300/60 shadow-lg"
+        v-loading="loading"
       >
+        <div class="px-bg"></div>
+        <label
+          class="upload-zone absolute inset-3 z-10 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-base-content/25 px-3 text-center transition-colors hover:border-primary hover:bg-base-100/40 sm:inset-4"
+        >
+          <span
+            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              />
+            </svg>
+          </span>
+          <span class="text-base font-medium text-base-content"
+            >点击选择图片</span
+          >
+          <span class="text-xs text-base-content/50">支持 PNG / JPG / JPEG</span>
+          <input
+            type="file"
+            class="sr-only"
+            accept=".png,.jpg,.jpeg"
+            @change="fileChange"
+          />
+        </label>
+      </div>
+    </div>
+
+    <!-- 有图：移动端上下，PC 左右 -->
+    <div
+      v-else
+      class="flex w-full flex-col gap-5 lg:flex-row lg:items-start lg:gap-8"
+    >
+      <div class="flex min-w-0 w-full flex-1 flex-col items-center">
         <div
-          class="bg-container flex justify-center items-center rounded-xl sm:rounded-2xl border border-base-300/60 shadow-lg w-full"
-          :class="imgBaseUrl ? 'has-image' : 'is-empty'"
+          class="bg-container has-image relative flex w-full items-center justify-center rounded-2xl border border-base-300/60 shadow-lg"
           v-loading="loading"
         >
           <div class="px-bg"></div>
-          <div class="mask-bg" v-show="imgBaseUrl"></div>
-
-          <!-- 空状态上传 -->
-          <label
-            v-if="!imgBaseUrl"
-            class="upload-zone absolute inset-3 sm:inset-4 z-10 flex flex-col items-center justify-center gap-2 sm:gap-3 cursor-pointer rounded-xl border-2 border-dashed border-base-content/25 hover:border-primary hover:bg-base-100/40 transition-colors px-3 text-center"
-          >
-            <span
-              class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 sm:w-7 sm:h-7"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-                />
-              </svg>
-            </span>
-            <span class="text-sm sm:text-base text-base-content font-medium"
-              >点击选择图片</span
-            >
-            <span class="text-[11px] sm:text-xs text-base-content/50"
-              >支持 PNG / JPG / JPEG</span
-            >
-            <input
-              type="file"
-              @change="fileChange"
-              accept=".png,.jpg,.jpeg"
-              class="sr-only"
-            />
-          </label>
-
-          <div class="preview-container" :class="{ 'has-img': imgBaseUrl }">
-            <img
-              v-show="imgBaseUrl"
-              :src="imgBaseUrl"
-              alt=""
-              class="preview-img"
-            />
+          <div class="mask-bg"></div>
+          <div class="preview-container has-img">
+            <img :src="imgBaseUrl" alt="" class="preview-img" />
             <div class="cut-wrapper">
               <div
                 class="cropper-crop-box"
@@ -82,7 +75,6 @@
                   height: moveElHeight + 'px',
                   transform: `translate3d(${translateX}px, ${translateY}px, 0px)`,
                 }"
-                v-if="imgBaseUrl"
               >
                 <span
                   class="cropper-face"
@@ -158,29 +150,25 @@
             </div>
           </div>
         </div>
-        <p
-          v-if="imgBaseUrl"
-          class="mt-2 sm:mt-3 text-[11px] sm:text-xs text-base-content/50 text-center"
-        >
+        <p class="mt-2 text-center text-[11px] text-base-content/50 sm:mt-3 sm:text-xs">
           拖动选区移动，拖角点调整范围
         </p>
       </div>
 
-      <!-- 操作面板：无图时不占位，避免大屏两列把上传区挤歪 -->
-      <aside v-if="imgBaseUrl" class="w-full min-w-0 lg:sticky lg:top-4">
+      <aside class="w-full shrink-0 lg:w-80 lg:sticky lg:top-4">
         <div
-          class="rounded-xl sm:rounded-2xl border border-base-300/60 bg-base-100/90 backdrop-blur-sm shadow-lg p-4 sm:p-5 flex flex-col gap-4"
+          class="flex flex-col gap-4 rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-lg backdrop-blur-sm sm:p-5"
         >
           <div class="flex gap-2">
             <button
-              @click="handleCut"
-              class="btn btn-primary btn-sm sm:btn-md flex-1"
+              class="btn btn-primary btn-sm flex-1 sm:btn-md"
               :disabled="loading"
+              @click="handleCut"
             >
               {{ loading ? '处理中…' : '去黑边' }}
             </button>
             <button
-              class="btn btn-ghost btn-sm sm:btn-md border border-base-300 shrink-0"
+              class="btn btn-ghost btn-sm shrink-0 border border-base-300 sm:btn-md"
               @click="reset"
             >
               重选
@@ -188,44 +176,40 @@
           </div>
 
           <section class="space-y-2">
-            <div class="flex items-center justify-between text-sm gap-2">
-              <span class="font-medium text-base-content shrink-0"
+            <div class="flex items-center justify-between gap-2 text-sm">
+              <span class="shrink-0 font-medium text-base-content"
                 >输出预览</span
               >
               <span
                 v-if="outputWidth"
-                class="badge badge-sm badge-ghost font-mono"
+                class="badge badge-ghost badge-sm font-mono"
               >
                 {{ outputWidth }}×{{ outputHeight }}
               </span>
             </div>
             <div
-              class="result-img-container relative h-48 sm:h-56 lg:h-64 w-full rounded-xl border border-dashed border-base-300 bg-base-200/50 overflow-hidden p-2 sm:p-3"
+              class="result-img-container flex h-48 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-base-300 bg-base-200/50 p-2 sm:h-56 sm:p-3"
             ></div>
 
             <div
               v-if="sourceWidth && outputWidth"
-              class="rounded-xl bg-base-200/60 px-3 py-2 text-[11px] sm:text-xs space-y-1.5"
+              class="space-y-1.5 rounded-xl bg-base-200/60 px-3 py-2 text-[11px] sm:text-xs"
             >
               <div
-                class="flex flex-col xs:flex-row sm:flex-row sm:justify-between gap-0.5 sm:gap-2 text-base-content/70"
+                class="flex flex-col gap-0.5 text-base-content/70 sm:flex-row sm:justify-between sm:gap-2"
               >
                 <span class="shrink-0">原图</span>
-                <span
-                  class="font-mono text-base-content sm:text-right break-all"
-                >
+                <span class="break-all font-mono text-base-content sm:text-right">
                   {{ sourceWidth }}×{{ sourceHeight }}
                   <span class="text-base-content/50">·</span>
                   {{ formatBytes(sourceFileSize) }}
                 </span>
               </div>
               <div
-                class="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2 text-base-content/70"
+                class="flex flex-col gap-0.5 text-base-content/70 sm:flex-row sm:justify-between sm:gap-2"
               >
                 <span class="shrink-0">即将保存</span>
-                <span
-                  class="font-mono text-base-content sm:text-right break-all"
-                >
+                <span class="break-all font-mono text-base-content sm:text-right">
                   {{ outputWidth }}×{{ outputHeight }}
                   <span class="text-base-content/50">·</span>
                   {{ formatBytes(outputFileSize) }}
@@ -236,7 +220,7 @@
               </div>
               <div
                 v-if="sizeSavedLabel"
-                class="pt-1 border-t border-base-300/40 text-success leading-snug"
+                class="border-t border-base-300/40 pt-1 leading-snug text-success"
               >
                 {{ sizeSavedLabel }}
               </div>
@@ -244,51 +228,49 @@
 
             <div v-if="outputWidth" class="space-y-2">
               <div class="text-sm font-medium text-base-content">导出压缩</div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              <div class="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                 <label
                   v-for="opt in exportFormatOptions"
                   :key="opt.value"
                   class="cursor-pointer"
                 >
                   <input
+                    v-model="exportFormat"
                     type="radio"
-                    class="hidden peer"
+                    class="peer hidden"
                     name="export-format"
                     :value="opt.value"
-                    v-model="exportFormat"
                   />
                   <span
-                    class="btn btn-xs w-full peer-checked:btn-primary btn-ghost border border-base-300"
+                    class="btn btn-ghost btn-xs w-full border border-base-300 peer-checked:btn-primary"
                   >
                     {{ opt.label }}
                   </span>
                 </label>
               </div>
               <div v-if="exportFormat !== 'png'" class="space-y-1">
-                <div
-                  class="flex justify-between text-xs text-base-content/60"
-                >
+                <div class="flex justify-between text-xs text-base-content/60">
                   <span>画质</span>
                   <span class="font-mono"
                     >{{ Math.round(exportQuality * 100) }}%</span
                   >
                 </div>
                 <input
+                  v-model.number="exportQuality"
                   type="range"
                   min="0.7"
                   max="0.98"
                   step="0.01"
-                  v-model.number="exportQuality"
-                  class="range range-xs range-primary w-full"
+                  class="range range-primary range-xs w-full"
                 />
-                <p class="text-[11px] text-base-content/45 leading-snug">
+                <p class="text-[11px] leading-snug text-base-content/45">
                   建议 90%–95%：观感接近无损，体积通常远小于 PNG
                 </p>
               </div>
             </div>
           </section>
 
-          <section class="space-y-3 pt-1 border-t border-base-300/50">
+          <section class="space-y-3 border-t border-base-300/50 pt-1">
             <div class="text-sm font-medium text-base-content">
               边缘微调
               <span class="font-normal text-base-content/50">（±10px）</span>
@@ -298,36 +280,33 @@
                 <span>上</span>
                 <el-input-number
                   v-model="customTop"
+                  class="!w-full"
                   :min="-10"
                   :max="10"
                   size="small"
                   controls-position="right"
-                  class="!w-full"
                 />
               </label>
               <label class="flex flex-col gap-1 text-xs text-base-content/70">
                 <span>下</span>
                 <el-input-number
                   v-model="customBottom"
+                  class="!w-full"
                   :min="-10"
                   :max="10"
                   size="small"
                   controls-position="right"
-                  class="!w-full"
                 />
               </label>
             </div>
             <div class="grid grid-cols-2 gap-2">
-              <button
-                class="btn btn-sm btn-outline"
-                @click="handleCustom"
-              >
+              <button class="btn btn-outline btn-sm" @click="handleCustom">
                 应用修正
               </button>
               <button
-                class="btn btn-sm btn-success"
-                @click="save"
+                class="btn btn-success btn-sm"
                 :disabled="!outputWidth"
+                @click="save"
               >
                 保存图片
               </button>
@@ -920,29 +899,29 @@ export default {
 </script>
 <style scoped>
 .cut-page {
+  display: block;
+  width: 100%;
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
   box-sizing: border-box;
-  overflow-x: hidden;
 }
 
 .bg-container {
   position: relative;
   touch-action: none;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .bg-container.is-empty {
   width: 100%;
-  max-width: 100%;
-  margin-inline: auto;
   aspect-ratio: 1;
-  min-height: 220px;
-  max-height: min(72vw, 420px);
+  min-height: 240px;
+  max-height: 420px;
 }
 
 .bg-container.has-image {
   width: 100%;
-  max-width: 100%;
   height: auto;
   min-height: 0;
   padding: 8px;
@@ -952,29 +931,29 @@ export default {
 .px-bg {
   position: absolute;
   inset: 0;
-  user-select: none;
+  z-index: 0;
   border-radius: inherit;
+  user-select: none;
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAA3NCSVQICAjb4U/gAAAABlBMVEXMzMz////TjRV2AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAABFJREFUCJlj+M/AgBVhF/0PAH6/D/HkDxOGAAAAAElFTkSuQmCC');
   opacity: 0.55;
-  z-index: 0;
 }
 
 .mask-bg {
   position: absolute;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.35);
-  user-select: none;
-  pointer-events: none;
-  border-radius: inherit;
   z-index: 0;
+  border-radius: inherit;
+  background-color: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  user-select: none;
 }
 
 .preview-container {
   position: relative;
-  max-width: 100%;
-  touch-action: none;
   z-index: 1;
+  max-width: 100%;
   line-height: 0;
+  touch-action: none;
 }
 
 .preview-container.has-img {
@@ -984,9 +963,9 @@ export default {
 
 .preview-img {
   display: block;
-  max-width: 100%;
   width: auto;
   height: auto;
+  max-width: 100%;
   max-height: min(58vh, 640px);
   object-fit: contain;
   user-select: none;
@@ -1018,16 +997,16 @@ export default {
   position: absolute;
   left: 0;
   bottom: -24px;
+  z-index: 2;
   min-width: 72px;
   padding: 0 6px;
-  text-align: center;
-  color: #fff;
-  line-height: 20px;
-  background-color: rgba(15, 23, 42, 0.85);
   border-radius: 4px;
+  background-color: rgba(15, 23, 42, 0.85);
+  color: #fff;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  z-index: 2;
+  line-height: 20px;
+  text-align: center;
 }
 
 .crop-line {
@@ -1070,10 +1049,9 @@ export default {
   position: absolute;
   width: 10px;
   height: 10px;
-  opacity: 1;
-  background-color: #3b82f6;
   border: 2px solid #fff;
   border-radius: 100%;
+  background-color: #3b82f6;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
@@ -1131,15 +1109,12 @@ export default {
 
 .result-img-container :deep(img),
 .result-img-container img {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
   width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  display: block;
   border-radius: 8px;
 }
 
@@ -1159,7 +1134,6 @@ export default {
   .crop-point {
     width: 18px;
     height: 18px;
-    opacity: 0.9;
   }
 
   .point1 {
@@ -1188,18 +1162,9 @@ export default {
     bottom: -9px;
     right: -9px;
   }
-
-  .crop-info {
-    font-size: 11px;
-    bottom: -22px;
-  }
 }
 
 @media screen and (min-width: 1024px) {
-  .bg-container.has-image {
-    max-width: none;
-  }
-
   .preview-img {
     max-height: min(70vh, 720px);
   }
