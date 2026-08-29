@@ -182,6 +182,34 @@
             <div
               class="result-img-container min-h-[120px] max-h-[50vh] rounded-xl border border-dashed border-base-300 bg-base-200/50 flex items-center justify-center overflow-auto p-3"
             ></div>
+
+            <div
+              v-if="sourceWidth && outputWidth"
+              class="rounded-xl bg-base-200/60 px-3 py-2.5 text-xs space-y-1.5"
+            >
+              <div class="flex justify-between gap-2 text-base-content/70">
+                <span>原图</span>
+                <span class="font-mono text-base-content text-right">
+                  {{ sourceWidth }}×{{ sourceHeight }}
+                  <span class="text-base-content/50">·</span>
+                  {{ formatBytes(sourceFileSize) }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-2 text-base-content/70">
+                <span>即将保存</span>
+                <span class="font-mono text-base-content text-right">
+                  {{ outputWidth }}×{{ outputHeight }}
+                  <span class="text-base-content/50">·</span>
+                  {{ formatBytes(outputFileSize) }}
+                </span>
+              </div>
+              <div
+                v-if="sizeSavedLabel"
+                class="pt-1 border-t border-base-300/40 text-success"
+              >
+                {{ sizeSavedLabel }}
+              </div>
+            </div>
           </section>
 
           <section class="space-y-3 pt-1 border-t border-base-300/50">
@@ -232,6 +260,16 @@
   </div>
 </template>
 <script>
+import { ElMessageBox } from 'element-plus';
+
+function dataUrlByteLength(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string') return 0;
+  const base64 = dataUrl.split(',')[1] || '';
+  if (!base64) return 0;
+  const padding = (base64.match(/=+$/) || [''])[0].length;
+  return Math.floor((base64.length * 3) / 4) - padding;
+}
+
 export default {
   name: 'cut-image',
 
@@ -244,6 +282,10 @@ export default {
       calcData: {},
       outputWidth: 0,
       outputHeight: 0,
+      outputFileSize: 0,
+      sourceWidth: 0,
+      sourceHeight: 0,
+      sourceFileSize: 0,
       translateX: 0,
       translateY: 0,
       moveElWidth: 200,
@@ -257,11 +299,32 @@ export default {
       _sourceImg: null,
     };
   },
+  computed: {
+    sizeSavedLabel() {
+      if (!this.sourceFileSize || !this.outputFileSize) return '';
+      const diff = this.sourceFileSize - this.outputFileSize;
+      if (diff > 0) {
+        const pct = ((diff / this.sourceFileSize) * 100).toFixed(1);
+        return `体积约减少 ${this.formatBytes(diff)}（${pct}%）`;
+      }
+      if (diff < 0) {
+        return `体积约增加 ${this.formatBytes(-diff)}（PNG 重编码）`;
+      }
+      return '体积基本不变';
+    },
+  },
   beforeUnmount() {
     this.terminateCutWorker();
   },
   watch: {},
   methods: {
+    formatBytes(bytes) {
+      const n = Number(bytes);
+      if (!Number.isFinite(n) || n < 0) return '—';
+      if (n < 1024) return `${n} B`;
+      if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+      return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+    },
     terminateCutWorker() {
       if (this._cutWorker) {
         this._cutWorker.terminate();
@@ -438,7 +501,8 @@ export default {
     fileChange(e) {
       this.reset();
       const [file] = e.target.files;
-      console.log(file);
+      if (!file) return;
+      this.sourceFileSize = file.size || 0;
       const reader = new FileReader();
       reader.readAsDataURL(file);
       const vm = this;
@@ -452,7 +516,6 @@ export default {
           if (!previewImg) return;
           previewImg.onload = function () {
             const { width, height } = this;
-            console.log(width, height);
             vm.previewImgWidth = vm.moveElWidth = width;
             vm.previewImgHeight = vm.moveElHeight = height;
             vm.handleCut();
@@ -463,14 +526,33 @@ export default {
         });
       };
     },
-    save() {
+    async save() {
       const imgEl = document.getElementById('base64Img');
-      if (!imgEl) {
+      if (!imgEl?.src) {
         return;
       }
-      var base64Image = imgEl?.src;
-      var link = document.createElement('a');
-      link.href = base64Image;
+      const originText = `${this.sourceWidth}×${this.sourceHeight}，${this.formatBytes(this.sourceFileSize)}`;
+      const saveText = `${this.outputWidth}×${this.outputHeight}，${this.formatBytes(this.outputFileSize)}`;
+      try {
+        await ElMessageBox.confirm(
+          `<div style="line-height:1.7">
+            <div><b>原图</b>：${originText}</div>
+            <div><b>即将保存</b>：${saveText}</div>
+            ${this.sizeSavedLabel ? `<div style="margin-top:8px;opacity:.85">${this.sizeSavedLabel}</div>` : ''}
+          </div>`,
+          '确认保存',
+          {
+            confirmButtonText: '下载',
+            cancelButtonText: '取消',
+            type: 'info',
+            dangerouslyUseHTMLString: true,
+          },
+        );
+      } catch {
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = imgEl.src;
       link.download = 'image.png';
       document.body.appendChild(link);
       link.click();
@@ -487,6 +569,8 @@ export default {
       }
       try {
         const img = await this.loadSourceImage();
+        this.sourceWidth = img.naturalWidth || img.width;
+        this.sourceHeight = img.naturalHeight || img.height;
         const { width } = img;
         let top = this.calcData.top + this.customTop;
         let bottom = this.calcData.bottom - this.customBottom;
@@ -504,8 +588,11 @@ export default {
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(img, 0, top, width, cropH, 0, 0, width, cropH);
 
+        const dataUrl = canvas.toDataURL('image/png');
+        this.outputFileSize = dataUrlByteLength(dataUrl);
+
         const resultImg = new Image();
-        resultImg.src = canvas.toDataURL('image/png');
+        resultImg.src = dataUrl;
         resultImg.id = 'base64Img';
         resultImg.alt = '裁剪结果';
 
@@ -595,6 +682,10 @@ export default {
       this.calcData = {};
       this.outputWidth = 0;
       this.outputHeight = 0;
+      this.outputFileSize = 0;
+      this.sourceWidth = 0;
+      this.sourceHeight = 0;
+      this.sourceFileSize = 0;
       this.translateX = 0;
       this.translateY = 0;
       this._cutReqId += 1;
