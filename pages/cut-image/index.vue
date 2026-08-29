@@ -1,21 +1,30 @@
 <template>
-  <div class="cut-page w-full max-w-6xl mx-auto px-4 py-8 sm:px-6">
-    <header class="text-center mb-8">
-      <h1 class="text-2xl sm:text-3xl font-bold text-base-content mb-2">
+  <div class="cut-page w-full max-w-6xl mx-auto px-3 py-5 sm:px-6 sm:py-8">
+    <header class="text-center mb-5 sm:mb-8 px-1">
+      <h1 class="text-xl sm:text-3xl font-bold text-base-content mb-1.5 sm:mb-2">
         图片去黑边
       </h1>
-      <p class="text-sm sm:text-base text-base-content/60 max-w-md mx-auto">
+      <p class="text-xs sm:text-base text-base-content/60 max-w-md mx-auto leading-relaxed">
         框选区域后自动检测并裁掉上下黑边，支持像素级微调后导出
       </p>
     </header>
 
     <div
-      class="flex flex-col xl:flex-row justify-center items-stretch gap-6 xl:gap-8"
+      class="cut-workspace grid gap-4 sm:gap-6 lg:gap-8 lg:items-start"
+      :class="
+        imgBaseUrl
+          ? 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]'
+          : 'grid-cols-1 justify-items-center'
+      "
     >
       <!-- 预览 / 裁剪区 -->
-      <div class="flex-1 flex flex-col items-center min-w-0">
+      <div
+        class="flex flex-col items-center min-w-0 w-full"
+        :class="imgBaseUrl ? '' : 'max-w-md'"
+      >
         <div
-          class="bg-container flex justify-center items-center rounded-2xl overflow-hidden border border-base-300/60 shadow-lg"
+          class="bg-container flex justify-center items-center rounded-xl sm:rounded-2xl border border-base-300/60 shadow-lg w-full"
+          :class="imgBaseUrl ? 'has-image' : 'is-empty'"
           v-loading="loading"
         >
           <div class="px-bg"></div>
@@ -24,14 +33,14 @@
           <!-- 空状态上传 -->
           <label
             v-if="!imgBaseUrl"
-            class="upload-zone absolute inset-4 z-10 flex flex-col items-center justify-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-base-content/25 hover:border-primary hover:bg-base-100/40 transition-colors"
+            class="upload-zone absolute inset-3 sm:inset-4 z-10 flex flex-col items-center justify-center gap-2 sm:gap-3 cursor-pointer rounded-xl border-2 border-dashed border-base-content/25 hover:border-primary hover:bg-base-100/40 transition-colors px-3 text-center"
           >
             <span
-              class="w-14 h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center"
+              class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-7 h-7"
+                class="w-6 h-6 sm:w-7 sm:h-7"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -44,8 +53,12 @@
                 />
               </svg>
             </span>
-            <span class="text-base-content font-medium">点击或拖入图片</span>
-            <span class="text-xs text-base-content/50">支持 PNG / JPG / JPEG</span>
+            <span class="text-sm sm:text-base text-base-content font-medium"
+              >点击选择图片</span
+            >
+            <span class="text-[11px] sm:text-xs text-base-content/50"
+              >支持 PNG / JPG / JPEG</span
+            >
             <input
               type="file"
               @change="fileChange"
@@ -55,7 +68,12 @@
           </label>
 
           <div class="preview-container" :class="{ 'has-img': imgBaseUrl }">
-            <img v-show="imgBaseUrl" :src="imgBaseUrl" alt="" class="preview-img" />
+            <img
+              v-show="imgBaseUrl"
+              :src="imgBaseUrl"
+              alt=""
+              class="preview-img"
+            />
             <div class="cut-wrapper">
               <div
                 class="cropper-crop-box"
@@ -142,36 +160,38 @@
         </div>
         <p
           v-if="imgBaseUrl"
-          class="mt-3 text-xs text-base-content/50 text-center"
+          class="mt-2 sm:mt-3 text-[11px] sm:text-xs text-base-content/50 text-center"
         >
           拖动选区移动，拖角点调整范围
         </p>
       </div>
 
-      <!-- 操作面板 -->
-      <aside
-        v-show="imgBaseUrl"
-        class="w-full xl:w-80 shrink-0"
-      >
+      <!-- 操作面板：无图时不占位，避免大屏两列把上传区挤歪 -->
+      <aside v-if="imgBaseUrl" class="w-full min-w-0 lg:sticky lg:top-4">
         <div
-          class="rounded-2xl border border-base-300/60 bg-base-100/85 backdrop-blur-sm shadow-lg p-5 sm:p-6 flex flex-col gap-5"
+          class="rounded-xl sm:rounded-2xl border border-base-300/60 bg-base-100/90 backdrop-blur-sm shadow-lg p-4 sm:p-5 flex flex-col gap-4"
         >
           <div class="flex gap-2">
             <button
               @click="handleCut"
-              class="btn btn-primary flex-1"
+              class="btn btn-primary btn-sm sm:btn-md flex-1"
               :disabled="loading"
             >
               {{ loading ? '处理中…' : '去黑边' }}
             </button>
-            <button class="btn btn-ghost border border-base-300" @click="reset">
+            <button
+              class="btn btn-ghost btn-sm sm:btn-md border border-base-300 shrink-0"
+              @click="reset"
+            >
               重选
             </button>
           </div>
 
           <section class="space-y-2">
-            <div class="flex items-center justify-between text-sm">
-              <span class="font-medium text-base-content">输出预览</span>
+            <div class="flex items-center justify-between text-sm gap-2">
+              <span class="font-medium text-base-content shrink-0"
+                >输出预览</span
+              >
               <span
                 v-if="outputWidth"
                 class="badge badge-sm badge-ghost font-mono"
@@ -180,34 +200,90 @@
               </span>
             </div>
             <div
-              class="result-img-container min-h-[120px] max-h-[50vh] rounded-xl border border-dashed border-base-300 bg-base-200/50 flex items-center justify-center overflow-auto p-3"
+              class="result-img-container relative h-48 sm:h-56 lg:h-64 w-full rounded-xl border border-dashed border-base-300 bg-base-200/50 overflow-hidden p-2 sm:p-3"
             ></div>
 
             <div
               v-if="sourceWidth && outputWidth"
-              class="rounded-xl bg-base-200/60 px-3 py-2.5 text-xs space-y-1.5"
+              class="rounded-xl bg-base-200/60 px-3 py-2 text-[11px] sm:text-xs space-y-1.5"
             >
-              <div class="flex justify-between gap-2 text-base-content/70">
-                <span>原图</span>
-                <span class="font-mono text-base-content text-right">
+              <div
+                class="flex flex-col xs:flex-row sm:flex-row sm:justify-between gap-0.5 sm:gap-2 text-base-content/70"
+              >
+                <span class="shrink-0">原图</span>
+                <span
+                  class="font-mono text-base-content sm:text-right break-all"
+                >
                   {{ sourceWidth }}×{{ sourceHeight }}
                   <span class="text-base-content/50">·</span>
                   {{ formatBytes(sourceFileSize) }}
                 </span>
               </div>
-              <div class="flex justify-between gap-2 text-base-content/70">
-                <span>即将保存</span>
-                <span class="font-mono text-base-content text-right">
+              <div
+                class="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2 text-base-content/70"
+              >
+                <span class="shrink-0">即将保存</span>
+                <span
+                  class="font-mono text-base-content sm:text-right break-all"
+                >
                   {{ outputWidth }}×{{ outputHeight }}
                   <span class="text-base-content/50">·</span>
                   {{ formatBytes(outputFileSize) }}
+                  <span class="text-base-content/50"
+                    >({{ outputExtLabel }})</span
+                  >
                 </span>
               </div>
               <div
                 v-if="sizeSavedLabel"
-                class="pt-1 border-t border-base-300/40 text-success"
+                class="pt-1 border-t border-base-300/40 text-success leading-snug"
               >
                 {{ sizeSavedLabel }}
+              </div>
+            </div>
+
+            <div v-if="outputWidth" class="space-y-2">
+              <div class="text-sm font-medium text-base-content">导出压缩</div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                <label
+                  v-for="opt in exportFormatOptions"
+                  :key="opt.value"
+                  class="cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    class="hidden peer"
+                    name="export-format"
+                    :value="opt.value"
+                    v-model="exportFormat"
+                  />
+                  <span
+                    class="btn btn-xs w-full peer-checked:btn-primary btn-ghost border border-base-300"
+                  >
+                    {{ opt.label }}
+                  </span>
+                </label>
+              </div>
+              <div v-if="exportFormat !== 'png'" class="space-y-1">
+                <div
+                  class="flex justify-between text-xs text-base-content/60"
+                >
+                  <span>画质</span>
+                  <span class="font-mono"
+                    >{{ Math.round(exportQuality * 100) }}%</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  min="0.7"
+                  max="0.98"
+                  step="0.01"
+                  v-model.number="exportQuality"
+                  class="range range-xs range-primary w-full"
+                />
+                <p class="text-[11px] text-base-content/45 leading-snug">
+                  建议 90%–95%：观感接近无损，体积通常远小于 PNG
+                </p>
               </div>
             </div>
           </section>
@@ -217,36 +293,39 @@
               边缘微调
               <span class="font-normal text-base-content/50">（±10px）</span>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
-              <label class="flex items-center gap-2 text-sm text-base-content/70">
-                上
+            <div class="grid grid-cols-2 gap-3">
+              <label class="flex flex-col gap-1 text-xs text-base-content/70">
+                <span>上</span>
                 <el-input-number
                   v-model="customTop"
                   :min="-10"
                   :max="10"
                   size="small"
                   controls-position="right"
-                  style="width: 100px"
+                  class="!w-full"
                 />
               </label>
-              <label class="flex items-center gap-2 text-sm text-base-content/70">
-                下
+              <label class="flex flex-col gap-1 text-xs text-base-content/70">
+                <span>下</span>
                 <el-input-number
                   v-model="customBottom"
                   :min="-10"
                   :max="10"
                   size="small"
                   controls-position="right"
-                  style="width: 100px"
+                  class="!w-full"
                 />
               </label>
             </div>
-            <div class="flex gap-2">
-              <button class="btn btn-sm btn-outline flex-1" @click="handleCustom">
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                class="btn btn-sm btn-outline"
+                @click="handleCustom"
+              >
                 应用修正
               </button>
               <button
-                class="btn btn-sm btn-success flex-1"
+                class="btn btn-sm btn-success"
                 @click="save"
                 :disabled="!outputWidth"
               >
@@ -262,12 +341,25 @@
 <script>
 import { ElMessageBox } from 'element-plus';
 
-function dataUrlByteLength(dataUrl) {
-  if (!dataUrl || typeof dataUrl !== 'string') return 0;
-  const base64 = dataUrl.split(',')[1] || '';
-  if (!base64) return 0;
-  const padding = (base64.match(/=+$/) || [''])[0].length;
-  return Math.floor((base64.length * 3) / 4) - padding;
+function supportsWebP() {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    return canvas.toDataURL('image/webp').startsWith('data:image/webp');
+  } catch {
+    return false;
+  }
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob),
+      type,
+      type === 'image/png' ? undefined : quality,
+    );
+  });
 }
 
 export default {
@@ -283,9 +375,14 @@ export default {
       outputWidth: 0,
       outputHeight: 0,
       outputFileSize: 0,
+      outputMime: 'image/png',
       sourceWidth: 0,
       sourceHeight: 0,
       sourceFileSize: 0,
+      sourceMime: '',
+      exportFormat: 'auto', // auto | webp | jpeg | png
+      exportQuality: 0.92,
+      webpSupported: true,
       translateX: 0,
       translateY: 0,
       moveElWidth: 200,
@@ -297,9 +394,33 @@ export default {
       _cutReqId: 0,
       _cutAbsOffset: 0,
       _sourceImg: null,
+      _outputCanvas: null,
+      _outputBlob: null,
+      _outputObjectUrl: '',
+      _encodeToken: 0,
     };
   },
   computed: {
+    exportFormatOptions() {
+      const opts = [
+        { value: 'auto', label: '智能' },
+        { value: 'webp', label: 'WebP' },
+        { value: 'jpeg', label: 'JPEG' },
+        { value: 'png', label: 'PNG 无损' },
+      ];
+      if (!this.webpSupported) {
+        return opts.filter((o) => o.value !== 'webp');
+      }
+      return opts;
+    },
+    outputExtLabel() {
+      const map = {
+        'image/webp': 'WebP',
+        'image/jpeg': 'JPEG',
+        'image/png': 'PNG',
+      };
+      return map[this.outputMime] || 'IMG';
+    },
     sizeSavedLabel() {
       if (!this.sourceFileSize || !this.outputFileSize) return '';
       const diff = this.sourceFileSize - this.outputFileSize;
@@ -308,15 +429,32 @@ export default {
         return `体积约减少 ${this.formatBytes(diff)}（${pct}%）`;
       }
       if (diff < 0) {
-        return `体积约增加 ${this.formatBytes(-diff)}（PNG 重编码）`;
+        return `体积约增加 ${this.formatBytes(-diff)}（可改用 WebP/JPEG 或调低画质）`;
       }
       return '体积基本不变';
     },
   },
+  watch: {
+    exportFormat() {
+      this.refreshEncodedOutput();
+    },
+    exportQuality() {
+      clearTimeout(this._qualityTimer);
+      this._qualityTimer = setTimeout(() => {
+        this.refreshEncodedOutput();
+      }, 120);
+    },
+  },
   beforeUnmount() {
     this.terminateCutWorker();
+    this.revokeOutputUrl();
   },
-  watch: {},
+  mounted() {
+    this.webpSupported = supportsWebP();
+    if (!this.webpSupported && this.exportFormat === 'webp') {
+      this.exportFormat = 'jpeg';
+    }
+  },
   methods: {
     formatBytes(bytes) {
       const n = Number(bytes);
@@ -324,6 +462,77 @@ export default {
       if (n < 1024) return `${n} B`;
       if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
       return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+    },
+    revokeOutputUrl() {
+      if (this._outputObjectUrl) {
+        URL.revokeObjectURL(this._outputObjectUrl);
+        this._outputObjectUrl = '';
+      }
+    },
+    resolveExportMime() {
+      const format = this.exportFormat;
+      if (format === 'png') return 'image/png';
+      if (format === 'jpeg') return 'image/jpeg';
+      if (format === 'webp') {
+        return this.webpSupported ? 'image/webp' : 'image/jpeg';
+      }
+      // auto：优先 WebP（同等观感体积更小），否则跟原图走
+      if (this.webpSupported) return 'image/webp';
+      if (this.sourceMime.includes('jpeg') || this.sourceMime.includes('jpg')) {
+        return 'image/jpeg';
+      }
+      return 'image/png';
+    },
+    mimeToExt(mime) {
+      if (mime === 'image/webp') return 'webp';
+      if (mime === 'image/jpeg') return 'jpg';
+      return 'png';
+    },
+    async refreshEncodedOutput() {
+      if (!this._outputCanvas) return;
+      const token = ++this._encodeToken;
+      const mime = this.resolveExportMime();
+      const quality = this.exportQuality;
+
+      let sourceCanvas = this._outputCanvas;
+      // JPEG 无透明通道：导出前铺白底
+      if (mime === 'image/jpeg') {
+        const c = document.createElement('canvas');
+        c.width = sourceCanvas.width;
+        c.height = sourceCanvas.height;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(sourceCanvas, 0, 0);
+        sourceCanvas = c;
+      }
+
+      let blob = await canvasToBlob(sourceCanvas, mime, quality);
+
+      // WebP 不可用或失败时回退
+      if (!blob && mime === 'image/webp') {
+        blob = await canvasToBlob(sourceCanvas, 'image/jpeg', quality);
+      }
+      if (!blob || token !== this._encodeToken) return;
+
+      this.outputMime = blob.type || mime;
+      this.outputFileSize = blob.size;
+      this._outputBlob = blob;
+
+      this.revokeOutputUrl();
+      const url = URL.createObjectURL(blob);
+      this._outputObjectUrl = url;
+
+      const resultImg = new Image();
+      resultImg.src = url;
+      resultImg.id = 'base64Img';
+      resultImg.alt = '裁剪结果';
+
+      const container = document.querySelector('.result-img-container');
+      if (container) {
+        container.innerHTML = '';
+        container.appendChild(resultImg);
+      }
     },
     terminateCutWorker() {
       if (this._cutWorker) {
@@ -503,6 +712,7 @@ export default {
       const [file] = e.target.files;
       if (!file) return;
       this.sourceFileSize = file.size || 0;
+      this.sourceMime = file.type || '';
       const reader = new FileReader();
       reader.readAsDataURL(file);
       const vm = this;
@@ -514,25 +724,41 @@ export default {
         this.$nextTick(() => {
           const previewImg = document.querySelector('.preview-img');
           if (!previewImg) return;
-          previewImg.onload = function () {
-            const { width, height } = this;
+          const applySize = () => {
+            // 用实际渲染尺寸，避免响应式 max-height 后选区错位
+            const rect = previewImg.getBoundingClientRect();
+            const width = Math.max(1, Math.round(rect.width) || previewImg.width);
+            const height = Math.max(
+              1,
+              Math.round(rect.height) || previewImg.height,
+            );
             vm.previewImgWidth = vm.moveElWidth = width;
             vm.previewImgHeight = vm.moveElHeight = height;
+            vm.translateX = 0;
+            vm.translateY = 0;
             vm.handleCut();
           };
+          previewImg.onload = () => {
+            requestAnimationFrame(applySize);
+          };
           if (previewImg.complete && previewImg.naturalWidth) {
-            previewImg.onload();
+            requestAnimationFrame(applySize);
           }
         });
       };
     },
     async save() {
-      const imgEl = document.getElementById('base64Img');
-      if (!imgEl?.src) {
+      if (!this._outputBlob && !document.getElementById('base64Img')?.src) {
         return;
       }
+      // 确保最新编码
+      if (this._outputCanvas) {
+        await this.refreshEncodedOutput();
+      }
+      if (!this._outputBlob) return;
+
       const originText = `${this.sourceWidth}×${this.sourceHeight}，${this.formatBytes(this.sourceFileSize)}`;
-      const saveText = `${this.outputWidth}×${this.outputHeight}，${this.formatBytes(this.outputFileSize)}`;
+      const saveText = `${this.outputWidth}×${this.outputHeight}，${this.formatBytes(this.outputFileSize)}（${this.outputExtLabel}）`;
       try {
         await ElMessageBox.confirm(
           `<div style="line-height:1.7">
@@ -551,12 +777,14 @@ export default {
       } catch {
         return;
       }
+      const url = URL.createObjectURL(this._outputBlob);
       const link = document.createElement('a');
-      link.href = imgEl.src;
-      link.download = 'image.png';
+      link.href = url;
+      link.download = `image.${this.mimeToExt(this.outputMime)}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     },
     async setOutputImg() {
       if (
@@ -588,19 +816,8 @@ export default {
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(img, 0, top, width, cropH, 0, 0, width, cropH);
 
-        const dataUrl = canvas.toDataURL('image/png');
-        this.outputFileSize = dataUrlByteLength(dataUrl);
-
-        const resultImg = new Image();
-        resultImg.src = dataUrl;
-        resultImg.id = 'base64Img';
-        resultImg.alt = '裁剪结果';
-
-        const container = document.querySelector('.result-img-container');
-        if (container) {
-          container.innerHTML = '';
-          container.appendChild(resultImg);
-        }
+        this._outputCanvas = canvas;
+        await this.refreshEncodedOutput();
       } finally {
         this.loading = false;
       }
@@ -683,63 +900,95 @@ export default {
       this.outputWidth = 0;
       this.outputHeight = 0;
       this.outputFileSize = 0;
+      this.outputMime = 'image/png';
       this.sourceWidth = 0;
       this.sourceHeight = 0;
       this.sourceFileSize = 0;
+      this.sourceMime = '';
       this.translateX = 0;
       this.translateY = 0;
       this._cutReqId += 1;
+      this._outputCanvas = null;
+      this._outputBlob = null;
+      this.revokeOutputUrl();
       this.removeBase64Img();
       const container = document.querySelector('.result-img-container');
       if (container) container.innerHTML = '';
     },
   },
-  mounted() {},
 };
 </script>
 <style scoped>
+.cut-page {
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
 .bg-container {
   position: relative;
   touch-action: none;
-  width: min(100%, 520px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.bg-container.is-empty {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
   aspect-ratio: 1;
-  min-height: 280px;
+  min-height: 220px;
+  max-height: min(72vw, 420px);
+}
+
+.bg-container.has-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 8px;
+  overflow: visible;
 }
 
 .px-bg {
   position: absolute;
   inset: 0;
   user-select: none;
+  border-radius: inherit;
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAA3NCSVQICAjb4U/gAAAABlBMVEXMzMz////TjRV2AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAABFJREFUCJlj+M/AgBVhF/0PAH6/D/HkDxOGAAAAAElFTkSuQmCC');
   opacity: 0.55;
+  z-index: 0;
 }
 
 .mask-bg {
   position: absolute;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.45);
+  background-color: rgba(0, 0, 0, 0.35);
   user-select: none;
   pointer-events: none;
+  border-radius: inherit;
+  z-index: 0;
 }
 
 .preview-container {
   position: relative;
   max-width: 100%;
-  max-height: 100%;
   touch-action: none;
   z-index: 1;
+  line-height: 0;
 }
 
 .preview-container.has-img {
   display: inline-block;
+  max-width: 100%;
 }
 
 .preview-img {
   display: block;
   max-width: 100%;
-  max-height: min(70vh, 520px);
   width: auto;
   height: auto;
+  max-height: min(58vh, 640px);
+  object-fit: contain;
   user-select: none;
   pointer-events: none;
 }
@@ -778,6 +1027,7 @@ export default {
   border-radius: 4px;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  z-index: 2;
 }
 
 .crop-line {
@@ -881,16 +1131,31 @@ export default {
 
 .result-img-container :deep(img),
 .result-img-container img {
-  width: 100%;
+  position: absolute;
+  inset: 0;
+  margin: auto;
   max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
   object-fit: contain;
   display: block;
-  margin: 0 auto;
   border-radius: 8px;
 }
 
-@media screen and (max-width: 500px) {
+:deep(.el-input-number) {
+  width: 100%;
+}
+
+:deep(.el-input-number .el-input__wrapper) {
+  width: 100%;
+}
+
+@media screen and (max-width: 640px) {
+  .preview-img {
+    max-height: min(48vh, 420px);
+  }
+
   .crop-point {
     width: 18px;
     height: 18px;
@@ -922,6 +1187,21 @@ export default {
   .point8 {
     bottom: -9px;
     right: -9px;
+  }
+
+  .crop-info {
+    font-size: 11px;
+    bottom: -22px;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .bg-container.has-image {
+    max-width: none;
+  }
+
+  .preview-img {
+    max-height: min(70vh, 720px);
   }
 }
 </style>
