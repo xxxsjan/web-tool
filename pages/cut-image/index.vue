@@ -251,10 +251,61 @@ export default {
       previewImgWidth: 0,
       previewImgHeight: 0,
       isMove: false,
+      _cutWorker: null,
+      _cutReqId: 0,
+      _cutAbsOffset: 0,
+      _sourceImg: null,
     };
+  },
+  beforeUnmount() {
+    this.terminateCutWorker();
   },
   watch: {},
   methods: {
+    terminateCutWorker() {
+      if (this._cutWorker) {
+        this._cutWorker.terminate();
+        this._cutWorker = null;
+      }
+    },
+    getCutWorker() {
+      if (this._cutWorker) return this._cutWorker;
+      const worker = new Worker('/worker.js');
+      worker.onmessage = (event) => {
+        const { top, bottom, requestId } = event.data;
+        if (requestId !== this._cutReqId) return;
+        const offset = this._cutAbsOffset || 0;
+        this.calcData = {
+          top: top + offset,
+          bottom: bottom + offset,
+        };
+        this.setOutputImg();
+      };
+      worker.onerror = () => {
+        this.loading = false;
+      };
+      this._cutWorker = worker;
+      return worker;
+    },
+    loadSourceImage() {
+      return new Promise((resolve, reject) => {
+        if (
+          this._sourceImg &&
+          this._sourceImg.src === this.imgBaseUrl &&
+          this._sourceImg.complete
+        ) {
+          resolve(this._sourceImg);
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          this._sourceImg = img;
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = this.imgBaseUrl;
+      });
+    },
     handleLineDown(e, type) {
       this.isMove = true;
 
@@ -417,7 +468,6 @@ export default {
       if (!imgEl) {
         return;
       }
-      // 获取Base64字符串
       var base64Image = imgEl?.src;
       var link = document.createElement('a');
       link.href = base64Image;
@@ -426,37 +476,36 @@ export default {
       link.click();
       document.body.removeChild(link);
     },
-    setOutputImg() {
-      const img = new Image();
-      const vm = this;
-      let { bottom, top } = vm.calcData;
-      top = top + vm.customTop;
-      bottom = bottom - vm.customBottom;
-      img.src = vm.imgBaseUrl;
-      img.onload = function () {
-        const { width, height } = img;
+    async setOutputImg() {
+      if (
+        this.calcData.top == null ||
+        this.calcData.bottom == null ||
+        !this.imgBaseUrl
+      ) {
+        this.loading = false;
+        return;
+      }
+      try {
+        const img = await this.loadSourceImage();
+        const { width } = img;
+        let top = this.calcData.top + this.customTop;
+        let bottom = this.calcData.bottom - this.customBottom;
+
+        top = Math.max(0, Math.min(img.height - 1, top));
+        bottom = Math.max(top + 1, Math.min(img.height, bottom));
+
+        const cropH = bottom - top;
         const canvas = document.createElement('canvas');
         canvas.width = width;
-        canvas.height = bottom - top - 1;
-        console.log('输出图片 width height', canvas.width, canvas.height);
-        vm.outputWidth = canvas.width;
-        vm.outputHeight = canvas.height;
-        const ctx = canvas.getContext('2d', {
-          willReadFrequently: true,
-        });
-        ctx.drawImage(
-          img,
-          0,
-          top + 1,
-          canvas.width,
-          canvas.height,
-          0,
-          0,
-          canvas.width,
-          canvas.height,
-        );
+        canvas.height = cropH;
+        this.outputWidth = width;
+        this.outputHeight = cropH;
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, top, width, cropH, 0, 0, width, cropH);
+
         const resultImg = new Image();
-        resultImg.src = canvas.toDataURL();
+        resultImg.src = canvas.toDataURL('image/png');
         resultImg.id = 'base64Img';
         resultImg.alt = '裁剪结果';
 
@@ -465,50 +514,64 @@ export default {
           container.innerHTML = '';
           container.appendChild(resultImg);
         }
-        vm.loading = false;
-      };
+      } finally {
+        this.loading = false;
+      }
     },
-    handleCut() {
+    async handleCut() {
       const imgEl = document.getElementById('base64Img');
       if (imgEl) {
         imgEl.remove();
       }
+      if (!this.imgBaseUrl || !this.previewImgHeight) {
+        return;
+      }
       this.loading = true;
-      var worker = new Worker('/worker.js');
-      const vm = this;
-      worker.onmessage = function (event) {
-        const { bottom, top } = event.data;
-        console.log('Message from worker:', event.data);
-        vm.calcData = { bottom, top };
-        vm.setOutputImg();
-      };
+      this._cutReqId += 1;
+      const requestId = this._cutReqId;
 
-      const canvas = document.createElement('canvas');
-
-      const ctx = canvas.getContext('2d', {
-        willReadFrequently: true,
-      });
-
-      const img = new Image();
-      img.src = vm.imgBaseUrl;
-      img.onload = function () {
+      try {
+        const img = await this.loadSourceImage();
         const { width, height } = img;
-        console.log(' width, height: ', width, height);
-
+        const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(img, 0, 0);
 
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // 仅分析选区内的行
+        let start = Math.floor(
+          (this.translateY * height) / this.previewImgHeight,
+        );
+        let end = Math.ceil(
+          ((this.translateY + this.moveElHeight) * height) /
+            this.previewImgHeight,
+        );
+        start = Math.max(0, Math.min(height - 1, start));
+        end = Math.max(start + 1, Math.min(height, end));
 
-        let start = vm.translateY,
-          end = vm.translateY + vm.moveElHeight;
-        start = Math.floor((start * height) / vm.previewImgHeight);
-        end = Math.ceil((end * height) / vm.previewImgHeight);
-        console.log(start, end);
-        worker.postMessage({ imageData, width, height, start, end });
-      };
+        const imageData = ctx.getImageData(0, start, width, end - start);
+        const worker = this.getCutWorker();
+
+        // 把选区行拼成「虚拟高度」传给 worker：用 start/end 相对坐标系
+        // worker 按绝对行号处理更直观，这里传整图选区 buffer + 绝对起止
+        worker.postMessage(
+          {
+            buffer: imageData.data.buffer,
+            width,
+            height: end - start,
+            start: 0,
+            end: end - start,
+            requestId,
+          },
+          [imageData.data.buffer],
+        );
+
+        this._cutAbsOffset = start;
+      } catch (e) {
+        console.error(e);
+        this.loading = false;
+      }
     },
     removeBase64Img() {
       const imgEl = document.getElementById('base64Img');
@@ -516,12 +579,14 @@ export default {
         imgEl.remove();
       }
       this.imgBaseUrl = '';
+      this._sourceImg = null;
     },
     handleCustom() {
       const imgEl = document.getElementById('base64Img');
       if (imgEl) {
         imgEl.remove();
       }
+      this.loading = true;
       this.setOutputImg();
     },
     reset() {
@@ -530,7 +595,12 @@ export default {
       this.calcData = {};
       this.outputWidth = 0;
       this.outputHeight = 0;
+      this.translateX = 0;
+      this.translateY = 0;
+      this._cutReqId += 1;
       this.removeBase64Img();
+      const container = document.querySelector('.result-img-container');
+      if (container) container.innerHTML = '';
     },
   },
   mounted() {},

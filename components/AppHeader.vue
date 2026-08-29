@@ -14,7 +14,7 @@
                 <a class="btn btn-ghost text-xl" href="/home">
                     <el-icon>
                         <House />
-                    </el-icon>Web Tool</a>
+                    </el-icon>Tool</a>
             </div>
 
             <div class="flex-none m-2 relative flex gap-2 items-center">
