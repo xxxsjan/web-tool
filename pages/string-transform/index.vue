@@ -1,5 +1,5 @@
 <template>
-  <div class="string-transform pt-10 flex flex-col w-full items-center min-h-screen bg-gray-50">
+  <div class="string-transform pt-10 flex flex-col w-full items-center min-h-screen">
     <!-- 新版导航标签 -->
     <div class="tabs tabs-lg mb-8 bg-white shadow-sm rounded-full p-1">
       <template v-for="item in list" :key="item">

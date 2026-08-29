@@ -4,9 +4,17 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  css: ['~/assets/css/main.css', 'animate.css'],
+  css: [
+    '~/assets/css/main.css',
+    'animate.css',
+    'element-plus/theme-chalk/dark/css-vars.css',
+  ],
   app: {
     head: {
+      htmlAttrs: {
+        'data-theme': 'dark',
+        class: 'dark',
+      },
       script: [
         {
           src: 'https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js',

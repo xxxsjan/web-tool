@@ -1,16 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@plugin "daisyui";
+
+@plugin "daisyui" {
+  themes: dark --default, light;
+}
+
+html,
+body,
+#__nuxt {
+    background-color: transparent !important;
+}
 
 body {
     margin: 0;
     font: normal Arial, Helvetica, sans-serif;
+    color: var(--color-base-content);
 }
 
 canvas {
     display: block;
     vertical-align: bottom;
 }
-
 

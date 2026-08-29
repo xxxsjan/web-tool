@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 md:p-8"
+    class="min-h-screen p-4 sm:p-6 md:p-8"
   >
     <div class="max-w-4xl mx-auto">
       <!-- 页面标题 -->
@@ -222,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
 // 文件相关状态
 const fileInput = ref(null);
@@ -399,15 +399,6 @@ const convertToAudio = async () => {
   }
 };
 
-// 组件挂载时检查黑暗模式偏好
-onMounted(() => {
-  if (
-    window.matchMedia &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  ) {
-    document.documentElement.classList.add('dark');
-  }
-});
 </script>
 
 <style>

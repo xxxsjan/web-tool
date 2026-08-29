@@ -1,5 +1,5 @@
 <template>
-  <div class="preview-html grid grid-rows-[auto_1fr] gap-6 h-[calc(100vh-64px)] p-6 bg-gray-50">
+  <div class="preview-html grid grid-rows-[auto_1fr] gap-6 h-[calc(100vh-64px)] p-6">
     <!-- 输入区域改为3列响应式布局 -->
     <div class="grid md:grid-cols-3 gap-6 min-h-[300px]">
       <div class="bg-white rounded-lg shadow-sm p-4 h-full flex flex-col">
