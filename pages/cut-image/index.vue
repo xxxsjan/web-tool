@@ -278,7 +278,7 @@ export default {
       sourceHeight: 0,
       sourceFileSize: 0,
       sourceMime: '',
-      exportFormat: 'auto',
+      exportFormat: 'jpeg',
       exportQuality: 0.92,
       webpSupported: true,
       translateX: 0,
