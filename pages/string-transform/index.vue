@@ -51,9 +51,12 @@
 import EsmCommonjs from './comps/esm-to-commonjs.vue';
 import HumpTransition from './comps/HumpTransition.vue';
 import PathTransform from './comps/PathTransform.vue';
-import StyleToObject from './comps/StyleToObject.vue';
 import TemplateToNormal from './comps/TemplateToNormal.vue';
 import VueToJsx from './comps/VueToJsx.vue';
+
+const StyleToObject = defineAsyncComponent(() =>
+  import('./comps/StyleToObject.vue'),
+);
 
 const tabs = [
   {

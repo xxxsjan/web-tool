@@ -1,29 +1,5 @@
 <script setup>
-import * as monaco from 'monaco-editor';
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 import { ElMessage } from 'element-plus';
-
-self.MonacoEnvironment = {
-  getWorker(_, label) {
-    if (label === 'json') {
-      return new JsonWorker();
-    }
-    if (label === 'css' || label === 'scss' || label === 'less') {
-      return new CssWorker();
-    }
-    if (label === 'html' || label === 'handlebars' || label === 'razor') {
-      return new HtmlWorker();
-    }
-    if (label === 'typescript' || label === 'javascript') {
-      return new TsWorker();
-    }
-    return new EditorWorker();
-  },
-};
 
 const inputEditor = ref(null);
 const outputEditor = ref(null);
@@ -31,6 +7,10 @@ const language = ref('css');
 const result = ref('');
 const inputContainer = ref(null);
 const outputContainer = ref(null);
+const ready = ref(false);
+
+/** @type {import('monaco-editor') | null} */
+let monaco = null;
 
 function onFormat(type) {
   switch (type) {
@@ -50,6 +30,7 @@ function onFormat(type) {
 }
 
 function onTransform() {
+  if (!inputEditor.value || !outputEditor.value) return;
   const inputText = toRaw(inputEditor.value).getValue();
   const matches = inputText.match(/([a-zA-z\-]+):(.*?);/g);
   if (!matches) {
@@ -72,6 +53,7 @@ function onTransform() {
 watch(
   () => language.value,
   (nVal) => {
+    if (!monaco || !inputEditor.value) return;
     monaco.editor.setModelLanguage(toRaw(inputEditor.value).getModel(), nVal);
     onFormat(1);
   },
@@ -98,15 +80,45 @@ const copyResult = () => {
 };
 
 function layoutEditors() {
-  if (inputEditor.value && inputContainer.value) {
-    toRaw(inputEditor.value).layout();
-  }
-  if (outputEditor.value && outputContainer.value) {
-    toRaw(outputEditor.value).layout();
-  }
+  inputEditor.value?.layout?.();
+  outputEditor.value?.layout?.();
 }
 
-onMounted(() => {
+async function initMonaco() {
+  const [
+    monacoMod,
+    { default: EditorWorker },
+    { default: CssWorker },
+    { default: HtmlWorker },
+    { default: JsonWorker },
+    { default: TsWorker },
+  ] = await Promise.all([
+    import('monaco-editor'),
+    import('monaco-editor/esm/vs/editor/editor.worker?worker'),
+    import('monaco-editor/esm/vs/language/css/css.worker?worker'),
+    import('monaco-editor/esm/vs/language/html/html.worker?worker'),
+    import('monaco-editor/esm/vs/language/json/json.worker?worker'),
+    import('monaco-editor/esm/vs/language/typescript/ts.worker?worker'),
+  ]);
+
+  monaco = monacoMod;
+
+  self.MonacoEnvironment = {
+    getWorker(_, label) {
+      if (label === 'json') return new JsonWorker();
+      if (label === 'css' || label === 'scss' || label === 'less') {
+        return new CssWorker();
+      }
+      if (label === 'html' || label === 'handlebars' || label === 'razor') {
+        return new HtmlWorker();
+      }
+      if (label === 'typescript' || label === 'javascript') {
+        return new TsWorker();
+      }
+      return new EditorWorker();
+    },
+  };
+
   if (inputContainer.value) {
     inputEditor.value = monaco.editor.create(inputContainer.value, {
       value: `.xxx{
@@ -134,11 +146,15 @@ onMounted(() => {
     });
   }
 
+  ready.value = true;
   setTimeout(() => {
     onFormat(1);
     layoutEditors();
   }, 300);
+}
 
+onMounted(() => {
+  initMonaco();
   window.addEventListener('resize', layoutEditors);
 });
 
@@ -165,8 +181,13 @@ onBeforeUnmount(() => {
       </label>
 
       <div class="flex flex-wrap gap-2">
-        <button class="btn btn-primary btn-sm" @click="onTransform">转换</button>
-        <button class="btn btn-ghost btn-sm border border-base-300" @click="copyResult">
+        <button class="btn btn-primary btn-sm" :disabled="!ready" @click="onTransform">
+          转换
+        </button>
+        <button
+          class="btn btn-ghost btn-sm border border-base-300"
+          :disabled="!ready"
+          @click="copyResult">
           复制结果
         </button>
       </div>
@@ -177,13 +198,25 @@ onBeforeUnmount(() => {
         <p class="text-sm font-medium text-base-content">CSS 输入</p>
         <div
           ref="inputContainer"
-          class="editor-pane h-[min(55vh,480px)] overflow-hidden rounded-xl border border-base-300/60" />
+          class="editor-pane relative h-[min(55vh,480px)] overflow-hidden rounded-xl border border-base-300/60">
+          <div
+            v-if="!ready"
+            class="absolute inset-0 z-10 flex items-center justify-center bg-base-200/60 text-xs text-base-content/50">
+            编辑器加载中…
+          </div>
+        </div>
       </div>
       <div class="space-y-2">
         <p class="text-sm font-medium text-base-content">对象输出</p>
         <div
           ref="outputContainer"
-          class="editor-pane h-[min(55vh,480px)] overflow-hidden rounded-xl border border-base-300/60" />
+          class="editor-pane relative h-[min(55vh,480px)] overflow-hidden rounded-xl border border-base-300/60">
+          <div
+            v-if="!ready"
+            class="absolute inset-0 z-10 flex items-center justify-center bg-base-200/60 text-xs text-base-content/50">
+            编辑器加载中…
+          </div>
+        </div>
       </div>
     </div>
   </div>
