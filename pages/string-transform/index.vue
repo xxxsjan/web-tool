@@ -1,21 +1,48 @@
 <template>
-  <div class="string-transform pt-10 flex flex-col w-full items-center min-h-screen">
-    <!-- 新版导航标签 -->
-    <div class="tabs tabs-lg mb-8 bg-white shadow-sm rounded-full p-1">
-      <template v-for="item in list" :key="item">
-        <button class="tab tab-bordered flex items-center gap-2 transition-all"
-          :class="{ 'tab-active': curTab === item }" @click="curTab = item">
-          <i :class="comToIcon(item)" class="text-lg"></i>
-          {{ comToName(item) }}
-        </button>
-      </template>
-    </div>
+  <div class="mx-auto w-full max-w-6xl px-3 pb-12 sm:px-4">
+    <header class="mb-6 text-center sm:mb-8">
+      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
+        字符处理
+      </h1>
+      <p class="text-xs text-base-content/50 sm:text-sm">
+        路径、命名、模块语法、样式与模板一键转换
+      </p>
+    </header>
 
-    <!-- 内容区域增加过渡动画 -->
-    <Transition name="fade" mode="out-in">
-      <div class="w-full max-w-4xl px-4" :key="curTab">
-        <component :is="getComponent(curTab)" class="bg-white rounded-xl shadow-lg p-6" />
-      </div>
+    <nav
+      class="mb-5 flex flex-wrap justify-center gap-2 sm:mb-6"
+      aria-label="转换类型">
+      <button
+        v-for="item in tabs"
+        :key="item.key"
+        type="button"
+        class="tab-chip"
+        :class="{ 'tab-chip--active': curTab === item.key }"
+        @click="curTab = item.key">
+        <span class="tab-chip__icon" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </button>
+    </nav>
+
+    <Transition name="panel-fade" mode="out-in">
+      <section
+        :key="curTab"
+        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
+        <div
+          class="flex items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5">
+          <div class="min-w-0">
+            <h2 class="truncate text-sm font-semibold text-base-content sm:text-base">
+              {{ currentTab?.label }}
+            </h2>
+            <p class="mt-0.5 truncate text-[11px] text-base-content/45 sm:text-xs">
+              {{ currentTab?.desc }}
+            </p>
+          </div>
+        </div>
+        <div class="p-4 sm:p-5">
+          <component :is="getComponent(curTab)" />
+        </div>
+      </section>
     </Transition>
   </div>
 </template>
@@ -28,59 +55,110 @@ import StyleToObject from './comps/StyleToObject.vue';
 import TemplateToNormal from './comps/TemplateToNormal.vue';
 import VueToJsx from './comps/VueToJsx.vue';
 
-const list = ['PathTransform', 'HumpTransition', 'EsmCommonjs', 'StyleToObject', 'TemplateToNormal', 'VueToJsx'];
-const curTab = ref('PathTransform');
+const tabs = [
+  {
+    key: 'PathTransform',
+    label: '路径转换',
+    icon: '📁',
+    desc: 'Windows 反斜杠路径转为正斜杠',
+  },
+  {
+    key: 'HumpTransition',
+    label: '驼峰转换',
+    icon: '🔤',
+    desc: 'kebab / camel / Pascal 命名互转',
+  },
+  {
+    key: 'EsmCommonjs',
+    label: '模块格式',
+    icon: '📦',
+    desc: 'ESM import 与 CommonJS require 互转',
+  },
+  {
+    key: 'StyleToObject',
+    label: '样式对象',
+    icon: '🎨',
+    desc: 'CSS 声明转为 JS 样式对象',
+  },
+  {
+    key: 'TemplateToNormal',
+    label: '模板转换',
+    icon: '📝',
+    desc: '模板字符串转为字符串拼接',
+  },
+  {
+    key: 'VueToJsx',
+    label: 'Vue → JSX',
+    icon: '⚛️',
+    desc: 'Vue 模板属性与标签转为 JSX',
+  },
+] as const;
 
-// 新增图标映射
-function comToIcon(key: string) {
-  return {
-    PathTransform: 'eva eva-folder',
-    HumpTransition: 'eva eva-toggle-right',
-    EsmCommonjs: 'eva eva-code',
-    StyleToObject: 'eva eva-edit',
-    TemplateToNormal: 'eva eva-file-text',
-    VueToJsx: 'eva eva-file-code'
-  }[key];
-}
+type TabKey = (typeof tabs)[number]['key'];
 
-// 更新后的中文名称
-function comToName(key: string) {
-  return {
-    PathTransform: '路径转换',
-    HumpTransition: '驼峰转换',
-    EsmCommonjs: '模块格式',
-    StyleToObject: '样式对象',
-    TemplateToNormal: '模板转换',
-    VueToJsx: 'Vue转换'
-  }[key];
-}
+const curTab = ref<TabKey>('PathTransform');
 
-// 新增组件动态加载
+const currentTab = computed(() => tabs.find((t) => t.key === curTab.value));
+
 const componentMap = {
   EsmCommonjs,
   HumpTransition,
   PathTransform,
   StyleToObject,
   TemplateToNormal,
-  VueToJsx
+  VueToJsx,
 };
-const getComponent = (name: string) => componentMap[name];
+
+const getComponent = (name: TabKey) => componentMap[name];
 </script>
 
-<style>
-/* 新增过渡动画 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+<style scoped>
+.tab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  background: color-mix(in oklab, var(--color-base-200) 55%, transparent);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.tab-chip:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+  color: var(--color-base-content);
+  transform: translateY(-1px);
+}
+
+.tab-chip--active {
+  border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent);
+}
+
+.tab-chip__icon {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+.panel-fade-enter-active,
+.panel-fade-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.panel-fade-enter-from,
+.panel-fade-leave-to {
   opacity: 0;
-}
-
-/* 标签悬停效果 */
-.tab:not(.tab-active):hover {
-  @apply bg-blue-50 text-blue-600 scale-[1.02];
+  transform: translateY(6px);
 }
 </style>

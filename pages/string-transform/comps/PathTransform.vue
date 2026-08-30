@@ -1,49 +1,68 @@
 <template>
-  <div class="card w-full bg-base-100 shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title">windows路径转换</h2>
-      <div class="less-to-css flex flex-col justify-center items-center">
-        <input v-selectCopy v-model="originVal" type="textarea" placeholder="请输入windows的路径" rows="5"
-          class="input w-full" resize="none" />
-        <div class="my-[10px]">
-          <button class="btn" @click="toDo">生成</button>
-        </div>
-        <input class="input" v-show="result" v-model="result" type="textarea" :autosize="{ minRows: 3, maxRows: 15 }"
-          style="width: 50%" resize="none" @focus="$event => $event.target.select()" />
+  <div class="space-y-4">
+    <div class="space-y-2">
+      <label class="text-sm font-medium text-base-content">Windows 路径</label>
+      <textarea
+        v-model="originVal"
+        rows="5"
+        class="textarea textarea-bordered w-full resize-y font-mono text-sm leading-relaxed"
+        placeholder="例如：D:\hello-word\front-end\project\src"
+        @focus="selectAll" />
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button class="btn btn-primary btn-sm sm:btn-md" :disabled="!originVal.trim()" @click="toDo">
+        转换为正斜杠
+      </button>
+      <button class="btn btn-ghost btn-sm sm:btn-md" :disabled="!originVal && !result" @click="clearAll">
+        清空
+      </button>
+    </div>
+
+    <div v-if="result" class="space-y-2">
+      <div class="flex items-center justify-between gap-2">
+        <label class="text-sm font-medium text-base-content">转换结果</label>
+        <button type="button" class="btn btn-ghost btn-xs gap-1 text-primary" @click="copyResult">
+          复制
+        </button>
       </div>
+      <textarea
+        v-model="result"
+        rows="4"
+        readonly
+        class="textarea textarea-bordered w-full resize-y bg-base-200/50 font-mono text-sm leading-relaxed"
+        @focus="selectAll" />
     </div>
   </div>
 </template>
 
-<script>
-const selectCopy = el => {
-  console.log(el);
-  if (el) {
-    el.onfocus = function () {
-      console.log('focus: ');
-    };
-  }
-};
-export default {
-  name: 'path-transform',
-  directives: { selectCopy },
-};
-</script>
-
 <script setup>
-// defineOptions({
-//   name: 'path-transform'
-// });
+import { ElMessage } from 'element-plus';
 
-const dialogVisible = ref(false);
-const originVal = ref(``);
+const originVal = ref('');
 const result = ref('');
 
 function toDo() {
-  console.log('result.value: ', result.value);
-  if (!originVal.value) return;
+  if (!originVal.value.trim()) return;
   result.value = originVal.value.replace(/\\/g, '/');
-  console.log('result.value: ', result.value);
-  //   dialogVisible.value = true;
+}
+
+function clearAll() {
+  originVal.value = '';
+  result.value = '';
+}
+
+async function copyResult() {
+  if (!result.value) return;
+  try {
+    await navigator.clipboard.writeText(result.value);
+    ElMessage.success('已复制');
+  } catch {
+    ElMessage.error('复制失败');
+  }
+}
+
+function selectAll(e) {
+  e.target?.select?.();
 }
 </script>

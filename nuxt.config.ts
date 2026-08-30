@@ -25,9 +25,6 @@ export default defineNuxtConfig({
         {
           src: 'lib/gif.js',
         },
-        {
-          src: 'speedtest.js',
-        },
       ],
     },
   },

@@ -1,18 +1,40 @@
 <template>
-  <div class="w-full h-full flex flex-col gap-2 justify-center items-center">
-    <h2>模版字符串</h2>
-    <auto-textarea v-model="code"></auto-textarea>
+  <div class="space-y-4">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-base-content">模板字符串</label>
+        <AutoTextarea v-model="code" />
+      </div>
 
-    <div class="w-96 flex justify-between">
-      <button class="btn" @click="getCodemirrorStates">转换为字符串拼接</button>
-      <button class="btn" @click="copyRes">复制结果</button>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <label class="text-sm font-medium text-base-content">字符串拼接</label>
+          <button
+            v-if="code2"
+            type="button"
+            class="btn btn-ghost btn-xs text-primary"
+            @click="copyRes">
+            复制
+          </button>
+        </div>
+        <AutoTextarea v-model="code2" disabled />
+      </div>
     </div>
 
-    <auto-textarea v-model="code2" disabled></auto-textarea>
+    <div class="flex flex-wrap gap-2">
+      <button class="btn btn-primary btn-sm sm:btn-md" @click="getCodemirrorStates">
+        转换为字符串拼接
+      </button>
+      <button class="btn btn-ghost btn-sm sm:btn-md" :disabled="!code2" @click="copyRes">
+        复制结果
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ElMessage } from 'element-plus';
+
 const code = ref(`\`<div>
   <div>\${text}</div>
 </div>\``);
@@ -20,42 +42,38 @@ const code2 = ref(``);
 
 const getCodemirrorStates = () => {
   const code1Text = code.value.split('\n');
-  console.log(code1Text);
 
   code2.value = code1Text.reduce((pre, cur) => {
     let _cur = cur.replace('`', '');
     if (pre === '') {
       if (_cur.length > 0) {
         return `${handleStr(_cur)}`;
-      } else {
-        return pre;
       }
-    } else {
-      if (_cur.length > 0) {
-        return `${pre}+\n${handleStr(_cur)}`;
-      } else {
-        return pre;
-      }
+      return pre;
     }
+    if (_cur.length > 0) {
+      return `${pre}+\n${handleStr(_cur)}`;
+    }
+    return pre;
   }, '');
+
   function handleStr(str) {
     return (
       '"' +
       str.replaceAll(/\$\{(.*?)\}/g, (...args) => {
-        // console.log(args);
         return `"+${args[1]}+"`;
       }) +
       '"'
     );
   }
 };
+
 const copyRes = () => {
   if (!code2.value) {
-    alert('结果为空');
+    ElMessage.warning('结果为空');
+    return;
   }
-  // 复制文本到剪切板
   navigator.clipboard.writeText(code2.value);
-  alert('复制成功');
+  ElMessage.success('复制成功');
 };
 </script>
-<style scoped></style>

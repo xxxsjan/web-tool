@@ -1,44 +1,38 @@
 <template>
-  <div class="vue-to-jsx w-full max-w-4xl p-6 bg-white rounded-xl shadow-lg">
-    <!-- 双栏布局 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- 输入区域 -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-          <i class="eva eva-code-outline text-blue-500"></i>
-          Vue语法
-        </h3>
-        <textarea v-model="codeLeft" class="textarea textarea-bordered w-full h-64 font-mono text-sm"
-          placeholder="请输入Vue模板代码..." @input="toGenerate"></textarea>
+  <div class="space-y-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="space-y-2">
+        <h3 class="text-sm font-medium text-base-content">Vue 模板</h3>
+        <textarea
+          v-model="codeLeft"
+          class="textarea textarea-bordered h-64 w-full resize-y font-mono text-sm leading-relaxed"
+          placeholder="请输入 Vue 模板代码…"
+          spellcheck="false" />
       </div>
 
-      <!-- 输出区域 -->
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-            <i class="eva eva-file-text-outline text-green-500"></i>
-            JSX语法
-          </h3>
-          <button @click="copyResult" class="btn btn-sm btn-ghost text-gray-500 hover:text-blue-500">
-            copy
+      <div class="space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-sm font-medium text-base-content">JSX 输出</h3>
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs text-primary"
+            @click="copyResult">
+            复制
           </button>
         </div>
         <pre
-          class="output-box p-4 h-64 overflow-auto bg-gray-50 rounded-md border border-gray-200 font-mono text-sm">{{ codeRight }}</pre>
+          class="output-box h-64 overflow-auto rounded-lg border border-base-300/60 bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content">{{ codeRight }}</pre>
       </div>
     </div>
 
-    <!-- 状态提示 -->
-    <div class="mt-4 text-center text-gray-400">
-      <i class="eva eva-info-outline mr-2"></i>
-      输入Vue模板代码后自动生成JSX
-    </div>
+    <p class="text-center text-xs text-base-content/45">
+      输入后自动转换；支持 class、事件、绑定与常见小程序标签
+    </p>
   </div>
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus'
-const dialogVisible = ref(false);
+import { ElMessage } from 'element-plus';
 
 const codeLeft = ref(`<view class="guess viewPort" scroll-y :data="{a:'1'}" :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
     <navigator
@@ -57,21 +51,21 @@ const codeLeft = ref(`<view class="guess viewPort" scroll-y :data="{a:'1'}" :sho
     </navigator>
   </view>
   `);
-const codeRight = ref('左侧输入后点击转换即可输出');
+const codeRight = ref('左侧输入后即可输出');
 
-// 新增复制功能
 const copyResult = () => {
-  navigator.clipboard.writeText(codeRight.value)
-  ElMessage.success('已复制到剪贴板')
-}
+  navigator.clipboard.writeText(codeRight.value);
+  ElMessage.success('已复制到剪贴板');
+};
 
-// 自动转换（移除原有对话框逻辑）
-watch(codeLeft, () => toGenerate(), { immediate: true })
+watch(codeLeft, () => toGenerate(), { immediate: true });
+
 function hyphenToCamelCase(str) {
   return str.replace(/-([a-z])/g, function (match, letter) {
     return letter.toUpperCase();
   });
 }
+
 function toGenerate() {
   let res = codeLeft.value;
   res = res.replace(/:([\w-]+)="(.*?)"/g, function (...rest) {
@@ -79,9 +73,7 @@ function toGenerate() {
   });
 
   res = res.replace(/@(\w+)="(.*?)"/g, function (...rest) {
-    console.log('rest: ', rest);
-    return `on${rest[1].charAt(0).toUpperCase() + rest[1].slice(1)
-      }={${rest[2]}}`;
+    return `on${rest[1].charAt(0).toUpperCase() + rest[1].slice(1)}={${rest[2]}}`;
   });
 
   res = res.replace(/class=/g, 'className=');
@@ -95,13 +87,11 @@ function toGenerate() {
   });
 
   res = componentNameReplace(res);
-  // <!-- xxx -->
   res = res.replace(/<!--.*?-->/g, function (...rest) {
     return `{/* ${rest[0]} */}`;
   });
 
   codeRight.value = res;
-  dialogVisible.value = true;
 }
 
 function componentNameReplace(str) {
@@ -114,9 +104,9 @@ function componentNameReplace(str) {
     text: 'Text',
   };
   for (let key in map) {
-    const reg = new RegExp(`<(${key})|<\/(${key})>`, 'g');
+    const reg = new RegExp(`<(${key})|<\\/(${key})>`, 'g');
 
-    str = str.replace(reg, function (o, m1, m2, ...rest) {
+    str = str.replace(reg, function (o, m1, m2) {
       if (!m2) {
         return '<' + map[key];
       }
@@ -135,12 +125,12 @@ function componentNameReplace(str) {
   word-break: break-all;
 }
 
-/* 滚动条样式 */
 .output-box::-webkit-scrollbar {
   width: 6px;
 }
 
 .output-box::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 25%, transparent);
 }
 </style>

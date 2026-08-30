@@ -1,6 +1,7 @@
 <template>
-  <textarea v-model="textInput" type="textarea" placeholder="Please input" class="textarea textarea-bordered w-1/2"
-    resize="none" rows="10" @input="handleChange" v-bind="$attrs"></textarea>
+  <textarea v-model="textInput" type="textarea" placeholder="Please input"
+    class="textarea textarea-bordered w-full min-h-[160px] font-mono text-sm leading-relaxed"
+    resize="none" rows="8" @input="handleChange" v-bind="$attrs"></textarea>
 </template>
 
 <script setup>
