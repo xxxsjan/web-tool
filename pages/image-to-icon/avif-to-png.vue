@@ -1,197 +1,105 @@
 <template>
-  <div class="card w-[90vw] max-w-3xl bg-base-100 shadow-xl p-6">
-    <h2 class="card-title text-2xl text-gray-700 mb-2">avif转png</h2>
+  <section
+    class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
+    <div class="border-b border-base-300/50 px-4 py-3 sm:px-5">
+      <h2 class="text-sm font-semibold text-base-content sm:text-base">AVIF 转 PNG</h2>
+      <p class="mt-0.5 text-[11px] text-base-content/45 sm:text-xs">
+        浏览器端解码，单文件，建议不超过 10MB
+      </p>
+    </div>
 
-    <!-- 修改文件上传区域 -->
-    <div class="upload-container">
-      <label class="upload-area">
-        <input type="file" @change="handleFileUpload" accept=".avif" class="file-input" />
-        <div class="upload-content">
-          <el-icon size="40">
-            <Upload />
-          </el-icon>
-          <p class="upload-text">点击选择 AVIF 文件 或 拖放至此</p>
-          <p class="upload-subtext">支持单文件转换，最大 10MB</p>
-        </div>
+    <div class="space-y-4 p-4 sm:p-5">
+      <label
+        class="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-base-300/80 bg-base-200/30 px-4 py-10 transition-colors hover:border-primary/50 hover:bg-base-200/50"
+        @dragover.prevent
+        @drop.prevent="onDrop">
+        <input
+          type="file"
+          accept=".avif,image/avif"
+          class="hidden"
+          @change="handleFileUpload" />
+        <p class="text-sm font-medium text-base-content">点击选择 AVIF，或拖放到此处</p>
+        <p class="mt-1 text-xs text-base-content/45">仅支持 .avif</p>
       </label>
+
+      <div v-if="isLoading" class="rounded-lg bg-base-200/60 px-3 py-2 text-center text-sm text-base-content/70">
+        转换中…
+      </div>
+
+      <div
+        v-if="errorMessage"
+        class="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+        {{ errorMessage }}
+      </div>
+
+      <div v-show="showPreview" class="space-y-3">
+        <p class="text-sm font-medium text-base-content">预览</p>
+        <div
+          class="overflow-hidden rounded-xl border border-base-300/60 bg-base-200/40 p-3">
+          <canvas ref="previewCanvas" class="mx-auto max-h-64 max-w-full rounded-lg" />
+        </div>
+        <a
+          v-show="downloadUrl"
+          :href="downloadUrl"
+          :download="downloadFilename"
+          class="btn btn-primary btn-sm">
+          下载 PNG
+        </a>
+      </div>
     </div>
-
-    <!-- 预览区域 -->
-    <div v-show="showPreview" class="preview-container">
-      <h3>原始 AVIF 预览：</h3>
-      <canvas ref="previewCanvas"></canvas>
-
-      <!-- <h3 style="margin-top: 20px;">转换后 PNG 预览：</h3> -->
-      <!-- <img :src="previewImageUrl" class="preview-image" /> -->
-
-      <!-- 优化下载链接 -->
-      <a v-show="downloadUrl" :href="downloadUrl" :download="downloadFilename" class="download-link">
-
-        立即下载 PNG
-      </a>
-    </div>
-
-    <!-- 加载状态 -->
-    <div v-if="isLoading" class="loading">转换中...</div>
-
-    <!-- 错误提示 -->
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-  </div>
+  </section>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Upload } from '@element-plus/icons-vue';
-
-// 响应式数据
 const previewCanvas = ref(null);
-const previewImageUrl = ref('');
 const downloadUrl = ref('');
 const downloadFilename = ref('');
 const showPreview = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-// 处理文件上传
-const handleFileUpload = async (event) => {
-  const file = event.target.files[0];
+const convertFile = async file => {
   if (!file) return;
 
   resetState();
   isLoading.value = true;
 
   try {
-    // 1. 读取文件
     const avifData = await file.arrayBuffer();
-
-    // 2. 解码 AVIF
     const blob = new Blob([avifData], { type: 'image/avif' });
     const imgBitmap = await createImageBitmap(blob);
 
-    // 3. 绘制到 Canvas
     const canvas = previewCanvas.value;
     canvas.width = imgBitmap.width;
     canvas.height = imgBitmap.height;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(imgBitmap, 0, 0);
 
-    // 4. 生成 PNG
     const pngDataURL = canvas.toDataURL('image/png');
-
-    // 更新预览数据
-    // previewImageUrl.value = pngDataURL;
     downloadUrl.value = pngDataURL;
-    downloadFilename.value = file.name.replace(/\.avif$/, '.png');
+    downloadFilename.value = file.name.replace(/\.avif$/i, '.png');
     showPreview.value = true;
 
-    // 释放资源
     imgBitmap.close();
   } catch (error) {
     errorMessage.value = `转换失败：${error.message}`;
-    console.error('AVIF 转换错误:', error);
   } finally {
     isLoading.value = false;
   }
 };
 
-// 重置状态
+const handleFileUpload = async event => {
+  await convertFile(event.target.files[0]);
+};
+
+const onDrop = async event => {
+  const file = event.dataTransfer?.files?.[0];
+  if (file) await convertFile(file);
+};
+
 const resetState = () => {
-  previewImageUrl.value = '';
   downloadUrl.value = '';
   showPreview.value = false;
   errorMessage.value = '';
 };
 </script>
-
-<style scoped>
-.upload-container {
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.upload-area {
-  display: block;
-  padding: 40px 20px;
-  text-align: center;
-  cursor: pointer;
-}
-
-.upload-area:hover {
-  background: #f8fafc;
-  border-color: #3b82f6;
-}
-
-.file-input {
-  display: none;
-}
-
-.upload-icon {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 16px;
-  stroke: #64748b;
-}
-
-.upload-text {
-  font-weight: 500;
-  color: #1e293b;
-  margin-bottom: 4px;
-}
-
-.upload-subtext {
-  color: #64748b;
-  font-size: 0.875rem;
-}
-
-.preview-container {
-  margin-top: 30px;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-canvas {
-  max-width: 100%;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* 优化下载链接 */
-.download-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 20px;
-  background: #3b82f6;
-  color: white;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.download-link:hover {
-  background: #2563eb;
-}
-
-.download-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-  stroke: white;
-}
-
-.loading {
-  padding: 16px;
-  background: #e2e8f0;
-  border-radius: 6px;
-  text-align: center;
-}
-
-.error {
-  padding: 16px;
-  background: #fee2e2;
-  color: #dc2626;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-}
-</style>

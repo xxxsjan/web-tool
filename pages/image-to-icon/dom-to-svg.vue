@@ -1,54 +1,67 @@
 <template>
-  <div class="card w-[90vw] max-w-3xl bg-base-100 shadow-xl"> <!-- 响应式宽度 -->
-    <div class="card-body space-y-6">
-      <h2 class="card-title text-2xl text-gray-700">
-        <i class="eva eva-code-download mr-2"></i>DOM转图片工具
-      </h2>
+  <section
+    class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
+    <div class="border-b border-base-300/50 px-4 py-3 sm:px-5">
+      <h2 class="text-sm font-semibold text-base-content sm:text-base">DOM 转 PNG</h2>
+      <p class="mt-0.5 text-[11px] text-base-content/45 sm:text-xs">
+        粘贴 HTML 片段，预览并导出为 PNG
+      </p>
+    </div>
 
-      <!-- 输入区域 -->
-      <div class="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200">
-        <div>输入HTML内容</div>
-        <textarea v-model="domContent" class="textarea textarea-bordered h-48 font-mono text-sm w-full"
-          placeholder="请输入要转换的HTML代码..."></textarea>
+    <div class="space-y-4 p-4 sm:p-5">
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-base-content">HTML 内容</label>
+        <textarea
+          v-model="domContent"
+          class="textarea textarea-bordered h-40 w-full font-mono text-sm leading-relaxed"
+          placeholder="请输入要转换的 HTML 代码…"
+          spellcheck="false" />
       </div>
 
-      <!-- 预览区域 -->
-      <div class="preview-container min-h-[200px] bg-white rounded-lg border-2 border-gray-200 p-4" ref="previewRef">
-        <div v-if="!previewRef?.firstElementChild" class="text-gray-400 text-center py-10">
-          <i class="eva eva-image-outline text-3xl block mb-2"></i>
-          预览区域
+      <div>
+        <p class="mb-1.5 text-sm font-medium text-base-content">预览</p>
+        <div
+          ref="previewRef"
+          class="preview-stage flex min-h-[160px] items-center justify-center overflow-auto rounded-xl border border-dashed border-base-300/70 p-4">
+          <p
+            v-if="!domContent.trim()"
+            class="text-center text-xs text-base-content/40">
+            输入 HTML 后点击生成
+          </p>
         </div>
       </div>
 
-      <!-- 操作按钮组 -->
-      <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <button @click="customToDo"
-          class="btn btn-primary w-full sm:w-auto bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-          :disabled="isLoading">
-          <i class="eva eva-image" v-if="!isLoading"></i>
-          <span class="loading loading-dots" v-else></span>
-          {{ isLoading ? '转换中...' : '生成PNG图片' }}
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          class="btn btn-primary btn-sm w-full sm:w-auto"
+          :disabled="isLoading"
+          @click="customToDo">
+          <span v-if="isLoading" class="loading loading-spinner loading-xs" />
+          {{ isLoading ? '转换中…' : '生成 PNG' }}
         </button>
 
-        <div class="divider sm:hidden">或</div>
-
-        <a href="https://cdkm.com/cn/svg-to-jpg" target="_blank" class="btn btn-outline btn-info w-full sm:w-auto">
-          <i class="eva eva-external-link mr-2"></i>
-          在线SVG转JPG
+        <a
+          href="https://cdkm.com/cn/svg-to-jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-ghost btn-sm border border-base-300 w-full sm:w-auto">
+          在线 SVG 转 JPG
         </a>
       </div>
 
-      <!-- 错误提示 -->
-      <div v-if="error" class="alert alert-error shadow-lg">
-        <i class="eva eva-alert-triangle"></i>
-        <span>{{ error }}</span>
+      <div
+        v-if="error"
+        class="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+        {{ error }}
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script lang="ts" setup>
 import domtoimage from 'dom-to-image';
+
 const domContent = ref(`<div class="addPost">
           <div class="addPost-main">
             <div class="addPost-i">
@@ -59,14 +72,14 @@ const domContent = ref(`<div class="addPost">
               </svg>
             </div>
           </div>
-        </div>`)
+        </div>`);
 const previewRef = ref<HTMLElement>();
-const isLoading = ref(false); // 新增加载状态
-const error = ref(''); // 新增错误状态
+const isLoading = ref(false);
+const error = ref('');
 
 function customToDo() {
   if (!domContent.value) {
-    error.value = '请输入HTML内容';
+    error.value = '请输入 HTML 内容';
     return;
   }
 
@@ -74,14 +87,15 @@ function customToDo() {
   error.value = '';
 
   try {
-    previewRef.value.innerHTML = domContent.value;
+    previewRef.value!.innerHTML = domContent.value;
     const firstDom = previewRef.value?.firstElementChild;
 
     if (!firstDom) {
-      throw new Error('未检测到有效DOM元素');
+      throw new Error('未检测到有效 DOM 元素');
     }
 
-    domtoimage.toPng(firstDom)
+    domtoimage
+      .toPng(firstDom)
       .then(dataUrl => {
         const a = document.createElement('a');
         a.href = dataUrl;
@@ -96,8 +110,7 @@ function customToDo() {
       .finally(() => {
         isLoading.value = false;
       });
-
-  } catch (err) {
+  } catch (err: any) {
     error.value = err.message;
     isLoading.value = false;
   }
@@ -105,42 +118,8 @@ function customToDo() {
 </script>
 
 <style scoped>
-/* 新增加载动画 */
-.loading-dots {
-  --dot-size: 6px;
-  width: calc(var(--dot-size) * 3 + 8px);
-}
-
-.loading-dots::after {
-  content: '...';
-  animation: dots 1.5s infinite steps(4);
-}
-
-@keyframes dots {
-  25% {
-    content: '.';
-  }
-
-  50% {
-    content: '..';
-  }
-
-  75% {
-    content: '...';
-  }
-}
-
-.preview-container {
-  min-height: 200px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.preview-container img {
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
-  display: block;
+.preview-stage {
+  background-color: color-mix(in oklab, var(--color-base-200) 70%, transparent);
 }
 </style>
 
@@ -173,7 +152,6 @@ function customToDo() {
   font-size: 140px;
   color: #fff;
   font-weight: bold;
-
   display: flex;
   justify-content: center;
   align-items: center;
