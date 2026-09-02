@@ -1,234 +1,251 @@
 <template>
-  <div class="min-h-screen p-4 sm:p-6 md:p-8">
-    <div class="max-w-4xl mx-auto">
-      <!-- 页面标题 -->
-      <div class="text-center mb-8">
-        <h1
-          class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white mb-2"
-        >
-          视频转音频工具
-        </h1>
-        <p class="text-gray-600 dark:text-gray-300">
-          轻松将视频文件转换为高质量音频，支持多种常见格式
-        </p>
-      </div>
+  <div class="mx-auto w-full max-w-3xl px-3 pb-12 sm:px-4">
+    <header class="mb-5 text-center sm:mb-6">
+      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
+        视频转音频
+      </h1>
+      <p class="text-xs text-base-content/50 sm:text-sm">
+        上传视频 → 选择格式 → 提取音频下载
+      </p>
+    </header>
 
-      <!-- 主内容区域 -->
+    <section
+      class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+    >
+      <!-- 上传区 -->
       <div
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-all hover:shadow-xl"
+        class="relative m-4 overflow-hidden rounded-xl border-2 border-dashed transition-colors sm:m-5"
+        :class="
+          isDragging
+            ? 'border-primary bg-primary/10'
+            : selectedFile
+              ? 'border-primary/40 bg-base-200/30'
+              : 'border-base-content/20 hover:border-primary/60 hover:bg-base-200/40'
+        "
+        @click="triggerFileInput"
+        @dragenter.prevent="onDragEnter"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
       >
-        <!-- 文件选择区域 -->
+        <input
+          ref="fileInput"
+          type="file"
+          accept="video/*,.mp4,.avi,.mkv,.mov,.webm,.flv,.wmv,.m4v"
+          class="sr-only"
+          @change="handleFileSelect"
+        />
+
         <div
-          class="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center cursor-pointer transition-all hover:border-blue-500 dark:hover:border-blue-400"
-          :class="{
-            'border-blue-500 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20':
-              selectedFile || isDragging,
-          }"
-          @click="triggerFileInput"
-          @dragenter.prevent="onDragEnter"
-          @dragover.prevent="onDragOver"
-          @dragleave.prevent="onDragLeave"
-          @drop.prevent="onDrop"
+          class="flex min-h-[180px] cursor-pointer flex-col items-center justify-center gap-3 px-4 py-8 text-center sm:min-h-[200px]"
         >
-          <input
-            ref="fileInput"
-            type="file"
-            accept="video/*,.mp4,.avi,.mkv,.mov,.webm,.flv,.wmv,.m4v"
-            class="hidden"
-            @change="handleFileSelect"
-          />
-
-          <div class="flex flex-col items-center justify-center">
-            <div
-              class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4"
+          <span
+            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
             >
-              <i
-                class="fas fa-upload text-2xl text-blue-600 dark:text-blue-400"
-              ></i>
-            </div>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              />
+            </svg>
+          </span>
 
-            <p class="text-gray-600 dark:text-gray-300 mb-2">
+          <div>
+            <p class="text-base font-medium text-base-content">
               {{
-                isDragging
-                  ? '松开即可上传视频'
-                  : '点击或拖拽视频文件到此处'
+                isDragging ? '松开即可上传视频' : '点击或拖拽视频到此处'
               }}
             </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              支持 MP4、AVI、MKV、MOV、WebM 等，单文件不超过 200MB
+            <p class="mt-1 text-xs text-base-content/50">
+              MP4 / AVI / MKV / MOV / WebM · 不超过 200MB
             </p>
-
-            <!-- 选中文件显示 -->
-            <div
-              v-if="selectedFile"
-              class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md inline-flex items-center max-w-full"
-            >
-              <i
-                class="fas fa-file-video text-blue-600 dark:text-blue-400 mr-2 text-lg shrink-0"
-              ></i>
-              <div class="min-w-0 text-left">
-                <p
-                  class="text-sm text-gray-800 dark:text-gray-200 truncate max-w-xs"
-                >
-                  {{ selectedFile.name }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ formatBytes(selectedFile.size) }}
-                </p>
-              </div>
-              <button
-                type="button"
-                @click.stop="removeFile"
-                class="ml-2 text-gray-500 hover:text-red-500 dark:hover:text-red-400 shrink-0"
-                :disabled="isConverting"
-              >
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
           </div>
-        </div>
 
-        <!-- 视频预览区域 -->
-        <div v-if="videoUrl" class="mt-6">
-          <div class="bg-gray-900 rounded-lg overflow-hidden">
-            <video
-              :src="videoUrl"
-              controls
-              class="w-full max-h-[300px] object-contain"
-            >
-              您的浏览器不支持视频播放
-            </video>
-          </div>
-        </div>
-
-        <!-- 音频格式选择区域 -->
-        <div v-if="selectedFile" class="mt-6">
-          <label
-            class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2"
+          <div
+            v-if="selectedFile"
+            class="inline-flex max-w-full items-center gap-2 rounded-lg border border-base-300/60 bg-base-100 px-3 py-2"
+            @click.stop
           >
-            选择输出音频格式
-          </label>
-          <div class="relative">
-            <select
-              v-model="selectedFormat"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 shrink-0 text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
+              />
+            </svg>
+            <div class="min-w-0 text-left">
+              <p class="truncate text-sm font-medium text-base-content">
+                {{ selectedFile.name }}
+              </p>
+              <p class="text-[11px] text-base-content/50">
+                {{ formatBytes(selectedFile.size) }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs btn-circle shrink-0"
               :disabled="isConverting"
-              class="block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-200"
+              aria-label="移除文件"
+              @click="removeFile"
             >
-              <option
-                v-for="item in audioFormats"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
-            <div
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300"
-            >
-              <i class="fas fa-chevron-down text-xs"></i>
-            </div>
+              ✕
+            </button>
           </div>
         </div>
+      </div>
 
-        <!-- 操作按钮区域 -->
-        <div class="mt-6 flex flex-col sm:flex-row gap-4">
-          <button
-            type="button"
-            @click="convertToAudio"
-            :disabled="!selectedFile || isConverting"
-            class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all flex items-center justify-center"
+      <!-- 有文件后的操作区 -->
+      <div v-if="selectedFile" class="space-y-5 border-t border-base-300/50 p-4 sm:p-5">
+        <!-- 预览 -->
+        <div
+          v-if="videoUrl"
+          class="overflow-hidden rounded-xl border border-base-300/60 bg-neutral"
+        >
+          <video
+            :src="videoUrl"
+            controls
+            class="mx-auto max-h-[280px] w-full object-contain"
           >
-            <i
-              v-if="isConverting"
-              class="fas fa-spinner fa-spin -ml-1 mr-2"
-            ></i>
-            {{ isConverting ? '转换中...' : '转换为音频' }}
-          </button>
-
-          <button
-            type="button"
-            @click="removeFile"
-            :disabled="!selectedFile || isConverting"
-            class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200 font-medium py-3 px-6 rounded-lg transition-all"
-          >
-            重新选择
-          </button>
+            您的浏览器不支持视频播放
+          </video>
         </div>
 
-        <!-- 转换进度条 -->
-        <div v-if="isConverting" class="mt-6">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-sm text-gray-600 dark:text-gray-400"
-              >转换进度</span
-            >
-            <span class="text-sm font-medium text-gray-800 dark:text-gray-200"
-              >{{ conversionProgress }}%</span
-            >
-          </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div
-              class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-              :style="{ width: conversionProgress + '%' }"
-            ></div>
-          </div>
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ conversionStatus }}
+        <!-- 格式选择 -->
+        <div>
+          <p class="mb-2 text-sm font-medium text-base-content/70">
+            输出格式
           </p>
+          <div class="grid grid-cols-3 gap-2">
+            <button
+              v-for="item in audioFormats"
+              :key="item.value"
+              type="button"
+              class="btn btn-sm sm:btn-md"
+              :class="
+                selectedFormat === item.value
+                  ? 'btn-primary'
+                  : 'btn-ghost border border-base-300'
+              "
+              :disabled="isConverting"
+              @click="selectedFormat = item.value"
+            >
+              {{ item.label }}
+            </button>
+          </div>
         </div>
 
-        <!-- 错误消息区域 -->
+        <!-- 操作按钮 -->
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            class="btn btn-primary flex-1"
+            :disabled="isConverting"
+            @click="convertToAudio"
+          >
+            <span
+              v-if="isConverting"
+              class="loading loading-spinner loading-sm"
+            ></span>
+            {{ isConverting ? '转换中…' : '转换为音频' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost border border-base-300 sm:w-28"
+            :disabled="isConverting"
+            @click="removeFile"
+          >
+            重选
+          </button>
+        </div>
+
+        <!-- 进度 -->
+        <div v-if="isConverting" class="space-y-2">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-base-content/60">{{ conversionStatus }}</span>
+            <span class="font-mono text-base-content">{{ conversionProgress }}%</span>
+          </div>
+          <progress
+            class="progress progress-primary w-full"
+            :value="conversionProgress"
+            max="100"
+          ></progress>
+        </div>
+
+        <!-- 错误 -->
         <div
           v-if="errorMessage"
-          class="mt-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
+          class="rounded-xl border border-error/30 bg-error/10 px-3 py-2.5 text-sm text-error"
         >
-          <div class="flex items-start">
-            <i class="fas fa-exclamation-circle text-red-500 mr-2 mt-0.5"></i>
-            <p class="text-red-700 dark:text-red-300 text-sm">
-              {{ errorMessage }}
-            </p>
-          </div>
+          {{ errorMessage }}
         </div>
 
-        <!-- 结果区域 -->
+        <!-- 结果 -->
         <div
           v-if="audioUrl"
-          class="mt-8 p-6 bg-gray-50 dark:bg-gray-750 rounded-lg border border-gray-200 dark:border-gray-700"
+          class="space-y-3 rounded-xl border border-success/25 bg-success/5 p-4"
         >
-          <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            转换结果
-          </h3>
-
-          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-            <audio :src="audioUrl" controls class="w-full">
-              您的浏览器不支持音频播放
-            </audio>
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-sm font-semibold text-base-content">转换结果</h3>
+            <span
+              v-if="audioFileSize"
+              class="badge badge-ghost badge-sm font-mono"
+            >
+              {{ formatBytes(audioFileSize) }}
+            </span>
           </div>
 
-          <div class="mt-4 flex flex-wrap items-center gap-3">
+          <audio :src="audioUrl" controls class="w-full">
+            您的浏览器不支持音频播放
+          </audio>
+
+          <div class="flex flex-wrap items-center gap-2">
             <a
               :href="audioUrl"
               :download="audioFileName"
-              class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-all inline-flex items-center"
+              class="btn btn-success btn-sm"
             >
-              <i class="fas fa-download mr-2"></i>
-              下载音频文件
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                />
+              </svg>
+              下载 {{ selectedFormat.toUpperCase() }}
             </a>
-            <span
-              v-if="audioFileSize"
-              class="text-sm text-gray-500 dark:text-gray-400"
-            >
-              {{ audioFileName }} · {{ formatBytes(audioFileSize) }}
+            <span class="truncate text-xs text-base-content/50">
+              {{ audioFileName }}
             </span>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- 页脚信息 -->
-      <div class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-        <p>支持的视频格式：MP4、AVI、MKV、MOV、WebM 等</p>
-        <p class="mt-1">输出格式：MP3、WAV、AAC</p>
-      </div>
-    </div>
+    <p class="mt-5 text-center text-[11px] text-base-content/40 sm:text-xs">
+      支持 MP4、AVI、MKV、MOV、WebM · 输出 MP3 / WAV / AAC
+    </p>
   </div>
 </template>
 
@@ -543,38 +560,3 @@ onUnmounted(() => {
   revokeUrl(audioUrl.value);
 });
 </script>
-
-<style>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #1f2937;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-</style>
