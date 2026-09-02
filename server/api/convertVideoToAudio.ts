@@ -1,14 +1,53 @@
-import { defineEventHandler, readMultipartFormData } from 'h3';
+import {
+  createError,
+  defineEventHandler,
+  readMultipartFormData,
+  setResponseHeader,
+} from 'h3';
 import fs from 'fs';
 import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegStatic from 'ffmpeg-static';
-console.log('ffmpegStatic: ', ffmpegStatic);
 
-// 设置ffmpeg路径
+if (!ffmpegStatic) {
+  throw new Error('未找到 ffmpeg-static 二进制文件');
+}
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
-// 确保临时目录存在
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+
+type AudioFormat = 'mp3' | 'wav' | 'aac';
+
+interface FormatConfig {
+  encoder: string;
+  contentType: string;
+  extension: string;
+  format: string;
+  bitrate?: string;
+}
+
+const formatConfigs: Record<AudioFormat, FormatConfig> = {
+  mp3: {
+    encoder: 'libmp3lame',
+    contentType: 'audio/mpeg',
+    extension: 'mp3',
+    format: 'mp3',
+  },
+  wav: {
+    encoder: 'pcm_s16le',
+    contentType: 'audio/wav',
+    extension: 'wav',
+    format: 'wav',
+  },
+  aac: {
+    encoder: 'aac',
+    contentType: 'audio/aac',
+    extension: 'aac',
+    format: 'adts',
+    bitrate: '192k',
+  },
+};
+
 const ensureTempDir = () => {
   const tempDir = path.join(process.cwd(), 'temp');
   if (!fs.existsSync(tempDir)) {
@@ -17,91 +56,23 @@ const ensureTempDir = () => {
   return tempDir;
 };
 
-// 音频格式配置映射
-type AudioFormat =
-  | 'mp3'
-  | 'wav'
-  | 'wma'
-  | 'ogg'
-  | 'aac'
-  | 'au'
-  | 'flac'
-  | 'm4a'
-  | 'mka'
-  | 'aiff'
-  | 'opus'
-  | 'ra';
-
-interface FormatConfig {
-  encoder: string;
-  contentType: string;
-  extension: string;
-}
-
-const formatConfigs: Record<AudioFormat, FormatConfig> = {
-  mp3: {
-    encoder: 'libmp3lame',
-    contentType: 'audio/mpeg',
-    extension: 'mp3',
-  },
-  wav: {
-    encoder: 'pcm_s16le',
-    contentType: 'audio/wav',
-    extension: 'wav',
-  },
-  wma: {
-    encoder: 'wmav2',
-    contentType: 'audio/x-ms-wma',
-    extension: 'wma',
-  },
-  ogg: {
-    encoder: 'libvorbis',
-    contentType: 'audio/ogg',
-    extension: 'ogg',
-  },
-  aac: {
-    encoder: 'aac',
-    contentType: 'audio/aac',
-    extension: 'aac',
-  },
-  au: {
-    encoder: 'pcm_s16be',
-    contentType: 'audio/basic',
-    extension: 'au',
-  },
-  flac: {
-    encoder: 'flac',
-    contentType: 'audio/flac',
-    extension: 'flac',
-  },
-  m4a: {
-    encoder: 'aac',
-    contentType: 'audio/mp4',
-    extension: 'm4a',
-  },
-  mka: {
-    encoder: 'aac',
-    contentType: 'audio/x-matroska',
-    extension: 'mka',
-  },
-  aiff: {
-    encoder: 'pcm_s16be',
-    contentType: 'audio/aiff',
-    extension: 'aiff',
-  },
-  opus: {
-    encoder: 'libopus',
-    contentType: 'audio/opus',
-    extension: 'opus',
-  },
-  ra: {
-    encoder: 'real_144',
-    contentType: 'audio/vnd.rn-realaudio',
-    extension: 'ra',
-  },
+const safeUnlink = (filePath: string) => {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (error) {
+    console.error('清理临时文件失败:', error);
+  }
 };
 
-// 转换promise形式的ffmpeg函数
+const getBaseName = (filename?: string) => {
+  if (!filename) return 'converted-audio';
+  const base = path.basename(filename);
+  const extIndex = base.lastIndexOf('.');
+  return extIndex > 0 ? base.slice(0, extIndex) : base;
+};
+
 const convertVideoToAudio = (
   inputPath: string,
   outputPath: string,
@@ -111,42 +82,54 @@ const convertVideoToAudio = (
 
   return new Promise((resolve, reject) => {
     const command = ffmpeg(inputPath)
-      .noVideo() // 去掉视频部分
-      .audioCodec(config.encoder) // 设置音频编码器
-      .audioQuality(2); // 设置音频质量(1-32，1最好)
+      .noVideo()
+      .audioCodec(config.encoder)
+      .format(config.format);
 
-    // 根据不同格式可能需要添加特殊参数
-    if (format === 'opus') {
-      command.audioBitrate('128k');
-    } else if (format === 'flac') {
-      command.audioBitrate('320k');
+    if (config.bitrate) {
+      command.audioBitrate(config.bitrate);
+    } else if (format === 'mp3') {
+      command.audioQuality(2);
     }
 
     command
       .on('end', () => resolve())
-      .on('error', err => reject(err))
+      .on('error', (err: Error) => reject(err))
       .save(outputPath);
   });
 };
 
 export default defineEventHandler(async event => {
+  let videoFilePath = '';
+  let audioFilePath = '';
+
   try {
-    // 1. 获取上传的视频文件和格式参数
     const formData = await readMultipartFormData(event);
     if (!formData || formData.length === 0) {
-      throw new Error('请上传视频文件');
+      throw createError({
+        statusCode: 400,
+        message: '请上传视频文件',
+      });
     }
 
     const videoFile = formData.find(item => item.name === 'video');
-    if (!videoFile || !videoFile.data) {
-      throw new Error('视频文件不存在或格式错误');
+    if (!videoFile?.data?.length) {
+      throw createError({
+        statusCode: 400,
+        message: '视频文件不存在或格式错误',
+      });
     }
 
-    // 获取用户指定的音频格式，默认为mp3
+    if (videoFile.data.length > MAX_FILE_SIZE) {
+      throw createError({
+        statusCode: 413,
+        message: '视频文件过大，请上传不超过 200MB 的文件',
+      });
+    }
+
     const formatField = formData.find(item => item.name === 'format');
     let format: AudioFormat = 'mp3';
-
-    if (formatField && formatField.data) {
+    if (formatField?.data) {
       const requestedFormat = formatField.data
         .toString()
         .toLowerCase() as AudioFormat;
@@ -155,55 +138,52 @@ export default defineEventHandler(async event => {
       }
     }
 
-    // 2. 创建临时文件
+    const config = formatConfigs[format];
     const tempDir = ensureTempDir();
-    const videoFileName = `input_${Date.now()}.${
-      videoFile.filename?.split('.').pop() || 'mp4'
-    }`;
-    const audioFileName = `output_${Date.now()}.${
-      formatConfigs[format].extension
-    }`;
+    const stamp = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const inputExt =
+      videoFile.filename?.split('.').pop()?.toLowerCase() || 'mp4';
+    const outputBaseName = getBaseName(videoFile.filename);
+    const downloadName = `${outputBaseName}.${config.extension}`;
 
-    const videoFilePath = path.join(tempDir, videoFileName);
-    const audioFilePath = path.join(tempDir, audioFileName);
+    videoFilePath = path.join(tempDir, `input_${stamp}.${inputExt}`);
+    audioFilePath = path.join(tempDir, `output_${stamp}.${config.extension}`);
 
-    // 3. 保存视频文件到临时目录
     fs.writeFileSync(videoFilePath, Buffer.from(videoFile.data));
 
-    try {
-      // 4. 使用ffmpeg转换视频到音频
-      await convertVideoToAudio(videoFilePath, audioFilePath, format);
+    await convertVideoToAudio(videoFilePath, audioFilePath, format);
 
-      // 5. 读取转换后的音频文件
-      const audioData = fs.readFileSync(audioFilePath);
+    const audioData = fs.readFileSync(audioFilePath);
+    // filename 仅允许 ASCII；中文等非 ASCII 名走 filename*（RFC 5987）
+    const asciiName =
+      downloadName.replace(/[^\x20-\x7E]/g, '_') ||
+      `converted-audio.${config.extension}`;
 
-      // 6. 设置响应头
-      const config = formatConfigs[format];
-      event.node.res.setHeader('Content-Type', config.contentType);
-      event.node.res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="${audioFileName}"`,
-      );
-      event.node.res.setHeader('Content-Length', audioData.length);
+    setResponseHeader(event, 'Content-Type', config.contentType);
+    setResponseHeader(
+      event,
+      'Content-Disposition',
+      `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(downloadName)}`,
+    );
+    setResponseHeader(event, 'Content-Length', String(audioData.length));
 
-      // 7. 返回音频数据
-      event.node.res.end(audioData);
-    } finally {
-      // 8. 清理临时文件
-      setTimeout(() => {
-        try {
-          if (fs.existsSync(videoFilePath)) fs.unlinkSync(videoFilePath);
-          if (fs.existsSync(audioFilePath)) fs.unlinkSync(audioFilePath);
-        } catch (error) {
-          console.error('清理临时文件失败:', error);
-        }
-      }, 5000); // 延迟5秒后清理，确保文件已被读取
-    }
-  } catch (error) {
+    return audioData;
+  } catch (error: unknown) {
     console.error('视频转音频失败:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : '未知错误',
-    };
+
+    if (error && typeof error === 'object' && 'statusCode' in error) {
+      throw error;
+    }
+
+    const message =
+      error instanceof Error ? error.message : '视频转音频失败，请重试';
+
+    throw createError({
+      statusCode: 500,
+      message,
+    });
+  } finally {
+    safeUnlink(videoFilePath);
+    safeUnlink(audioFilePath);
   }
 });

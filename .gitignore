@@ -24,3 +24,6 @@ logs
 !.env.example
 
 .vercel
+
+# 视频转音频临时文件
+temp
