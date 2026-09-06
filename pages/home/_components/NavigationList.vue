@@ -74,10 +74,7 @@ const list: RouteItem[] = [
     path: '/html/text-reading.html',
     name: '🔊文字朗读',
   },
-  {
-    path: '/openurl/index.html',
-    name: '🚀批量打开网页',
-  },
+  
 ].sort((a, b) => a.name.localeCompare(b.name, 'zh')); // 添加中文排序
 
 const renderList = [];
