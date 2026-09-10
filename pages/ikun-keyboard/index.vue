@@ -86,8 +86,9 @@ function resize() {
 }
 
 const _map = {
+  // 原有
   a: '/ikun/啊.wav',
-  m: '/ikun/mei.wav',
+  m: '/ikun/mei.WAV',
   n: '/ikun/你.wav',
   t: '/ikun/太.wav',
   c: '/ikun/唱.wav',
@@ -96,7 +97,63 @@ const _map = {
   y: '/ikun/哟.wav',
   j: '/ikun/鸡.wav',
   l: '/ikun/篮球.wav',
+  // 新增单音 / 短句
+  q: '/ikun/啊啊.wav',
+  e: '/ikun/哎.wav',
+  o: '/ikun/OK.wav',
+  u: '/ikun/MUSIC.wav',
+  k: '/ikun/坤.wav',
+  w: '/ikun/哇哈嗨.wav',
+  h: '/ikun/大家好.wav',
+  s: '/ikun/实在.wav',
+  d: '/ikun/跳.wav',
+  f: '/ikun/没.wav',
+  i: '/ikun/机.wav',
+  z: '/ikun/嘛.wav',
+  x: '/ikun/公鸡叫.wav',
+  b: '/ikun/mum.wav',
+  v: '/ikun/美.wav',
+  p: '/ikun/你好烦.wav',
+  // 长音频
+  '1': '/ikun/你干嘛 哈嗨哟.wav',
+  '2': '/ikun/厉不厉害你鲲哥.wav',
+  '3': '/ikun/全民制作人民.wav',
+  '4': '/ikun/个人练习鲲.wav',
 };
+
+const keyHints = [
+  ['a', '啊'],
+  ['q', '啊啊'],
+  ['e', '哎'],
+  ['n', '你'],
+  ['t', '太'],
+  ['m', 'mei'],
+  ['v', '美'],
+  ['f', '没'],
+  ['c', '唱'],
+  ['g', '干'],
+  ['j', '鸡'],
+  ['x', '公鸡叫'],
+  ['y', '哟'],
+  ['z', '嘛'],
+  ['l', '篮球'],
+  ['d', '跳'],
+  ['k', '坤'],
+  ['h', '大家好'],
+  ['s', '实在'],
+  ['p', '你好烦'],
+  ['w', '哇哈嗨'],
+  ['o', 'OK'],
+  ['u', 'MUSIC'],
+  ['r', 'RAP'],
+  ['b', 'mum'],
+  ['i', '机'],
+  ['1', '你干嘛'],
+  ['2', '厉不厉害'],
+  ['3', '全民制作'],
+  ['4', '个人练习鲲'],
+];
+
 
 function createKeyTextDom(text) {
   const container = document.querySelector('.keyContainer');
@@ -129,7 +186,7 @@ onMounted(() => {
     if (!src) return;
 
     createKeyTextDom(key);
-    let audio = new Audio(src);
+    let audio = new Audio(encodeURI(src));
     audio.play();
     function handleAudioEnded() {
       audioCount--;
@@ -170,7 +227,17 @@ onUnmounted(() => {
       <span class="s4"></span>
     </div>
     <div class="keyContainer"></div>
-    <audio id="audio" src="./ikun/啊.wav"></audio>
+    <div class="key-hint" aria-label="按键说明">
+      <div
+        v-for="([key, label]) in keyHints"
+        :key="key"
+        class="key-hint__item"
+      >
+        <kbd>{{ key }}</kbd>
+        <span>{{ label }}</span>
+      </div>
+    </div>
+    <audio id="audio" src="/ikun/啊.wav"></audio>
   </div>
 </template>
 
@@ -221,6 +288,47 @@ onUnmounted(() => {
   right: 62px;
   cursor: pointer;
   z-index: 10;
+}
+
+.key-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  width: min(920px, calc(100vw - 24px));
+  max-height: 28vh;
+  overflow: auto;
+  padding: 10px 12px;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  background: rgb(0 0 0 / 0.55);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.key-hint__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: rgb(255 255 255 / 0.78);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.key-hint__item kbd {
+  min-width: 18px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+  font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: center;
 }
 
 .music_switch span {
