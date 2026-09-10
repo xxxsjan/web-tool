@@ -1,7 +1,11 @@
 <script setup>
 import gsap from 'gsap';
 
-function onClick() {}
+definePageMeta({
+  layout: false,
+});
+
+function onClick() { }
 
 function throttle(func, delay = 1000) {
   let timerId, flag;
@@ -21,14 +25,43 @@ function throttle(func, delay = 1000) {
     }
   };
 }
+
 let timer;
+let handleKeydown = null;
+let prevHtmlOverflow = '';
+let prevBodyOverflow = '';
+let prevHtmlOverscroll = '';
+let prevBodyOverscroll = '';
+
+function lockViewport() {
+  const html = document.documentElement;
+  const body = document.body;
+  prevHtmlOverflow = html.style.overflow;
+  prevBodyOverflow = body.style.overflow;
+  prevHtmlOverscroll = html.style.overscrollBehavior;
+  prevBodyOverscroll = body.style.overscrollBehavior;
+  html.style.overflow = 'hidden';
+  body.style.overflow = 'hidden';
+  html.style.overscrollBehavior = 'none';
+  body.style.overscrollBehavior = 'none';
+}
+
+function unlockViewport() {
+  const html = document.documentElement;
+  const body = document.body;
+  html.style.overflow = prevHtmlOverflow;
+  body.style.overflow = prevBodyOverflow;
+  html.style.overscrollBehavior = prevHtmlOverscroll;
+  body.style.overscrollBehavior = prevBodyOverscroll;
+}
+
 function resize() {
   const { clientWidth, clientHeight } = document.documentElement;
   function randomX() {
-    return Math.floor(Math.random() * (clientWidth - 100 - 100)) + 100;
+    return Math.floor(Math.random() * Math.max(1, clientWidth - 200)) + 100;
   }
   function randomY() {
-    return Math.floor(Math.random() * (clientHeight - 100 - 100)) + 100;
+    return Math.floor(Math.random() * Math.max(1, clientHeight - 200)) + 100;
   }
   function start() {
     if (timer) {
@@ -43,24 +76,6 @@ function resize() {
   start();
 }
 
-function bindEvent() {
-  const ngmDom = document.querySelector('#ngm');
-  const audio = document.querySelector('#audio');
-  const music_switch = document.querySelector('.music_switch');
-  audio.muted = true;
-  ngmDom.addEventListener('mouseenter', e => {
-    audio.play();
-  });
-  music_switch.onclick = function () {
-    if (audio.muted) {
-      audio.muted = false;
-      music_switch.classList.add('active');
-    } else {
-      audio.muted = true;
-      music_switch.classList.remove('active');
-    }
-  };
-}
 const _map = {
   a: '/ikun/啊.wav',
   m: '/ikun/mei.wav',
@@ -70,44 +85,67 @@ const _map = {
   r: '/ikun/RAP.wav',
   g: '/ikun/干.wav',
   y: '/ikun/哟.wav',
-  j: '/ikun/鸡.wav'
+  j: '/ikun/鸡.wav',
 };
-function createKeyTextDom(text) {
-  const _div = document.createElement('div');
-  _div.innerHTML = text;
-  _div.addEventListener('animationend', () => {
-    document.querySelector('.keyContainer').removeChild(_div);
-  });
-  document.querySelector('.keyContainer').appendChild(_div);
-  _div.classList.add('leave');
-}
-onMounted(() => {
-  resize();
-  // bindEvent();
-  window.addEventListener('resize', resize);
-  let audioCount = 0;
 
-  const handleKeydown = throttle(function (event) {
-    createKeyTextDom(event.key);
-    if (Object.keys(_map).includes(event.key)) {
-      console.log('event.key: ', event.key);
-      // 创建并播放声音
-      let audio = new Audio(_map[event.key]);
-      audio.play();
-      function handleAudioEnded() {
-        audioCount--;
-        if (audioCount === 0) {
-          document.querySelector('.music_switch').classList.remove('active');
-        }
-        audio.removeEventListener('ended', handleAudioEnded);
-        audio = null;
-      }
-      audio.addEventListener('ended', handleAudioEnded);
-      audioCount++;
-      document.querySelector('.music_switch').classList.add('active');
+function createKeyTextDom(text) {
+  const container = document.querySelector('.keyContainer');
+  if (!container) return;
+  const _div = document.createElement('div');
+  _div.textContent = text;
+  _div.className = 'leave';
+
+  const remove = () => {
+    if (_div.parentNode === container) {
+      container.removeChild(_div);
     }
+  };
+
+  _div.addEventListener('animationend', remove, { once: true });
+  // 兜底：scoped/动画异常时仍能移除
+  setTimeout(remove, 1100);
+  container.appendChild(_div);
+}
+
+onMounted(() => {
+  lockViewport();
+  resize();
+  window.addEventListener('resize', resize);
+
+  let audioCount = 0;
+  handleKeydown = throttle(function (event) {
+    const key = event.key?.toLowerCase?.() || event.key;
+    const src = _map[key];
+    if (!src) return;
+
+    createKeyTextDom(key);
+    let audio = new Audio(src);
+    audio.play();
+    function handleAudioEnded() {
+      audioCount--;
+      if (audioCount === 0) {
+        document.querySelector('.music_switch')?.classList.remove('active');
+      }
+      audio.removeEventListener('ended', handleAudioEnded);
+      audio = null;
+    }
+    audio.addEventListener('ended', handleAudioEnded);
+    audioCount++;
+    document.querySelector('.music_switch')?.classList.add('active');
   }, 400);
+
   document.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  unlockViewport();
+  if (timer) clearTimeout(timer);
+  window.removeEventListener('resize', resize);
+  if (handleKeydown) {
+    document.removeEventListener('keydown', handleKeydown);
+  }
+  gsap.killTweensOf('#as');
+  gsap.killTweensOf('#ngm');
 });
 </script>
 
@@ -121,21 +159,23 @@ onMounted(() => {
       <span class="s3"></span>
       <span class="s4"></span>
     </div>
-    <div class="keyContainer">
-      <div class="leave">n</div>
-      <div class="leave">n</div>
-    </div>
+    <div class="keyContainer"></div>
     <audio id="audio" src="./ikun/啊.wav"></audio>
   </div>
 </template>
 
-<style>
+<style scoped>
 .keyboard-container {
+  position: fixed;
+  inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
   background-color: #000;
   overflow: hidden;
-  position: relative;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .keyContainer {
@@ -147,39 +187,21 @@ onMounted(() => {
   top: 50%;
   position: absolute;
   transform: translate(-50%, -50%);
+  pointer-events: none;
 }
-
-.leave {
-  position: absolute;
-  animation-name: leave;
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
-}
-@keyframes leave {
-  from {
-    opacity: 1;
-    transform: translateY(0px);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-100px);
-  }
-}
-/* .keyContainer div.leave {
-    opacity: 0;
-    transform: translateY(-100px);
-  } */
 
 #as {
   font-size: 50px;
   display: inline-block;
   color: #fff;
 }
+
 #ngm {
   font-size: 50px;
   display: inline-block;
   color: #fff;
 }
+
 .music_switch {
   position: fixed;
   width: 40px;
@@ -189,51 +211,82 @@ onMounted(() => {
   cursor: pointer;
   z-index: 10;
 }
+
 .music_switch span {
   position: absolute;
   width: 4px;
   bottom: 0;
   background: #fff;
 }
+
 .music_switch .s1 {
   height: 11px;
   right: 0px;
 }
+
 .music_switch .s2 {
   height: 21px;
   right: 10px;
 }
+
 .music_switch .s3 {
   height: 28px;
   right: 20px;
 }
+
 .music_switch .s4 {
   height: 13px;
   right: 30px;
 }
+
 .music_switch.active .s1 {
   animation: wave 0.66s linear infinite;
-  -webkit-animation: wave 0.66s linear infinite;
-  -ms-animation: wave 0.66s linear infinite;
 }
+
 .music_switch.active .s2 {
   animation: wave 0.8s linear infinite;
 }
+
 .music_switch.active .s3 {
   animation: wave 0.7s linear infinite;
 }
+
 .music_switch.active .s4 {
   animation: wave 0.5s linear infinite;
 }
+
 @keyframes wave {
   0% {
     height: 10px;
   }
+
   50% {
     height: 28px;
   }
+
   100% {
     height: 10px;
+  }
+}
+</style>
+
+<style>
+/* 动态创建的按键字母不受 scoped 影响，需全局样式 */
+.keyContainer .leave {
+  position: absolute;
+  color: #fff;
+  animation: ikun-key-leave 1s forwards;
+}
+
+@keyframes ikun-key-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-100px);
   }
 }
 </style>
