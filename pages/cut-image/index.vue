@@ -207,12 +207,12 @@
                     <label class="flex flex-col gap-1 text-xs text-base-content/70">
                       <span>上边 {{ customTop > 0 ? '多裁' : customTop < 0 ? '少裁' : '' }}</span>
                           <el-input-number v-model="customTop" class="!w-full" :min="-40" :max="40" :step="1"
-                            size="small" controls-position="right" />
-                    </label>
-                    <label class="flex flex-col gap-1 text-xs text-base-content/70">
-                      <span>下边 {{ customBottom > 0 ? '多裁' : customBottom < 0 ? '少裁' : '' }}</span>
+                            size="small" />
+                        </label>
+                        <label class="flex flex-col gap-1 text-xs text-base-content/70">
+                          <span>下边 {{ customBottom > 0 ? '多裁' : customBottom < 0 ? '少裁' : '' }}</span>
                           <el-input-number v-model="customBottom" class="!w-full" :min="-40" :max="40" :step="1"
-                            size="small" controls-position="right" />
+                            size="small" />
                     </label>
                   </div>
                   <p class="mt-1.5 text-[11px] leading-snug text-base-content/45">
