@@ -2,6 +2,11 @@
   <canvas id="bg"></canvas>
 </template>
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
+import { useThemeStore } from '~/stores/theme';
+
+const { isDark } = storeToRefs(useThemeStore());
+
 let canvasWidth: number, canvasHeight: number;
 
 function initCanvas() {
@@ -46,7 +51,9 @@ onMounted(() => {
     // 第一次就是一行行的画
     // 后面由于随机数，他们不在一行了，但是是横向的一批
     function draw() {
-      ctx.fillStyle = 'rgba(240,240,240,0.1)';
+      ctx.fillStyle = isDark.value
+        ? 'rgba(24,24,27,0.1)'
+        : 'rgba(240,240,240,0.1)';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       ctx.fillStyle = getRandomColor();
       ctx.font = '20px Consolas';

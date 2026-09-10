@@ -63,6 +63,11 @@ function resize() {
   function randomY() {
     return Math.floor(Math.random() * Math.max(1, clientHeight - 200)) + 100;
   }
+
+  // 一进来就随机落点，避免先出现在左上角
+  gsap.set('#as', { x: randomX(), y: randomY(), autoAlpha: 1 });
+  gsap.set('#ngm', { x: randomX(), y: randomY(), autoAlpha: 1 });
+
   function start() {
     if (timer) {
       clearTimeout(timer);
@@ -86,6 +91,7 @@ const _map = {
   g: '/ikun/干.wav',
   y: '/ikun/哟.wav',
   j: '/ikun/鸡.wav',
+  l: '/ikun/篮球.wav',
 };
 
 function createKeyTextDom(text) {
@@ -190,16 +196,17 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-#as {
-  font-size: 50px;
-  display: inline-block;
-  color: #fff;
-}
-
+#as,
 #ngm {
+  position: absolute;
+  left: 0;
+  top: 0;
   font-size: 50px;
   display: inline-block;
   color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
 }
 
 .music_switch {
