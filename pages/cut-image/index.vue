@@ -136,13 +136,32 @@
                 {{ outputWidth }}×{{ outputHeight }}
               </span>
             </div>
-            <div
-              class="result-img-container flex h-44 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-base-300 bg-base-200/50 p-2 sm:h-52 sm:p-3">
-              <img v-if="resultPreviewUrl" :src="resultPreviewUrl" alt="裁剪结果" />
-              <span v-else-if="!loading" class="px-3 text-center text-xs text-base-content/40">
+            <button
+              type="button"
+              class="result-img-container group relative flex h-44 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-base-300 bg-white p-2 text-left sm:h-52 sm:p-3"
+              :class="resultPreviewUrl ? 'cursor-zoom-in hover:border-primary/50' : 'cursor-default'"
+              :disabled="!resultPreviewUrl"
+              @click="openPreviewDialog"
+            >
+              <img
+                v-if="resultPreviewUrl"
+                :src="resultPreviewUrl"
+                alt="裁剪结果"
+                class="max-h-full max-w-full object-contain"
+              />
+              <span
+                v-else-if="!loading"
+                class="px-3 text-center text-xs text-base-content/40"
+              >
                 调整选区后将在此显示结果
               </span>
-            </div>
+              <span
+                v-if="resultPreviewUrl"
+                class="pointer-events-none absolute bottom-2 right-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                点击放大
+              </span>
+            </button>
 
             <div v-if="sourceWidth && outputWidth"
               class="space-y-1.5 rounded-xl bg-base-200/60 px-3 py-2 text-[11px] sm:text-xs">
@@ -170,7 +189,7 @@
             <div class="flex items-center justify-between gap-2">
               <div class="text-sm font-medium text-base-content">
                 边缘微调
-                <span class="font-normal text-base-content/50">（±10px）</span>
+                <span class="font-normal text-base-content/50">（±40px）</span>
               </div>
               <button
                 v-if="customTop !== 0 || customBottom !== 0"
@@ -183,12 +202,12 @@
             <div class="grid grid-cols-2 gap-3">
               <label class="flex flex-col gap-1 text-xs text-base-content/70">
                 <span>上边 {{ customTop > 0 ? '多裁' : customTop < 0 ? '少裁' : '' }}</span>
-                <el-input-number v-model="customTop" class="!w-full" :min="-10" :max="10" size="small"
+                <el-input-number v-model="customTop" class="!w-full" :min="-40" :max="40" :step="1" size="small"
                   controls-position="right" />
               </label>
               <label class="flex flex-col gap-1 text-xs text-base-content/70">
                 <span>下边 {{ customBottom > 0 ? '多裁' : customBottom < 0 ? '少裁' : '' }}</span>
-                <el-input-number v-model="customBottom" class="!w-full" :min="-10" :max="10" size="small"
+                <el-input-number v-model="customBottom" class="!w-full" :min="-40" :max="40" :step="1" size="small"
                   controls-position="right" />
               </label>
             </div>
@@ -232,6 +251,50 @@
         </div>
       </aside>
     </div>
+
+    <el-dialog
+      v-model="previewDialogVisible"
+      title="输出预览"
+      width="min(92vw, 960px)"
+      align-center
+      destroy-on-close
+      class="cut-preview-dialog"
+      append-to-body
+    >
+      <div class="cut-preview-stage">
+        <img
+          v-if="resultPreviewUrl"
+          :src="resultPreviewUrl"
+          alt="裁剪结果大图"
+          class="cut-preview-img"
+        />
+      </div>
+      <template #footer>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="font-mono text-xs text-base-content/55">
+            <template v-if="outputWidth">
+              {{ outputWidth }}×{{ outputHeight }}
+              <template v-if="outputFileSize">
+                · {{ formatBytes(outputFileSize) }}
+              </template>
+            </template>
+          </span>
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-ghost btn-sm" @click="previewDialogVisible = false">
+              关闭
+            </button>
+            <button
+              type="button"
+              class="btn btn-success btn-sm"
+              :disabled="!outputWidth || loading"
+              @click="save"
+            >
+              保存图片
+            </button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -295,6 +358,7 @@ export default {
       _outputCanvas: null,
       _outputBlob: null,
       resultPreviewUrl: '',
+      previewDialogVisible: false,
       _encodeToken: 0,
       _skipCustomWatch: false,
       _qualityTimer: null,
@@ -416,6 +480,10 @@ export default {
       }
       this.loadFile(file);
     },
+    openPreviewDialog() {
+      if (!this.resultPreviewUrl) return;
+      this.previewDialogVisible = true;
+    },
     resolveExportMime() {
       const format = this.exportFormat;
       if (format === 'png') return 'image/png';
@@ -474,7 +542,8 @@ export default {
     },
     getCutWorker() {
       if (this._cutWorker) return this._cutWorker;
-      const worker = new Worker('/worker.js');
+      // 版本号避免浏览器缓存旧检测脚本
+      const worker = new Worker('/worker.js?v=3');
       worker.onmessage = (event) => {
         const { top, bottom, requestId } = event.data;
         if (requestId !== this._cutReqId) return;
@@ -828,6 +897,7 @@ export default {
       this._outputBlob = null;
       this.revokeOutputUrl();
       this._sourceImg = null;
+      this.previewDialogVisible = false;
       if (clearImage) {
         this.imgBaseUrl = '';
       }
@@ -1056,6 +1126,28 @@ export default {
   border-radius: 8px;
 }
 
+.cut-preview-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(60vh, 520px);
+  max-height: min(78vh, 820px);
+  padding: 16px;
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cut-preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: min(72vh, 760px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 :deep(.el-input-number) {
   width: 100%;
 }
@@ -1106,5 +1198,35 @@ export default {
   .preview-img {
     max-height: min(70vh, 720px);
   }
+}
+</style>
+
+<style>
+/* append-to-body 弹窗样式 */
+.cut-preview-dialog .el-dialog__body {
+  padding-top: 8px;
+  padding-bottom: 12px;
+}
+
+.cut-preview-dialog .cut-preview-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(60vh, 520px);
+  max-height: min(78vh, 820px);
+  padding: 16px;
+  overflow: auto;
+  background: #ffffff !important;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cut-preview-dialog .cut-preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: min(72vh, 760px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 </style>
