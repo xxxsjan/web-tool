@@ -5,7 +5,7 @@
         图片去黑边
       </h1>
       <p class="text-xs text-base-content/50 sm:text-sm">
-        框选检测区域 → 自动裁掉上下黑边 → 导出保存
+        框选 → 粗略裁剪 → 微调 → 导出
       </p>
     </header>
 
@@ -13,11 +13,8 @@
     <div v-if="!imgBaseUrl" class="mx-auto w-full max-w-lg">
       <div
         class="bg-container is-empty relative flex w-full items-center justify-center overflow-hidden rounded-2xl border border-base-300/60 shadow-lg"
-        :class="{ 'ring-2 ring-primary ring-offset-2 ring-offset-base-100': isDragging }"
-        v-loading="loading"
-        @dragenter.prevent="onDragEnter"
-        @dragover.prevent="onDragOver"
-        @dragleave.prevent="onDragLeave"
+        :class="{ 'ring-2 ring-primary ring-offset-2 ring-offset-base-100': isDragging }" v-loading="loading"
+        @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
         @drop.prevent="onDrop">
         <div class="px-bg"></div>
         <label
@@ -25,8 +22,7 @@
           :class="isDragging
             ? 'border-primary bg-primary/10'
             : 'border-base-content/25 hover:border-primary hover:bg-base-100/40'">
-          <span
-            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24"
               stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round"
@@ -106,7 +102,7 @@
         </p>
         <div class="mt-3 flex gap-2 sm:hidden">
           <button class="btn btn-primary btn-sm flex-1" :disabled="loading" @click="handleCut">
-            {{ loading ? '处理中…' : '重新检测' }}
+            {{ loading ? '处理中…' : '粗略裁剪' }}
           </button>
           <button class="btn btn-ghost btn-sm shrink-0 border border-base-300" @click="reset">
             重选
@@ -114,160 +110,190 @@
         </div>
       </div>
 
-      <!-- 右侧：结果与导出 -->
+      <!-- 右侧：流水线操作 -->
       <aside class="w-full shrink-0 lg:sticky lg:top-4 lg:w-80 xl:w-96">
         <div
-          class="flex flex-col gap-4 rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-lg backdrop-blur-sm sm:p-5">
-          <!-- 桌面端主操作 -->
-          <div class="hidden gap-2 sm:flex">
-            <button class="btn btn-primary btn-sm flex-1 sm:btn-md" :disabled="loading" @click="handleCut">
-              {{ loading ? '处理中…' : '重新检测' }}
-            </button>
-            <button class="btn btn-ghost btn-sm shrink-0 border border-base-300 sm:btn-md" @click="reset">
-              重选
+          class="pipeline rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-lg backdrop-blur-sm sm:p-5">
+          <div class="mb-4 flex items-center justify-between gap-2">
+            <h2 class="text-sm font-semibold text-base-content">处理流水线</h2>
+            <button type="button" class="btn btn-ghost btn-xs border border-base-300" @click="reset">
+              重选图片
             </button>
           </div>
 
-          <!-- 输出预览 -->
-          <section class="space-y-2">
-            <div class="flex items-center justify-between gap-2 text-sm">
-              <span class="shrink-0 font-medium text-base-content">输出预览</span>
-              <span v-if="outputWidth" class="badge badge-ghost badge-sm font-mono">
-                {{ outputWidth }}×{{ outputHeight }}
-              </span>
-            </div>
-            <button
-              type="button"
-              class="result-img-container group relative flex h-44 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-base-300 bg-white p-2 text-left sm:h-52 sm:p-3"
-              :class="resultPreviewUrl ? 'cursor-zoom-in hover:border-primary/50' : 'cursor-default'"
-              :disabled="!resultPreviewUrl"
-              @click="openPreviewDialog"
-            >
-              <img
-                v-if="resultPreviewUrl"
-                :src="resultPreviewUrl"
-                alt="裁剪结果"
-                class="max-h-full max-w-full object-contain"
-              />
-              <span
-                v-else-if="!loading"
-                class="px-3 text-center text-xs text-base-content/40"
-              >
-                调整选区后将在此显示结果
-              </span>
-              <span
-                v-if="resultPreviewUrl"
-                class="pointer-events-none absolute bottom-2 right-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                点击放大
-              </span>
-            </button>
+          <ol class="pipeline-list">
+            <!-- Step 1 -->
+            <li class="pipeline-step" :class="{ 'is-done': !!outputWidth, 'is-active': !outputWidth }">
+              <div class="pipeline-rail" aria-hidden="true">
+                <span class="pipeline-dot">1</span>
+                <span class="pipeline-line"></span>
+              </div>
+              <div class="pipeline-body">
+                <div class="pipeline-head">
+                  <span class="pipeline-title">粗略裁剪</span>
+                  <span class="pipeline-hint">检测上下黑边</span>
+                </div>
+                <div class="hidden gap-2 sm:flex">
+                  <button class="btn btn-primary btn-sm flex-1" :disabled="loading" @click="handleCut">
+                    {{ loading ? '处理中…' : outputWidth ? '重新检测' : '开始裁剪' }}
+                  </button>
+                </div>
+                <p class="mt-1.5 text-[11px] leading-snug text-base-content/45 sm:hidden">
+                  请使用上方按钮完成粗略裁剪
+                </p>
+              </div>
+            </li>
 
-            <div v-if="sourceWidth && outputWidth"
-              class="space-y-1.5 rounded-xl bg-base-200/60 px-3 py-2 text-[11px] sm:text-xs">
-              <div class="flex justify-between gap-2 text-base-content/70">
-                <span class="shrink-0">原图</span>
-                <span class="truncate font-mono text-base-content text-right">
-                  {{ sourceWidth }}×{{ sourceHeight }} · {{ formatBytes(sourceFileSize) }}
-                </span>
+            <!-- Step 2 -->
+            <li class="pipeline-step" :class="{
+              'is-done': !!outputWidth,
+              'is-active': !!outputWidth,
+              'is-locked': !outputWidth,
+            }">
+              <div class="pipeline-rail" aria-hidden="true">
+                <span class="pipeline-dot">2</span>
+                <span class="pipeline-line"></span>
               </div>
-              <div class="flex justify-between gap-2 text-base-content/70">
-                <span class="shrink-0">输出</span>
-                <span class="truncate font-mono text-base-content text-right">
-                  {{ outputWidth }}×{{ outputHeight }} · {{ formatBytes(outputFileSize) }}
-                  <span class="text-base-content/50">({{ outputExtLabel }})</span>
-                </span>
-              </div>
-              <div v-if="sizeSavedLabel" class="border-t border-base-300/40 pt-1 leading-snug text-success">
-                {{ sizeSavedLabel }}
-              </div>
-            </div>
-          </section>
+              <div class="pipeline-body">
+                <div class="pipeline-head">
+                  <span class="pipeline-title">预览核对</span>
+                  <span v-if="outputWidth" class="badge badge-ghost badge-sm font-mono">
+                    {{ outputWidth }}×{{ outputHeight }}
+                  </span>
+                  <span v-else class="pipeline-hint">待生成</span>
+                </div>
 
-          <!-- 边缘微调：改完即时预览 -->
-          <section v-if="outputWidth" class="space-y-2.5 border-t border-base-300/50 pt-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="text-sm font-medium text-base-content">
-                边缘微调
-                <span class="font-normal text-base-content/50">（±40px）</span>
-              </div>
-              <button
-                v-if="customTop !== 0 || customBottom !== 0"
-                type="button"
-                class="btn btn-ghost btn-xs text-base-content/50"
-                @click="resetCustom">
-                重置
-              </button>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="flex flex-col gap-1 text-xs text-base-content/70">
-                <span>上边 {{ customTop > 0 ? '多裁' : customTop < 0 ? '少裁' : '' }}</span>
-                <el-input-number v-model="customTop" class="!w-full" :min="-40" :max="40" :step="1" size="small"
-                  controls-position="right" />
-              </label>
-              <label class="flex flex-col gap-1 text-xs text-base-content/70">
-                <span>下边 {{ customBottom > 0 ? '多裁' : customBottom < 0 ? '少裁' : '' }}</span>
-                <el-input-number v-model="customBottom" class="!w-full" :min="-40" :max="40" :step="1" size="small"
-                  controls-position="right" />
-              </label>
-            </div>
-            <p class="text-[11px] leading-snug text-base-content/45">
-              正数多裁一点，负数少裁一点；调整后自动刷新预览
-            </p>
-          </section>
+                <button type="button"
+                  class="result-img-container group relative flex h-36 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-base-300 bg-white p-2 text-left sm:h-40 sm:p-3"
+                  :class="resultPreviewUrl ? 'cursor-zoom-in hover:border-primary/50' : 'cursor-default opacity-70'"
+                  :disabled="!resultPreviewUrl" @click="openPreviewDialog">
+                  <img v-if="resultPreviewUrl" :src="resultPreviewUrl" alt="裁剪结果"
+                    class="max-h-full max-w-full object-contain" />
+                  <span v-else class="px-3 text-center text-xs text-base-content/40">
+                    {{ loading ? '生成预览中…' : '完成步骤 1 后显示结果' }}
+                  </span>
+                  <span v-if="resultPreviewUrl"
+                    class="pointer-events-none absolute bottom-2 right-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    点击放大
+                  </span>
+                </button>
 
-          <!-- 导出格式 -->
-          <section v-if="outputWidth" class="space-y-2 border-t border-base-300/50 pt-3">
-            <div class="text-sm font-medium text-base-content">导出格式</div>
-            <div class="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-              <label v-for="opt in exportFormatOptions" :key="opt.value" class="cursor-pointer">
-                <input v-model="exportFormat" type="radio" class="peer hidden" name="export-format"
-                  :value="opt.value" />
-                <span class="btn btn-ghost btn-xs w-full border border-base-300 peer-checked:btn-primary">
-                  {{ opt.label }}
-                </span>
-              </label>
-            </div>
-            <div v-if="exportFormat !== 'png'" class="space-y-1">
-              <div class="flex justify-between text-xs text-base-content/60">
-                <span>画质</span>
-                <span class="font-mono">{{ Math.round(exportQuality * 100) }}%</span>
-              </div>
-              <input v-model.number="exportQuality" type="range" min="0.7" max="0.98" step="0.01"
-                class="range range-primary range-xs w-full" />
-              <p class="text-[11px] leading-snug text-base-content/45">
-                建议 90%–95%：观感接近无损，体积通常远小于 PNG
-              </p>
-            </div>
-          </section>
 
-          <!-- 保存：始终在面板底部 -->
-          <button
-            class="btn btn-success w-full sm:btn-md"
-            :disabled="!outputWidth || loading"
-            @click="save">
-            保存图片
-          </button>
+              </div>
+            </li>
+
+            <!-- Step 3 -->
+            <li class="pipeline-step" :class="{
+              'is-done': customTop !== 0 || customBottom !== 0,
+              'is-active': !!outputWidth,
+              'is-locked': !outputWidth,
+            }">
+              <div class="pipeline-rail" aria-hidden="true">
+                <span class="pipeline-dot">3</span>
+                <span class="pipeline-line"></span>
+              </div>
+              <div class="pipeline-body">
+                <div class="pipeline-head">
+                  <span class="pipeline-title">边缘微调</span>
+                  <button v-if="outputWidth && (customTop !== 0 || customBottom !== 0)" type="button"
+                    class="btn btn-ghost btn-xs text-base-content/50" @click="resetCustom">
+                    重置
+                  </button>
+                  <span v-else class="pipeline-hint">±40px</span>
+                </div>
+
+                <template v-if="outputWidth">
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <label class="flex flex-col gap-1 text-xs text-base-content/70">
+                      <span>上边 {{ customTop > 0 ? '多裁' : customTop < 0 ? '少裁' : '' }}</span>
+                          <el-input-number v-model="customTop" class="!w-full" :min="-40" :max="40" :step="1"
+                            size="small" controls-position="right" />
+                    </label>
+                    <label class="flex flex-col gap-1 text-xs text-base-content/70">
+                      <span>下边 {{ customBottom > 0 ? '多裁' : customBottom < 0 ? '少裁' : '' }}</span>
+                          <el-input-number v-model="customBottom" class="!w-full" :min="-40" :max="40" :step="1"
+                            size="small" controls-position="right" />
+                    </label>
+                  </div>
+                  <p class="mt-1.5 text-[11px] leading-snug text-base-content/45">
+                    正数多裁，负数少裁；改完自动刷新预览
+                  </p>
+                </template>
+                <p v-else class="text-[11px] text-base-content/40">先完成粗略裁剪</p>
+              </div>
+            </li>
+
+            <!-- Step 4 -->
+            <li class="pipeline-step is-last" :class="{
+              'is-active': !!outputWidth,
+              'is-locked': !outputWidth,
+            }">
+              <div class="pipeline-rail" aria-hidden="true">
+                <span class="pipeline-dot">4</span>
+              </div>
+              <div class="pipeline-body">
+                <div class="pipeline-head">
+                  <span class="pipeline-title">导出保存</span>
+                  <span class="pipeline-hint">选格式后下载</span>
+                </div>
+
+                <template v-if="outputWidth">
+                  <div class="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                    <label v-for="opt in exportFormatOptions" :key="opt.value" class="cursor-pointer">
+                      <input v-model="exportFormat" type="radio" class="peer hidden" name="export-format"
+                        :value="opt.value" />
+                      <span class="btn btn-ghost btn-xs w-full border border-base-300 peer-checked:btn-primary">
+                        {{ opt.label }}
+                      </span>
+                    </label>
+                  </div>
+                  <div v-if="exportFormat !== 'png'" class="mt-2 space-y-1">
+                    <div class="flex justify-between text-xs text-base-content/60">
+                      <span>画质</span>
+                      <span class="font-mono">{{ Math.round(exportQuality * 100) }}%</span>
+                    </div>
+                    <input v-model.number="exportQuality" type="range" min="0.7" max="0.98" step="0.01"
+                      class="range range-primary range-xs w-full" />
+                  </div>
+                
+                  <div v-if="sourceWidth && outputWidth"
+                    class="mt-2 space-y-1 rounded-lg bg-base-200/60 px-2.5 py-2 text-[11px]">
+                    <div class="flex justify-between gap-2 text-base-content/70">
+                      <span>原图</span>
+                      <span class="truncate font-mono text-base-content">
+                        {{ sourceWidth }}×{{ sourceHeight }} · {{ formatBytes(sourceFileSize) }}
+                        <span class="text-base-content/50">({{ sourceExtLabel }})</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-2 text-base-content/70">
+                      <span>输出</span>
+                      <span class="truncate font-mono text-base-content">
+                        {{ outputWidth }}×{{ outputHeight }} · {{ formatBytes(outputFileSize) }}
+                        <span class="text-base-content/50">({{ outputExtLabel }})</span>
+                      </span>
+                    </div>
+                    <div v-if="sizeSavedLabel" class="border-t border-base-300/40 pt-1 text-success">
+                      {{ sizeSavedLabel }}
+                    </div>
+                  </div>
+
+                  <button class="btn btn-success btn-sm mt-3 w-full sm:btn-md" :disabled="loading" @click="save">
+                    保存图片
+                  </button>
+                </template>
+                <p v-else class="text-[11px] text-base-content/40">先完成粗略裁剪</p>
+              </div>
+            </li>
+          </ol>
+
         </div>
       </aside>
     </div>
 
-    <el-dialog
-      v-model="previewDialogVisible"
-      title="输出预览"
-      width="min(92vw, 960px)"
-      align-center
-      destroy-on-close
-      class="cut-preview-dialog"
-      append-to-body
-    >
+    <el-dialog v-model="previewDialogVisible" title="输出预览" width="min(92vw, 960px)" align-center destroy-on-close
+      class="cut-preview-dialog" append-to-body>
       <div class="cut-preview-stage">
-        <img
-          v-if="resultPreviewUrl"
-          :src="resultPreviewUrl"
-          alt="裁剪结果大图"
-          class="cut-preview-img"
-        />
+        <img v-if="resultPreviewUrl" :src="resultPreviewUrl" alt="裁剪结果大图" class="cut-preview-img" />
       </div>
       <template #footer>
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -283,12 +309,7 @@
             <button type="button" class="btn btn-ghost btn-sm" @click="previewDialogVisible = false">
               关闭
             </button>
-            <button
-              type="button"
-              class="btn btn-success btn-sm"
-              :disabled="!outputWidth || loading"
-              @click="save"
-            >
+            <button type="button" class="btn btn-success btn-sm" :disabled="!outputWidth || loading" @click="save">
               保存图片
             </button>
           </div>
@@ -385,6 +406,14 @@ export default {
         'image/png': 'PNG',
       };
       return map[this.outputMime] || 'IMG';
+    },
+    sourceExtLabel() {
+      const mime = (this.sourceMime || '').toLowerCase();
+      if (mime.includes('jpeg') || mime.includes('jpg')) return 'JPEG';
+      if (mime.includes('png')) return 'PNG';
+      if (mime.includes('webp')) return 'WebP';
+      if (mime.includes('gif')) return 'GIF';
+      return mime ? mime.replace(/^image\//, '').toUpperCase() : 'IMG';
     },
     sizeSavedLabel() {
       if (!this.sourceFileSize || !this.outputFileSize) return '';
@@ -1124,6 +1153,104 @@ export default {
   max-height: 100%;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.pipeline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pipeline-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.pipeline-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pipeline-dot {
+  z-index: 1;
+  display: flex;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in oklab, var(--color-base-content) 25%, transparent);
+  background: var(--color-base-100);
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pipeline-line {
+  width: 2px;
+  flex: 1;
+  min-height: 12px;
+  margin: 4px 0 2px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+}
+
+.pipeline-body {
+  min-width: 0;
+  padding-bottom: 16px;
+}
+
+.pipeline-step.is-last .pipeline-body {
+  padding-bottom: 0;
+}
+
+.pipeline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pipeline-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-base-content);
+}
+
+.pipeline-hint {
+  font-size: 11px;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.pipeline-step.is-active .pipeline-dot {
+  border-color: var(--color-primary);
+  background: color-mix(in oklab, var(--color-primary) 18%, transparent);
+  color: var(--color-primary);
+}
+
+.pipeline-step.is-done .pipeline-dot {
+  border-color: var(--color-success);
+  background: color-mix(in oklab, var(--color-success) 18%, transparent);
+  color: var(--color-success);
+}
+
+.pipeline-step.is-done .pipeline-line {
+  background: color-mix(in oklab, var(--color-success) 45%, transparent);
+}
+
+.pipeline-step.is-locked .pipeline-body {
+  opacity: 0.55;
+}
+
+.pipeline-step.is-locked .pipeline-title {
+  color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
 }
 
 .cut-preview-stage {
