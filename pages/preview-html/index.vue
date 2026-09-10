@@ -34,6 +34,12 @@
 </template>
 
 <script lang="ts" setup>
+definePageMeta({
+  tool: true,
+  title: '📷在线预览html代码',
+  group: '工具',
+});
+
 const html = ref(`<div class="triangle"></div>`);
 const style = ref(`.triangle {
   width: 0;

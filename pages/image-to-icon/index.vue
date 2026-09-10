@@ -87,6 +87,12 @@
 </template>
 
 <script setup>
+definePageMeta({
+  tool: true,
+  title: '🎨图片转换工具',
+  group: '媒体类',
+});
+
 import DomToSvg from './dom-to-svg.vue';
 import AvifToPng from './avif-to-png.vue';
 

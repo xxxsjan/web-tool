@@ -48,6 +48,12 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  tool: true,
+  title: '🔄字符处理',
+  group: '工具',
+});
+
 import EsmCommonjs from './comps/esm-to-commonjs.vue';
 import HumpTransition from './comps/HumpTransition.vue';
 import PathTransform from './comps/PathTransform.vue';

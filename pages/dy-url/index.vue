@@ -35,6 +35,12 @@
 </template>
 
 <script setup>
+definePageMeta({
+  tool: true,
+  title: '🎨抖音转链',
+  group: '抖音类',
+});
+
 const inputText = ref('');
 const shortUrl = ref('');
 const longUrl = ref('');

@@ -318,6 +318,13 @@
     </el-dialog>
   </div>
 </template>
+<script setup>
+definePageMeta({
+  tool: true,
+  title: '🎨图片去黑边',
+  group: '媒体类',
+});
+</script>
 <script>
 import { ElMessageBox } from 'element-plus';
 

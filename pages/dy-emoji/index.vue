@@ -331,6 +331,12 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  tool: true,
+  title: '🎨抖音emoji',
+  group: '抖音类',
+});
+
 import { ref, onMounted, watch } from 'vue';
 import domText from './dom';
 import JSZip from 'jszip';

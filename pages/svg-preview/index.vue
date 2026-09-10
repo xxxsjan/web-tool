@@ -93,6 +93,12 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  tool: true,
+  title: '🎨svg预览',
+  group: '工具',
+});
+
 import { ElMessage } from 'element-plus';
 
 const svgCode = ref(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">

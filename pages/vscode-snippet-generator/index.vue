@@ -1,4 +1,10 @@
 <script setup>
+definePageMeta({
+  tool: true,
+  title: '⛏️vscode代码片段生成',
+  group: '工具',
+});
+
 import * as monaco from 'monaco-editor';
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';

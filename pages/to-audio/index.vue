@@ -250,6 +250,12 @@
 </template>
 
 <script setup>
+definePageMeta({
+  tool: true,
+  title: '🎤视频转音频',
+  group: '媒体类',
+});
+
 import { onUnmounted, ref } from 'vue';
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
