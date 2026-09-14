@@ -6,9 +6,7 @@
       <h1 class="mb-0.5 text-lg font-bold text-base-content sm:mb-1 sm:text-3xl">
         文本编辑
       </h1>
-      <p class="text-[11px] text-base-content/50 sm:text-sm">
-        本地编辑文本，搜索高亮与替换效果接近 VS Code
-      </p>
+     
     </header>
 
     <section
@@ -130,7 +128,7 @@
             v-model="content"
             class="cm-host"
             placeholder="在此粘贴或输入文本…"
-            :autofocus="false"
+            :autofocus="true"
             :indent-with-tab="true"
             :tab-size="2"
             :extensions="extensions"
@@ -460,6 +458,7 @@ function syncSelectionAndMatches(view: EditorView) {
 function onEditorReady(payload: { view: EditorView }) {
   viewRef.value = payload.view;
   applySearchQuery(payload.view);
+  requestAnimationFrame(() => payload.view.focus());
 }
 
 watch([findText, caseSensitive, useRegex, wholeWord, replaceText], () => {
