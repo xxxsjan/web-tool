@@ -7,16 +7,15 @@
         文本编辑
       </h1>
       <p class="text-[11px] text-base-content/50 sm:text-sm">
-        本地编辑文本，支持搜索与批量替换
+        本地编辑文本，搜索高亮与替换效果接近 VS Code
       </p>
     </header>
 
     <section
-      class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm sm:rounded-2xl"
+      class="overflow-hidden rounded-xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm sm:rounded-2xl"
     >
       <!-- 工具栏：搜索替换 -->
-      <div class="shrink-0 space-y-2 border-b border-base-300/50 px-2.5 py-2 sm:space-y-2.5 sm:px-4 sm:py-3">
-        <!-- 查找：输入 + 上下一个（同行，省高度） -->
+      <div class="space-y-2 border-b border-base-300/50 px-2.5 py-2 sm:space-y-2.5 sm:px-4 sm:py-3">
         <div class="flex items-stretch gap-1.5 sm:gap-2">
           <label class="relative min-w-0 flex-1">
             <span class="sr-only">查找</span>
@@ -30,8 +29,8 @@
               autocapitalize="off"
               class="find-input input input-bordered w-full"
               placeholder="查找内容…"
-              @keydown.enter.exact.prevent="findNext"
-              @keydown.enter.shift.prevent="findPrev"
+              @keydown.enter.exact.prevent="onFindNext"
+              @keydown.enter.shift.prevent="onFindPrev"
             />
           </label>
           <span
@@ -42,24 +41,23 @@
           <button
             type="button"
             class="btn btn-ghost border border-base-300 btn-icon"
-            :disabled="!findText"
+            :disabled="!canSearch"
             aria-label="上一个"
-            @click="findPrev"
+            @click="onFindPrev"
           >
             ↑
           </button>
           <button
             type="button"
             class="btn btn-ghost border border-base-300 btn-icon"
-            :disabled="!findText"
+            :disabled="!canSearch"
             aria-label="下一个"
-            @click="findNext"
+            @click="onFindNext"
           >
             ↓
           </button>
         </div>
 
-        <!-- 替换：输入 + 操作 -->
         <div class="flex flex-col gap-1.5 sm:flex-row sm:items-stretch sm:gap-2">
           <label class="min-w-0 flex-1">
             <span class="sr-only">替换为</span>
@@ -70,30 +68,29 @@
               autocomplete="off"
               class="find-input input input-bordered w-full"
               placeholder="替换为…"
-              @keydown.enter.exact.prevent="replaceOne"
+              @keydown.enter.exact.prevent="onReplaceOne"
             />
           </label>
           <div class="grid grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:shrink-0 sm:gap-2">
             <button
               type="button"
               class="btn btn-ghost border border-base-300 btn-mobile"
-              :disabled="!findText || matchCount === 0"
-              @click="replaceOne"
+              :disabled="!canReplace"
+              @click="onReplaceOne"
             >
               替换
             </button>
             <button
               type="button"
               class="btn btn-primary btn-mobile"
-              :disabled="!findText || matchCount === 0"
-              @click="replaceAll"
+              :disabled="!canReplace"
+              @click="onReplaceAll"
             >
               全部替换
             </button>
           </div>
         </div>
 
-        <!-- 选项 -->
         <div class="flex flex-wrap gap-1.5 sm:gap-2">
           <button
             type="button"
@@ -126,24 +123,28 @@
         <p v-else-if="lastAction" class="text-xs text-success">{{ lastAction }}</p>
       </div>
 
-      <!-- 编辑区：占满剩余高度 -->
-      <div class="relative min-h-0 flex-1">
-        <textarea
-          ref="editorRef"
-          v-model="content"
-          class="editor"
-          spellcheck="false"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          placeholder="在此粘贴或输入文本…"
-          @keydown="onEditorKeydown"
-        />
+      <!-- 编辑区：固定高度 -->
+      <div class="editor-shell">
+        <ClientOnly>
+          <Codemirror
+            v-model="content"
+            class="cm-host"
+            placeholder="在此粘贴或输入文本…"
+            :autofocus="false"
+            :indent-with-tab="true"
+            :tab-size="2"
+            :extensions="extensions"
+            @ready="onEditorReady"
+          />
+          <template #fallback>
+            <div class="editor-fallback">加载编辑器…</div>
+          </template>
+        </ClientOnly>
       </div>
 
       <!-- 底栏 -->
       <div
-        class="flex shrink-0 flex-col gap-2 border-t border-base-300/50 px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2.5"
+        class="flex flex-col gap-2 border-t border-base-300/50 px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2.5"
       >
         <div class="font-mono text-[11px] text-base-content/50 sm:text-xs">
           {{ lineCount }} 行 · {{ charCount }} 字
@@ -178,17 +179,42 @@
       </div>
     </section>
 
-    <p class="mt-2 hidden shrink-0 text-center text-xs text-base-content/40 sm:mt-3 sm:block">
-      快捷键：Ctrl/⌘ + F 聚焦查找 · Enter 下一个 · Shift+Enter 上一个
+    <p class="mt-2 hidden text-center text-xs text-base-content/40 sm:mt-3 sm:block">
+      快捷键：Ctrl/⌘ + F 聚焦查找 · Enter 下一个 · Shift+Enter 上一个 · Enter（替换框）逐个替换
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Codemirror } from 'vue-codemirror';
+import {
+  Decoration,
+  EditorView,
+  ViewPlugin,
+  drawSelection,
+  dropCursor,
+  keymap,
+  type DecorationSet,
+  type ViewUpdate,
+} from '@codemirror/view';
+import { EditorState, Prec, RangeSetBuilder, type Extension } from '@codemirror/state';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import {
+  SearchQuery,
+  findNext,
+  findPrevious,
+  getSearchQuery,
+  replaceAll as cmReplaceAll,
+  replaceNext,
+  search,
+  setSearchQuery,
+} from '@codemirror/search';
+
 definePageMeta({
   tool: true,
   title: '📝文本编辑',
   group: '工具',
+  ssr: false,
 });
 
 const content = ref('');
@@ -198,12 +224,14 @@ const caseSensitive = ref(false);
 const useRegex = ref(false);
 const wholeWord = ref(false);
 const currentMatchIndex = ref(-1);
+const matchCount = ref(0);
 const lastAction = ref('');
 const copyLabel = ref('复制');
 const selectionLength = ref(0);
+const regexError = ref('');
 
-const editorRef = ref<HTMLTextAreaElement | null>(null);
 const findInputRef = ref<HTMLInputElement | null>(null);
+const viewRef = shallowRef<EditorView | null>(null);
 
 const charCount = computed(() => content.value.length);
 const lineCount = computed(() => {
@@ -211,149 +239,289 @@ const lineCount = computed(() => {
   return content.value.split(/\r\n|\r|\n/).length;
 });
 
-const regexError = computed(() => {
-  if (!useRegex.value || !findText.value) return '';
-  try {
-    buildPattern(findText.value);
-    return '';
-  } catch (e) {
-    return e instanceof Error ? e.message : '正则无效';
-  }
-});
-
-function escapeRegExp(text: string) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function buildPattern(raw: string) {
-  let source = useRegex.value ? raw : escapeRegExp(raw);
-  if (!useRegex.value && wholeWord.value) {
-    source = `\\b(?:${source})\\b`;
-  }
-  const flags = caseSensitive.value ? 'g' : 'gi';
-  return new RegExp(source, flags);
-}
-
-function collectMatches() {
-  if (!findText.value || regexError.value) return [] as { start: number; end: number }[];
-  const pattern = buildPattern(findText.value);
-  const text = content.value;
-  const list: { start: number; end: number }[] = [];
-  let m: RegExpExecArray | null;
-  pattern.lastIndex = 0;
-  while ((m = pattern.exec(text)) !== null) {
-    const start = m.index;
-    const end = start + m[0].length;
-    list.push({ start, end });
-    if (m[0].length === 0) pattern.lastIndex += 1;
-    if (list.length > 20000) break;
-  }
-  return list;
-}
-
-const matches = computed(() => collectMatches());
-const matchCount = computed(() => matches.value.length);
+const canSearch = computed(
+  () => Boolean(findText.value) && !regexError.value && matchCount.value > 0,
+);
+const canReplace = computed(() => canSearch.value);
 
 const matchStatus = computed(() => {
   if (!findText.value) return '';
   if (regexError.value) return '错误';
   if (matchCount.value === 0) return '0 处';
-  const idx = currentMatchIndex.value;
-  if (idx < 0) return `${matchCount.value} 处`;
-  return `${idx + 1}/${matchCount.value}`;
+  if (currentMatchIndex.value < 0) return `${matchCount.value} 处`;
+  return `${currentMatchIndex.value + 1}/${matchCount.value}`;
 });
 
-watch([findText, caseSensitive, useRegex, wholeWord, content], () => {
-  currentMatchIndex.value = -1;
-  lastAction.value = '';
+const matchMark = Decoration.mark({ class: 'cm-searchMatch' });
+const selectedMatchMark = Decoration.mark({
+  class: 'cm-searchMatch cm-searchMatch-selected',
 });
 
-function selectRange(start: number, end: number) {
-  const el = editorRef.value;
-  if (!el) return;
-  el.focus();
-  el.setSelectionRange(start, end);
-  selectionLength.value = Math.max(0, end - start);
+/**
+ * CodeMirror 内置 searchHighlighter 仅在搜索面板打开时渲染高亮。
+ * 我们用外部工具栏，所以自行根据 SearchQuery 画装饰。
+ */
+const alwaysOnSearchHighlighter = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
 
-  const before = content.value.slice(0, start);
-  const line = before.split(/\r\n|\r|\n/).length;
-  const styles = window.getComputedStyle(el);
-  const lineHeight = Number.parseFloat(styles.lineHeight) || 22;
-  el.scrollTop = Math.max(0, (line - 3) * lineHeight);
-}
-
-function jumpToMatch(index: number) {
-  const list = matches.value;
-  if (!list.length) {
-    currentMatchIndex.value = -1;
-    return;
-  }
-  const i = ((index % list.length) + list.length) % list.length;
-  currentMatchIndex.value = i;
-  const { start, end } = list[i];
-  selectRange(start, end);
-}
-
-function findNext() {
-  if (!findText.value || regexError.value) return;
-  const next = currentMatchIndex.value < 0 ? 0 : currentMatchIndex.value + 1;
-  jumpToMatch(next);
-}
-
-function findPrev() {
-  if (!findText.value || regexError.value) return;
-  const prev =
-    currentMatchIndex.value < 0
-      ? matchCount.value - 1
-      : currentMatchIndex.value - 1;
-  jumpToMatch(prev);
-}
-
-function replaceOne() {
-  if (!findText.value || regexError.value || !matchCount.value) return;
-  const list = matches.value;
-  let idx = currentMatchIndex.value;
-  if (idx < 0) idx = 0;
-  const { start, end } = list[idx];
-  const insertion = replaceText.value;
-  content.value = content.value.slice(0, start) + insertion + content.value.slice(end);
-
-  nextTick(() => {
-    const newEnd = start + insertion.length;
-    selectRange(start, newEnd);
-    const refreshed = collectMatches();
-    if (!refreshed.length) {
-      currentMatchIndex.value = -1;
-      lastAction.value = '已替换 1 处，无更多匹配';
-      return;
+    constructor(view: EditorView) {
+      this.decorations = this.build(view);
     }
-    let nextIdx = refreshed.findIndex(m => m.start >= newEnd);
-    if (nextIdx < 0) nextIdx = 0;
-    currentMatchIndex.value = nextIdx;
-    const m = refreshed[nextIdx];
-    selectRange(m.start, m.end);
-    lastAction.value = '已替换 1 处';
+
+    update(update: ViewUpdate) {
+      const queryChanged = update.transactions.some(tr =>
+        tr.effects.some(e => e.is(setSearchQuery)),
+      );
+      if (
+        queryChanged ||
+        update.docChanged ||
+        update.selectionSet ||
+        update.viewportChanged
+      ) {
+        this.decorations = this.build(update.view);
+      }
+    }
+
+    build(view: EditorView) {
+      const query = getSearchQuery(view.state);
+      if (!query.valid) return Decoration.none;
+
+      const builder = new RangeSetBuilder();
+      const sel = view.state.selection.main;
+      let lastTo = -1;
+
+      for (let i = 0, ranges = view.visibleRanges, len = ranges.length; i < len; i++) {
+        let { from, to } = ranges[i];
+        while (i < len - 1 && to > ranges[i + 1].from - 500) {
+          to = ranges[++i].to;
+        }
+        const cursor = query.getCursor(view.state, from, to);
+        for (let item = cursor.next(); !item.done; item = cursor.next()) {
+          const { from: a, to: b } = item.value;
+          if (b <= lastTo) continue;
+          lastTo = b;
+          const selected = sel.from === a && sel.to === b;
+          builder.add(a, b, selected ? selectedMatchMark : matchMark);
+        }
+      }
+
+      return builder.finish();
+    }
+  },
+  { decorations: v => v.decorations },
+);
+
+const editorTheme = EditorView.theme({
+  '&': {
+    height: '100%',
+    fontSize: '16px',
+    backgroundColor: 'transparent',
+    color: 'var(--color-base-content, #111)',
+  },
+  '.cm-scroller': {
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    lineHeight: '1.65',
+    overflow: 'auto',
+    height: '100%',
+  },
+  '.cm-content': {
+    caretColor: 'transparent', /* 使用 drawSelection 自绘光标 */
+    padding: '12px 14px',
+    minHeight: '100%',
+  },
+  '.cm-gutters': {
+    display: 'none',
+  },
+  '&.cm-focused': {
+    outline: 'none',
+  },
+  '.cm-activeLine': {
+    backgroundColor: 'transparent',
+  },
+  '.cm-cursor, .cm-cursor-primary, .cm-dropCursor': {
+    borderLeftColor: 'currentColor',
+    borderLeftWidth: '2px',
+  },
+  '&.cm-focused .cm-cursor': {
+    borderLeftColor: 'currentColor',
+  },
+  /* VS Code 风格搜索高亮 */
+  '.cm-searchMatch': {
+    backgroundColor: '#ea5c0055',
+    outline: '1px solid #ea5c0088',
+    borderRadius: '2px',
+  },
+  '.cm-searchMatch-selected': {
+    backgroundColor: '#00a2db99',
+    outline: '1px solid #008cbe',
+    borderRadius: '2px',
+  },
+  '@media (min-width: 640px)': {
+    '&': {
+      fontSize: '13px',
+    },
+    '.cm-content': {
+      padding: '14px 16px',
+    },
+  },
+});
+
+const extensions: Extension[] = [
+  history(),
+  drawSelection({ cursorBlinkRate: 1200 }),
+  dropCursor(),
+  search({ top: true }),
+  Prec.high(alwaysOnSearchHighlighter),
+  EditorView.lineWrapping,
+  keymap.of([
+    ...defaultKeymap,
+    ...historyKeymap,
+    {
+      key: 'Mod-f',
+      run: () => {
+        findInputRef.value?.focus();
+        findInputRef.value?.select();
+        return true;
+      },
+      preventDefault: true,
+    },
+    {
+      key: 'F3',
+      run: view => findNext(view),
+    },
+    {
+      key: 'Shift-F3',
+      run: view => findPrevious(view),
+    },
+  ]),
+  editorTheme,
+  EditorView.updateListener.of(update => {
+    if (update.selectionSet || update.docChanged) {
+      syncSelectionAndMatches(update.view);
+    }
+  }),
+  EditorState.tabSize.of(2),
+];
+
+function buildQuery() {
+  return new SearchQuery({
+    search: findText.value,
+    caseSensitive: caseSensitive.value,
+    regexp: useRegex.value,
+    wholeWord: !useRegex.value && wholeWord.value,
+    replace: replaceText.value,
+    literal: true,
   });
 }
 
-function replaceAll() {
-  if (!findText.value || regexError.value || !matchCount.value) return;
-  const count = matchCount.value;
-  try {
-    const pattern = buildPattern(findText.value);
-    content.value = content.value.replace(pattern, replaceText.value);
-    currentMatchIndex.value = -1;
-    lastAction.value = `已全部替换 ${count} 处`;
-  } catch {
-    lastAction.value = '';
+function applySearchQuery(view = viewRef.value) {
+  if (!view) return;
+  const query = buildQuery();
+  regexError.value = '';
+  if (findText.value && useRegex.value && !query.valid) {
+    regexError.value = '正则无效';
   }
+  view.dispatch({ effects: setSearchQuery.of(query) });
+  refreshMatchInfo(view);
+}
+
+function collectMatchRanges(view: EditorView) {
+  const query = getSearchQuery(view.state);
+  if (!query.valid || !findText.value) return [] as { from: number; to: number }[];
+  const ranges: { from: number; to: number }[] = [];
+  const cursor = query.getCursor(view.state);
+  for (let item = cursor.next(); !item.done; item = cursor.next()) {
+    ranges.push(item.value);
+    if (ranges.length > 20000) break;
+  }
+  return ranges;
+}
+
+function refreshMatchInfo(view: EditorView) {
+  if (regexError.value || !findText.value) {
+    matchCount.value = 0;
+    currentMatchIndex.value = -1;
+    return;
+  }
+  const ranges = collectMatchRanges(view);
+  matchCount.value = ranges.length;
+  const sel = view.state.selection.main;
+  const idx = ranges.findIndex(r => r.from === sel.from && r.to === sel.to);
+  currentMatchIndex.value = idx;
+}
+
+function syncSelectionAndMatches(view: EditorView) {
+  const sel = view.state.selection.main;
+  selectionLength.value = Math.abs(sel.to - sel.from);
+  if (findText.value) refreshMatchInfo(view);
+}
+
+function onEditorReady(payload: { view: EditorView }) {
+  viewRef.value = payload.view;
+  applySearchQuery(payload.view);
+}
+
+watch([findText, caseSensitive, useRegex, wholeWord, replaceText], () => {
+  lastAction.value = '';
+  applySearchQuery();
+});
+
+function onFindNext() {
+  const view = viewRef.value;
+  if (!view || !findText.value || regexError.value) return;
+  applySearchQuery(view);
+  findNext(view);
+  refreshMatchInfo(view);
+  lastAction.value = '';
+}
+
+function onFindPrev() {
+  const view = viewRef.value;
+  if (!view || !findText.value || regexError.value) return;
+  applySearchQuery(view);
+  findPrevious(view);
+  refreshMatchInfo(view);
+  lastAction.value = '';
+}
+
+function onReplaceOne() {
+  const view = viewRef.value;
+  if (!view || !canReplace.value) return;
+  applySearchQuery(view);
+  const before = matchCount.value;
+  const ranges = collectMatchRanges(view);
+  const sel = view.state.selection.main;
+  const onMatch = ranges.some(r => r.from === sel.from && r.to === sel.to);
+  if (!onMatch) {
+    findNext(view);
+  }
+  replaceNext(view);
+  refreshMatchInfo(view);
+  if (matchCount.value === 0) {
+    lastAction.value = before > 0 ? '已替换 1 处，无更多匹配' : '';
+  } else {
+    lastAction.value = '已替换 1 处';
+  }
+}
+
+function onReplaceAll() {
+  const view = viewRef.value;
+  if (!view || !canReplace.value) return;
+  applySearchQuery(view);
+  const count = matchCount.value;
+  cmReplaceAll(view);
+  refreshMatchInfo(view);
+  lastAction.value = `已全部替换 ${count} 处`;
 }
 
 function clearContent() {
   content.value = '';
   currentMatchIndex.value = -1;
+  matchCount.value = 0;
   lastAction.value = '已清空';
   selectionLength.value = 0;
+  nextTick(() => applySearchQuery());
 }
 
 async function copyContent() {
@@ -385,45 +553,16 @@ function downloadContent() {
   URL.revokeObjectURL(url);
   lastAction.value = '已下载';
 }
-
-function onEditorKeydown(e: KeyboardEvent) {
-  const mod = e.ctrlKey || e.metaKey;
-  if (mod && e.key.toLowerCase() === 'f') {
-    e.preventDefault();
-    findInputRef.value?.focus();
-    findInputRef.value?.select();
-  }
-}
-
-function syncSelection() {
-  const el = editorRef.value;
-  if (!el) {
-    selectionLength.value = 0;
-    return;
-  }
-  selectionLength.value = Math.abs(el.selectionEnd - el.selectionStart);
-}
-
-onMounted(() => {
-  const el = editorRef.value;
-  if (!el) return;
-  el.addEventListener('select', syncSelection);
-  el.addEventListener('keyup', syncSelection);
-  el.addEventListener('mouseup', syncSelection);
-  el.addEventListener('touchend', syncSelection);
-});
 </script>
 
 <style scoped>
 .page {
   -webkit-tap-highlight-color: transparent;
-  /* 顶栏约 3.5rem，再留一点余量 */
-  min-height: calc(100dvh - 3.75rem);
 }
 
 .find-input {
   min-height: 2.75rem;
-  font-size: 16px; /* 避免 iOS 聚焦自动放大 */
+  font-size: 16px;
   line-height: 1.4;
 }
 
@@ -507,44 +646,62 @@ onMounted(() => {
   pointer-events: none;
 }
 
-.editor {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: min(42dvh, 360px);
-  max-height: none;
-  resize: none;
-  border: 0;
+.editor-shell {
+  height: 420px;
+  overflow: hidden;
   background: color-mix(in oklab, var(--color-base-200) 45%, transparent);
-  padding: 12px 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 16px; /* 避免 iOS 聚焦自动放大 */
-  line-height: 1.65;
-  color: var(--color-base-content);
-  outline: none;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
-.editor::placeholder {
-  color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
-}
-
-.editor:focus {
+.editor-shell:focus-within {
   background: color-mix(in oklab, var(--color-base-200) 65%, transparent);
 }
 
-@media (min-width: 640px) {
-  .page {
-    min-height: auto;
-  }
+.cm-host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
-  .editor {
-    min-height: min(58vh, 560px);
-    height: auto;
-    resize: vertical;
-    font-size: 13px;
-    padding: 14px 16px;
+.cm-host :deep(.cm-editor) {
+  height: 100%;
+  background: transparent;
+}
+
+.cm-host :deep(.cm-cursor),
+.cm-host :deep(.cm-cursor-primary) {
+  border-left: 2px solid currentColor !important;
+  margin-left: -1px;
+  pointer-events: none;
+}
+
+.cm-host :deep(.cm-editor.cm-focused) {
+  outline: none;
+}
+
+/* 兜底确保高亮可见（部分主题/预检可能压低 mark 背景） */
+.cm-host :deep(.cm-searchMatch) {
+  background-color: #ea5c0055 !important;
+  outline: 1px solid #ea5c0088;
+  border-radius: 2px;
+}
+
+.cm-host :deep(.cm-searchMatch-selected) {
+  background-color: #00a2db99 !important;
+  outline: 1px solid #008cbe;
+}
+
+.editor-fallback {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .editor-shell {
+    height: 520px;
   }
 }
 </style>
