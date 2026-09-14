@@ -9,36 +9,21 @@
       </p>
     </header>
 
-    <section
-      class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
-      <div
-        class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5">
+    <section class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5">
         <div class="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            class="btn btn-primary btn-sm"
-            :disabled="!svgCode.trim()"
-            @click="parseSvg">
+          <button type="button" class="btn btn-primary btn-sm" :disabled="!svgCode.trim()" @click="parseSvg">
             预览
           </button>
-          <button
-            type="button"
-            class="btn btn-ghost btn-sm border border-base-300"
-            :disabled="!parsedSvg"
+          <button type="button" class="btn btn-ghost btn-sm border border-base-300" :disabled="!parsedSvg"
             @click="saveFile('png')">
             导出 PNG
           </button>
-          <button
-            type="button"
-            class="btn btn-ghost btn-sm border border-base-300"
-            :disabled="!parsedSvg"
+          <button type="button" class="btn btn-ghost btn-sm border border-base-300" :disabled="!parsedSvg"
             @click="saveFile('svg')">
             导出 SVG
           </button>
-          <button
-            type="button"
-            class="btn btn-ghost btn-sm"
-            :disabled="!svgCode && !parsedSvg && !error"
+          <button type="button" class="btn btn-ghost btn-sm" :disabled="!svgCode && !parsedSvg && !error"
             @click="clearAll">
             清空
           </button>
@@ -57,12 +42,9 @@
               {{ lineCount }} 行
             </span>
           </div>
-          <textarea
-            v-model="svgCode"
+          <textarea v-model="svgCode"
             class="textarea textarea-bordered min-h-0 flex-1 w-full resize-none font-mono text-sm leading-relaxed"
-            placeholder="粘贴或输入以 <svg> 开头的代码…"
-            spellcheck="false"
-            @keydown.ctrl.enter.prevent="parseSvg"
+            placeholder="粘贴或输入以 <svg> 开头的代码…" spellcheck="false" @keydown.ctrl.enter.prevent="parseSvg"
             @keydown.meta.enter.prevent="parseSvg" />
         </div>
 
@@ -73,14 +55,11 @@
           </div>
           <div
             class="preview-stage relative flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-dashed border-base-300/70 p-4">
-            <div
-              v-if="error"
+            <div v-if="error"
               class="max-w-sm rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-center text-sm text-error">
               {{ error }}
             </div>
-            <div
-              v-else-if="parsedSvg"
-              class="preview-svg flex max-h-full max-w-full items-center justify-center"
+            <div v-else-if="parsedSvg" class="preview-svg flex max-h-full max-w-full items-center justify-center"
               v-html="parsedSvg" />
             <p v-else class="px-4 text-center text-xs text-base-content/40">
               输入 SVG 后点击预览，或开启实时预览
@@ -115,6 +94,43 @@ const lineCount = computed(() => {
   return svgCode.value.split('\n').length;
 });
 
+function hasCssSize(value: string | null) {
+  if (!value) return false;
+  const v = value.trim();
+  if (!v || v === 'auto' || v === 'none') return false;
+  // 纯数字或带单位都算有尺寸；百分比单独有时也可用
+  return /[\d.]/.test(v);
+}
+
+/** 根 svg 缺少宽高时补 width="100px"，便于预览与导出 */
+function ensureSvgSize(svgMarkup: string) {
+  if (!import.meta.client) return svgMarkup;
+
+  try {
+    const doc = new DOMParser().parseFromString(svgMarkup, 'image/svg+xml');
+    const svg = doc.querySelector('svg');
+    if (!svg) return svgMarkup;
+
+    const parseError = doc.querySelector('parsererror');
+    if (parseError) return svgMarkup;
+
+    const hasWidth = hasCssSize(svg.getAttribute('width'));
+    const hasHeight = hasCssSize(svg.getAttribute('height'));
+
+    if (!hasWidth && !hasHeight) {
+      svg.setAttribute('width', '100px');
+      // 有 viewBox 时只设宽度即可按比例缩放；没有则给个正方形高度
+      if (!svg.getAttribute('viewBox')?.trim()) {
+        svg.setAttribute('height', '100px');
+      }
+    }
+
+    return new XMLSerializer().serializeToString(svg);
+  } catch {
+    return svgMarkup;
+  }
+}
+
 function parseSvg() {
   error.value = '';
   try {
@@ -136,7 +152,7 @@ function parseSvg() {
       .replace(/\son\w+\s*=\s*[^\s>]+/gi, '')
       .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/</g, '&lt;'));
 
-    parsedSvg.value = sanitized;
+    parsedSvg.value = ensureSvgSize(sanitized);
   } catch (err: any) {
     error.value = '解析失败：' + (err?.message || String(err));
     parsedSvg.value = '';
@@ -269,26 +285,18 @@ function clearAll() {
 .preview-stage {
   background-color: color-mix(in oklab, var(--color-base-200) 70%, transparent);
   background-image:
-    linear-gradient(
-      45deg,
+    linear-gradient(45deg,
       color-mix(in oklab, var(--color-base-300) 55%, transparent) 25%,
-      transparent 25%
-    ),
-    linear-gradient(
-      -45deg,
+      transparent 25%),
+    linear-gradient(-45deg,
       color-mix(in oklab, var(--color-base-300) 55%, transparent) 25%,
-      transparent 25%
-    ),
-    linear-gradient(
-      45deg,
+      transparent 25%),
+    linear-gradient(45deg,
       transparent 75%,
-      color-mix(in oklab, var(--color-base-300) 55%, transparent) 75%
-    ),
-    linear-gradient(
-      -45deg,
+      color-mix(in oklab, var(--color-base-300) 55%, transparent) 75%),
+    linear-gradient(-45deg,
       transparent 75%,
-      color-mix(in oklab, var(--color-base-300) 55%, transparent) 75%
-    );
+      color-mix(in oklab, var(--color-base-300) 55%, transparent) 75%);
   background-size: 16px 16px;
   background-position:
     0 0,
