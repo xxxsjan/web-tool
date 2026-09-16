@@ -818,7 +818,7 @@ export default {
       const url = URL.createObjectURL(this._outputBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `image.${this.mimeToExt(this.outputMime)}`;
+      link.download = `${Date.now()}.${this.mimeToExt(this.outputMime)}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
