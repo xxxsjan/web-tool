@@ -11,14 +11,16 @@
 
     <nav
       class="mb-5 flex flex-wrap justify-center gap-2 sm:mb-6"
-      aria-label="转换类型">
+      aria-label="转换类型"
+    >
       <button
         v-for="item in tabs"
         :key="item.key"
         type="button"
         class="tab-chip"
         :class="{ 'tab-chip--active': curTab === item.key }"
-        @click="curTab = item.key">
+        @click="curTab = item.key"
+      >
         <span class="tab-chip__icon" aria-hidden="true">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
       </button>
@@ -27,14 +29,20 @@
     <Transition name="panel-fade" mode="out-in">
       <section
         :key="curTab"
-        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
+        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+      >
         <div
-          class="flex items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5">
+          class="flex items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5"
+        >
           <div class="min-w-0">
-            <h2 class="truncate text-sm font-semibold text-base-content sm:text-base">
+            <h2
+              class="truncate text-sm font-semibold text-base-content sm:text-base"
+            >
               {{ currentTab?.label }}
             </h2>
-            <p class="mt-0.5 truncate text-[11px] text-base-content/45 sm:text-xs">
+            <p
+              class="mt-0.5 truncate text-[11px] text-base-content/45 sm:text-xs"
+            >
               {{ currentTab?.desc }}
             </p>
           </div>
@@ -57,11 +65,15 @@ definePageMeta({
 import EsmCommonjs from './comps/esm-to-commonjs.vue';
 import HumpTransition from './comps/HumpTransition.vue';
 import PathTransform from './comps/PathTransform.vue';
-import TemplateToNormal from './comps/TemplateToNormal.vue';
+ 
 import VueToJsx from './comps/VueToJsx.vue';
 
-const StyleToObject = defineAsyncComponent(() =>
-  import('./comps/StyleToObject.vue'),
+const StyleToObject = defineAsyncComponent(
+  () => import('./comps/StyleToObject.vue'),
+);
+
+const TemplateToNormal = defineAsyncComponent(
+  () => import('./comps/TemplateToNormal.vue'),
 );
 
 const tabs = [
@@ -107,7 +119,7 @@ type TabKey = (typeof tabs)[number]['key'];
 
 const curTab = ref<TabKey>('PathTransform');
 
-const currentTab = computed(() => tabs.find((t) => t.key === curTab.value));
+const currentTab = computed(() => tabs.find(t => t.key === curTab.value));
 
 const componentMap = {
   EsmCommonjs,
@@ -150,7 +162,8 @@ const getComponent = (name: TabKey) => componentMap[name];
   border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
   background: color-mix(in oklab, var(--color-primary) 16%, transparent);
   color: var(--color-primary);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 
 .tab-chip__icon {

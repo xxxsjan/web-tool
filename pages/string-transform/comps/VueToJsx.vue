@@ -7,7 +7,8 @@
           v-model="codeLeft"
           class="textarea textarea-bordered h-64 w-full resize-y font-mono text-sm leading-relaxed"
           placeholder="请输入 Vue 模板代码…"
-          spellcheck="false" />
+          spellcheck="false"
+        />
       </div>
 
       <div class="space-y-2">
@@ -16,12 +17,15 @@
           <button
             type="button"
             class="btn btn-ghost btn-xs text-primary"
-            @click="copyResult">
+            @click="copyResult"
+          >
             复制
           </button>
         </div>
         <pre
-          class="output-box h-64 overflow-auto rounded-lg border border-base-300/60 bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content">{{ codeRight }}</pre>
+          class="output-box h-64 overflow-auto rounded-lg border border-base-300/60 bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content"
+          >{{ codeRight }}</pre
+        >
       </div>
     </div>
 
@@ -34,7 +38,8 @@
 <script setup>
 import { ElMessage } from 'element-plus';
 
-const codeLeft = ref(`<view class="guess viewPort" scroll-y :data="{a:'1'}" :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
+const codeLeft =
+  ref(`<view class="guess viewPort" scroll-y :data="{a:'1'}" :show-scrollbar="false" :style="{ paddingTop: globalProperties.$safeAreaInsets!.top + 40 + 'px' }" @change="handleChange">
     <navigator
       v-for="item in guessList"
       :key="item.id"
