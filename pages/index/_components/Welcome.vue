@@ -21,9 +21,10 @@
                 sec
             </div>
         </div>
-        <div class="welcome-text">WelCome</div>
-        <h1 class="animate-text"></h1>
-        <p class="animate-bounce text-xl text-center text-red-500">点击进入</p>
+        <p class="enter-hint">
+            <span class="enter-hint__text">点击进入</span>
+            <span class="enter-hint__arrow" aria-hidden="true">↓</span>
+        </p>
     </div>
 
 </template>
@@ -68,5 +69,54 @@ onMounted(() => {
 
 .welcome-text {
     font-size: 10vw;
+}
+
+.enter-hint {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+}
+
+.enter-hint__text {
+    font-size: 0.95rem;
+    letter-spacing: 0.45em;
+    text-indent: 0.45em;
+    color: rgba(255, 255, 255, 0.72);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+    animation: enter-fade 2.4s ease-in-out infinite;
+}
+
+.enter-hint__arrow {
+    font-size: 0.85rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.45);
+    animation: enter-float 1.6s ease-in-out infinite;
+}
+
+@keyframes enter-fade {
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes enter-float {
+    0%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.35;
+    }
+
+    50% {
+        transform: translateY(6px);
+        opacity: 0.8;
+    }
 }
 </style>
