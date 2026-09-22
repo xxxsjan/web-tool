@@ -1,8 +1,8 @@
 <template>
-  <div class="relative z-[100]">
+  <div class="relative z-[100] max-w-full">
     <div
       v-show="shouldShowBackHomeBtn"
-      class="navbar relative z-[100] overflow-visible bg-transparent w-full gap-1 px-2 sm:px-3"
+      class="navbar relative z-[100] max-w-full overflow-visible bg-transparent w-full gap-1 px-2 sm:px-3"
     >
       <div class="flex-none">
         <a class="btn btn-ghost text-xl px-2" href="/home">
@@ -54,7 +54,8 @@
 
             <div
               v-show="openGroup === group.group"
-              class="absolute left-0 top-[calc(100%-2px)] z-[110] min-w-[12rem] pt-2"
+              class="absolute left-0 top-[calc(100%-2px)] z-[110] min-w-[12rem] max-w-[min(16rem,calc(100vw-1rem))] pt-2"
+              :class="group.group === groupedTools[groupedTools.length - 1]?.group ? 'left-auto right-0' : ''"
             >
               <div
                 class="rounded-xl border border-base-300 bg-base-100 p-1.5 shadow-xl"
@@ -102,7 +103,7 @@
         </button>
 
         <div class="relative">
-          <span class="absolute -top-2 -right-2 flex h-2 w-2">
+          <span class="absolute top-0 right-0 flex h-2 w-2 translate-x-1/4 -translate-y-1/4">
             <span
               class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"
             ></span>

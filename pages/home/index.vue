@@ -1,5 +1,5 @@
 <template>
-  <div class="home-page min-w-[390px] w-full">home</div>
+  <div class="home-page w-full max-w-full overflow-x-clip">home</div>
 </template>
 
 <script setup lang="ts"></script>

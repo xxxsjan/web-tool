@@ -12,6 +12,12 @@ body,
     background-color: transparent !important;
 }
 
+html,
+body {
+    overflow-x: clip;
+    max-width: 100%;
+}
+
 body {
     margin: 0;
     font: normal Arial, Helvetica, sans-serif;
