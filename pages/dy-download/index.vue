@@ -5,7 +5,7 @@
         抖音无水印下载
       </h1>
       <p class="text-xs text-base-content/50 sm:text-sm">
-        粘贴分享口令 → 解析 → 下载视频或音频
+        粘贴分享口令 → 选择画质 → 下载视频或音频
       </p>
     </header>
 
@@ -14,7 +14,10 @@
     >
       <div class="space-y-4 p-4 sm:p-5">
         <div>
-          <label for="shareText" class="mb-1 block text-sm font-medium text-base-content">
+          <label
+            for="shareText"
+            class="mb-1 block text-sm font-medium text-base-content"
+          >
             抖音口令 / 链接
           </label>
           <textarea
@@ -102,12 +105,27 @@
           <span class="badge badge-ghost shrink-0">ID {{ result.awemeId }}</span>
         </div>
 
+        <!-- 视频元信息 -->
         <div
-          v-if="result.cover || result.videoUrl"
+          v-if="metaChips.length"
+          class="flex flex-wrap gap-2"
+        >
+          <span
+            v-for="chip in metaChips"
+            :key="chip"
+            class="badge badge-outline border-base-300 text-base-content/80"
+          >
+            {{ chip }}
+          </span>
+        </div>
+
+        <div
+          v-if="result.cover || selectedVideoUrl"
           class="overflow-hidden rounded-xl border border-base-300/60 bg-neutral"
         >
           <video
             v-if="downloadMode === 'video' && previewVideoUrl"
+            :key="selectedVideoUrl"
             :src="previewVideoUrl"
             :poster="result.cover || undefined"
             controls
@@ -122,12 +140,43 @@
           />
         </div>
 
-        <div class="grid gap-2 text-sm sm:grid-cols-2">
-          <div class="rounded-lg border border-base-300/60 bg-base-200/40 px-3 py-2">
-            <span class="text-base-content/50">视频：</span>
-            <span>{{ result.videoUrl ? '已获取无水印地址' : '无' }}</span>
+        <!-- 画质选择 -->
+        <div v-if="downloadMode === 'video' && qualityOptions.length">
+          <p class="mb-2 text-sm font-medium text-base-content/70">
+            选择画质
+          </p>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <button
+              v-for="item in qualityOptions"
+              :key="item.ratio"
+              type="button"
+              class="btn h-auto min-h-12 flex-col gap-0.5 py-2"
+              :class="
+                selectedRatio === item.ratio
+                  ? 'btn-primary'
+                  : 'btn-ghost border border-base-300'
+              "
+              :disabled="downloading || !item.available"
+              @click="selectedRatio = item.ratio"
+            >
+              <span class="text-sm font-semibold">{{ item.label }}</span>
+              <span class="text-[11px] font-normal opacity-80">
+                {{ formatSize(item.size) }}
+              </span>
+            </button>
           </div>
-          <div class="rounded-lg border border-base-300/60 bg-base-200/40 px-3 py-2">
+        </div>
+
+        <div class="grid gap-2 text-sm sm:grid-cols-2">
+          <div
+            class="rounded-lg border border-base-300/60 bg-base-200/40 px-3 py-2"
+          >
+            <span class="text-base-content/50">当前画质：</span>
+            <span>{{ currentQualityLabel }}</span>
+          </div>
+          <div
+            class="rounded-lg border border-base-300/60 bg-base-200/40 px-3 py-2"
+          >
             <span class="text-base-content/50">音频：</span>
             <span>
               {{
@@ -148,7 +197,10 @@
             :disabled="downloading || !canDownload"
             @click="startDownload"
           >
-            <span v-if="downloading" class="loading loading-spinner loading-sm" />
+            <span
+              v-if="downloading"
+              class="loading loading-spinner loading-sm"
+            />
             {{ downloadButtonText }}
           </button>
         </div>
@@ -180,32 +232,89 @@ const downloading = ref(false);
 const errorMessage = ref('');
 const downloadStatus = ref('');
 const result = ref(null);
+const selectedRatio = ref('');
+
+const qualityOptions = computed(() => result.value?.qualities || []);
+
+const selectedQuality = computed(() => {
+  const list = qualityOptions.value;
+  if (!list.length) return null;
+  return (
+    list.find(item => item.ratio === selectedRatio.value) || list[0] || null
+  );
+});
+
+const selectedVideoUrl = computed(() => {
+  return (
+    selectedQuality.value?.url ||
+    result.value?.videoUrl ||
+    result.value?.videoUrls?.[0] ||
+    ''
+  );
+});
+
+const currentQualityLabel = computed(() => {
+  const q = selectedQuality.value;
+  if (!q) return result.value?.videoUrl ? '默认' : '无';
+  const sizeText = q.size ? ` · ${formatSize(q.size)}` : '';
+  return `${q.label}${sizeText}`;
+});
+
+const metaChips = computed(() => {
+  if (!result.value) return [];
+  const chips = [];
+  const { width, height, duration, ratio } = result.value;
+  if (width && height) chips.push(`${width}×${height}`);
+  if (ratio) chips.push(String(ratio).toUpperCase());
+  if (duration) chips.push(formatDuration(duration));
+  if (qualityOptions.value.length) {
+    chips.push(`${qualityOptions.value.length} 档画质`);
+  }
+  return chips;
+});
 
 const canDownload = computed(() => {
   if (!result.value) return false;
-  if (downloadMode.value === 'video') return Boolean(result.value.videoUrl);
-  return Boolean(result.value.audioUrl || result.value.videoUrl);
+  if (downloadMode.value === 'video') return Boolean(selectedVideoUrl.value);
+  return Boolean(result.value.audioUrl || selectedVideoUrl.value);
 });
 
 const downloadButtonText = computed(() => {
   if (downloading.value) return '下载中…';
-  return downloadMode.value === 'audio' ? '下载音频' : '下载视频';
+  if (downloadMode.value === 'audio') return '下载音频';
+  const label = selectedQuality.value?.label;
+  return label ? `下载 ${label}` : '下载视频';
 });
 
 /** 通过代理预览，避免部分 CDN 直链防盗链 */
 const previewVideoUrl = computed(() => {
-  if (!result.value?.videoUrl) return '';
+  if (!selectedVideoUrl.value) return '';
   const params = new URLSearchParams({
-    url: result.value.videoUrl,
+    url: selectedVideoUrl.value,
     kind: 'video',
     filename: 'preview',
   });
   return `/api/douyin-proxy?${params.toString()}`;
 });
 
+const formatSize = bytes => {
+  if (bytes == null || !Number.isFinite(bytes) || bytes <= 0) return '体积未知';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const formatDuration = seconds => {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return m > 0 ? `${m}:${String(r).padStart(2, '0')}` : `${r}s`;
+};
+
 const resetAll = () => {
   inputText.value = '';
   result.value = null;
+  selectedRatio.value = '';
   errorMessage.value = '';
   downloadStatus.value = '';
 };
@@ -213,6 +322,7 @@ const resetAll = () => {
 const parseShare = async () => {
   errorMessage.value = '';
   result.value = null;
+  selectedRatio.value = '';
 
   if (!inputText.value.trim()) {
     errorMessage.value = '请粘贴抖音分享口令或链接';
@@ -227,21 +337,24 @@ const parseShare = async () => {
     });
 
     if (error.value) {
-      throw new Error(error.value.data?.message || error.value.message || '解析失败');
+      throw new Error(
+        error.value.data?.message || error.value.message || '解析失败',
+      );
     }
     if (!data.value?.data) {
       throw new Error('无效的解析结果');
     }
 
     result.value = data.value.data;
+    selectedRatio.value = result.value.qualities?.[0]?.ratio || '';
 
-    if (downloadMode.value === 'video' && !result.value.videoUrl) {
+    if (downloadMode.value === 'video' && !selectedVideoUrl.value) {
       errorMessage.value = '该作品没有可下载视频（可能是图文）';
     }
     if (
       downloadMode.value === 'audio' &&
       !result.value.audioUrl &&
-      !result.value.videoUrl
+      !selectedVideoUrl.value
     ) {
       errorMessage.value = '该作品没有可下载音频';
     }
@@ -285,23 +398,26 @@ const startDownload = async () => {
   try {
     const title = safeFilename(result.value.title);
     const author = safeFilename(result.value.author || 'douyin');
-    const baseName = `${title}_${author}`.slice(0, 80);
+    const qualityTag = selectedQuality.value?.label
+      ? `_${selectedQuality.value.label}`
+      : '';
+    const baseName = `${title}_${author}${qualityTag}`.slice(0, 80);
 
     if (downloadMode.value === 'video') {
       const params = new URLSearchParams({
-        url: result.value.videoUrl,
+        url: selectedVideoUrl.value,
         kind: 'video',
         filename: baseName,
       });
       const blob = await fetchAsBlob(
         `/api/douyin-proxy?${params.toString()}`,
-        '正在下载无水印视频…',
+        `正在下载 ${selectedQuality.value?.label || ''} 无水印视频…`,
       );
       saveAs(blob, `${baseName}.mp4`);
       return;
     }
 
-    // 音频：优先原声，否则从视频提取
+    // 音频：优先原声，否则从当前画质视频提取
     if (result.value.audioUrl) {
       const params = new URLSearchParams({
         url: result.value.audioUrl,
@@ -317,7 +433,7 @@ const startDownload = async () => {
     }
 
     const params = new URLSearchParams({
-      url: result.value.videoUrl,
+      url: selectedVideoUrl.value,
       filename: baseName,
     });
     const blob = await fetchAsBlob(

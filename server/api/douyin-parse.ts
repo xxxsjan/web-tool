@@ -121,16 +121,122 @@ const toNoWatermark = (url: string): string => {
     .replace(/watermark=1/g, 'watermark=0');
 };
 
-const buildPlayUrls = (uri: string): string[] => {
-  if (!uri) return [];
-  if (/^https?:\/\//i.test(uri)) {
-    return [toNoWatermark(uri)];
+type QualityOption = {
+  label: string;
+  ratio: string;
+  url: string;
+  size: number | null;
+  available: boolean;
+};
+
+const QUALITY_PRESETS = [
+  { ratio: '1080p', label: '1080P' },
+  { ratio: '720p', label: '720P' },
+  { ratio: '540p', label: '540P' },
+] as const;
+
+const buildPlayUrl = (uri: string, ratio: string): string => {
+  if (!uri) return '';
+  if (/^https?:\/\//i.test(uri)) return toNoWatermark(uri);
+  return `https://aweme.snssdk.com/aweme/v1/play/?video_id=${encodeURIComponent(uri)}&ratio=${ratio}&line=0`;
+};
+
+/** 探测播放地址是否可用及文件大小（不下载正文） */
+const probeMedia = async (
+  url: string,
+): Promise<{ size: number | null; available: boolean; finalUrl: string }> => {
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': MOBILE_UA,
+        Referer: 'https://www.iesdouyin.com/',
+        Range: 'bytes=0-0',
+      },
+      maxRedirects: 8,
+      timeout: 12000,
+      responseType: 'stream',
+      validateStatus: status => status >= 200 && status < 400,
+    });
+
+    // 尽快关掉响应流，避免占带宽
+    response.data?.destroy?.();
+
+    const contentRange = String(response.headers['content-range'] || '');
+    const rangeTotal = contentRange.match(/\/(\d+)$/)?.[1];
+    const contentLength = response.headers['content-length'];
+    const size = rangeTotal
+      ? Number(rangeTotal)
+      : contentLength
+        ? Number(contentLength)
+        : null;
+
+    const finalUrl =
+      response.request?.res?.responseUrl ||
+      response.request?.responseURL ||
+      url;
+
+    // 同体积不同清晰度参数常会回落到同一文件，仍算可用
+    return {
+      size: Number.isFinite(size as number) && (size as number) > 0 ? size : null,
+      available: true,
+      finalUrl,
+    };
+  } catch {
+    return { size: null, available: false, finalUrl: url };
   }
-  const ratios = ['1080p', '720p', '540p'];
-  return ratios.map(
-    ratio =>
-      `https://aweme.snssdk.com/aweme/v1/play/?video_id=${encodeURIComponent(uri)}&ratio=${ratio}&line=0`,
+};
+
+const buildQualityOptions = async (uri: string): Promise<QualityOption[]> => {
+  if (!uri) return [];
+
+  // uri 已是完整 URL 时只有一条（通常为源站默认画质）
+  if (/^https?:\/\//i.test(uri)) {
+    const url = toNoWatermark(uri);
+    const probed = await probeMedia(url);
+    return [
+      {
+        label: '原画',
+        ratio: 'origin',
+        url,
+        size: probed.size,
+        available: probed.available,
+      },
+    ];
+  }
+
+  const results = await Promise.all(
+    QUALITY_PRESETS.map(async preset => {
+      const url = buildPlayUrl(uri, preset.ratio);
+      const probed = await probeMedia(url);
+      return {
+        label: preset.label,
+        ratio: preset.ratio,
+        url,
+        size: probed.size,
+        available: probed.available,
+      } satisfies QualityOption;
+    }),
   );
+
+  // 按体积去重：更高清晰度若与低清晰度同大小，说明源站没有更高档，隐藏无效项
+  const filtered: QualityOption[] = [];
+  const seenSizes = new Set<number>();
+  for (const item of results) {
+    if (!item.available) continue;
+    if (item.size != null) {
+      if (seenSizes.has(item.size)) continue;
+      seenSizes.add(item.size);
+    }
+    filtered.push(item);
+  }
+  return filtered.length ? filtered : results.filter(r => r.available);
+};
+
+const formatDuration = (msOrSec: unknown): number | null => {
+  const n = Number(msOrSec);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  // 抖音 duration 多为毫秒
+  return n > 10000 ? Math.round(n / 1000) : Math.round(n);
 };
 
 const resolveRedirectUrl = async (
@@ -240,20 +346,32 @@ const parseSharePage = async (awemeId: string, cookie = '') => {
     '';
 
   const uri = String(playAddr.uri || '');
-  const candidates = [
-    ...buildPlayUrls(uri),
+  const qualities = await buildQualityOptions(uri);
+
+  // 兜底：探测失败时仍用构造地址 / playwm→play
+  const fallbackUrls = [
+    ...QUALITY_PRESETS.map(p => buildPlayUrl(uri, p.ratio)),
     toNoWatermark(pickFirstUrl(downloadAddr)),
     toNoWatermark(pickFirstUrl(playAddr)),
   ].filter(Boolean);
+  const videoUrls = [
+    ...new Set([
+      ...qualities.map(q => q.url),
+      ...fallbackUrls,
+    ]),
+  ];
 
-  // 去重并保留顺序
-  const videoUrls = [...new Set(candidates)];
   if (!videoUrls.length && !item.images?.length) {
     throw createError({
       statusCode: 404,
       message: `未找到可下载视频（类型 ${item.aweme_type ?? '未知'}，可能是图文）`,
     });
   }
+
+  const width = Number(video.width || playAddr.width || 0) || null;
+  const height = Number(video.height || playAddr.height || 0) || null;
+  const duration = formatDuration(video.duration ?? item.duration);
+  const ratioLabel = String(video.ratio || video.video_ratio || '').trim();
 
   const audioUrl =
     toNoWatermark(
@@ -273,7 +391,12 @@ const parseSharePage = async (awemeId: string, cookie = '') => {
     title: String(item.desc || '').trim() || `douyin_${awemeId}`,
     author: String(author.nickname || author.unique_id || '').trim(),
     cover,
-    videoUrl: videoUrls[0] || '',
+    width,
+    height,
+    duration,
+    ratio: ratioLabel,
+    qualities,
+    videoUrl: qualities[0]?.url || videoUrls[0] || '',
     videoUrls,
     audioUrl,
     musicTitle: String(music.title || '').trim(),
