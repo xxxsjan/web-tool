@@ -28,7 +28,7 @@
           >
             <button
               type="button"
-              class="btn btn-ghost btn-sm h-10 gap-1 px-3 font-medium"
+              class="btn btn-ghost btn-md h-11 gap-1.5 px-3.5 text-base font-medium"
               :class="{
                 'btn-active bg-base-200':
                   isGroupActive(group) || openGroup === group.group,
@@ -37,7 +37,7 @@
               {{ group.group }}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-3.5 w-3.5 opacity-50 transition-transform"
+                class="h-4 w-4 opacity-50 transition-transform"
                 :class="{ 'rotate-180': openGroup === group.group }"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -54,7 +54,7 @@
 
             <div
               v-show="openGroup === group.group"
-              class="absolute left-0 top-[calc(100%-2px)] z-[110] min-w-[12rem] max-w-[min(16rem,calc(100vw-1rem))] pt-2"
+              class="absolute left-0 top-[calc(100%-2px)] z-[110] min-w-[13rem] max-w-[min(18rem,calc(100vw-1rem))] pt-2"
               :class="group.group === groupedTools[groupedTools.length - 1]?.group ? 'left-auto right-0' : ''"
             >
               <div
@@ -64,13 +64,13 @@
                   v-for="item in group.list"
                   :key="item.path"
                   type="button"
-                  class="btn btn-ghost btn-sm h-9 w-full justify-start gap-2 px-2 font-normal"
+                  class="btn btn-ghost btn-md h-10 w-full justify-start gap-2.5 px-2.5 text-base font-normal"
                   :class="{
                     'btn-active bg-base-200': route.path === item.path,
                   }"
                   @click="onSelectTool(item.path)"
                 >
-                  <span class="w-5 shrink-0 text-center text-base leading-none">
+                  <span class="w-6 shrink-0 text-center text-lg leading-none">
                     {{ item.icon }}
                   </span>
                   <span class="truncate">{{ item.label }}</span>
