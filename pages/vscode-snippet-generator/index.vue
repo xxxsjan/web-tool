@@ -11,218 +11,320 @@ import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-import { onMounted, ref, toRaw, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue';
+import { useThemeStore } from '~/stores/theme';
 import DemoChoose from './DemoChoose.vue';
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
-    if (label === 'json') {
-      return new JsonWorker();
-    }
-    if (label === 'css' || label === 'scss' || label === 'less') {
+    if (label === 'json') return new JsonWorker();
+    if (label === 'css' || label === 'scss' || label === 'less')
       return new CssWorker();
-    }
-    if (label === 'html' || label === 'handlebars' || label === 'razor') {
+    if (label === 'html' || label === 'handlebars' || label === 'razor')
       return new HtmlWorker();
-    }
-    if (label === 'typescript' || label === 'javascript') {
-      return new TsWorker();
-    }
+    if (label === 'typescript' || label === 'javascript') return new TsWorker();
     return new EditorWorker();
   },
 };
+
+const themeStore = useThemeStore();
+const { isDark } = storeToRefs(themeStore);
+
 const inputEditor = ref(null);
 const outputEditor = ref(null);
+const inputContainer = ref(null);
+const outputContainer = ref(null);
 const language = ref('html');
 const result = ref('');
+const languages = [
+  'css',
+  'html',
+  'javascript',
+  'json',
+  'less',
+  'scss',
+  'typescript',
+];
+
+const inputForm = reactive({
+  prefix: '',
+  description: '',
+  snippetName: '',
+});
+
+const monacoTheme = computed(() => (isDark.value ? 'vs-dark' : 'vs'));
+
+const commonConfig = computed(() => ({
+  theme: monacoTheme.value,
+  formatOnPaste: true,
+  fontSize: 14,
+  fontFamily:
+    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  minimap: { enabled: false },
+  scrollBeyondLastLine: false,
+  automaticLayout: true,
+  padding: { top: 12, bottom: 12 },
+  roundedSelection: true,
+}));
 
 function onFormat(type) {
-  switch (type) {
-    case 1:
-      if (inputEditor.value) {
-        inputEditor.value.getAction('editor.action.formatDocument').run();
-      }
-      break;
-    case 2:
-      if (outputEditor.value) {
-        outputEditor.value.getAction('editor.action.formatDocument').run();
-      }
-      break;
-    default:
-      break;
-  }
+  const editor =
+    type === 1 ? toRaw(inputEditor.value) : toRaw(outputEditor.value);
+  editor?.getAction('editor.action.formatDocument')?.run();
 }
+
 function getEditValue() {
-  // https://www.jianshu.com/p/316cd6f5b54a?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation
-  const arr = [];
-  let str = '';
-  console.log('input', toRaw(inputEditor.value).getValue());
-  toRaw(inputEditor.value)
+  const editor = toRaw(inputEditor.value);
+  if (!editor) return [];
+  return editor
     .getValue()
-    .split('')
-    .map((item, index, oArr) => {
-      if (item !== '\n') {
-        str += item;
-      } else {
-        arr.push(str);
-        str = '';
-      }
-      if (str && index === oArr.length - 1) {
-        arr.push(str);
-      }
-    });
-  console.log('output', arr);
-  return arr;
+    .split(/\r?\n/)
+    .map(line => line);
 }
+
 function onTransform() {
   const beforeBody = getEditValue();
-
   const prefix = inputForm.prefix || 'prefix';
   const description = inputForm.description || 'this is description';
   const keyName = inputForm.snippetName || 'default snippet name';
-  const _result = (result.value = JSON.stringify({
+  const payload = {
     [keyName]: {
       prefix,
       body: beforeBody,
       description,
     },
-  }));
-  toRaw(outputEditor.value).setValue(_result);
+  };
+  result.value = JSON.stringify(payload);
+  toRaw(outputEditor.value)?.setValue(result.value);
   onFormat(2);
 }
-watch(
-  () => language.value,
-  nVal => {
-    console.log('language: ', nVal);
-    monaco.editor.setModelLanguage(toRaw(inputEditor.value).getModel(), nVal);
-    // toRaw(inputEditor.value).updateOptions({
-    //   language: nVal,
-    // });
+
+async function copyResult() {
+  const copyText = result.value.slice(1, -1) || '';
+  if (!copyText) {
+    ElMessage.warning('请先转换生成结果');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(copyText);
+    ElMessage.success('已复制片段内容');
+  } catch {
+    ElMessage.error('复制失败，请手动复制');
+  }
+}
+
+watch(language, nVal => {
+  const editor = toRaw(inputEditor.value);
+  if (!editor) return;
+  monaco.editor.setModelLanguage(editor.getModel(), nVal);
+  onFormat(1);
+});
+
+watch(monacoTheme, theme => {
+  monaco.editor.setTheme(theme);
+});
+
+const useCode = data => {
+  inputForm.snippetName = data.snippetName;
+  inputForm.prefix = data.prefix;
+  inputForm.description = data.description;
+  if (data.code) {
+    toRaw(inputEditor.value)?.setValue(data.code);
     onFormat(1);
-  },
-);
-const commonConfig = {
-  theme: 'vs-dark',
-  formatOnPaste: true, // 粘贴时格式化
-  fontSize: 14,
-  minimap: {
-    enabled: false,
-  },
-};
-const inputForm = reactive({ prefix: '', description: '', snippetName: '' });
-const copyResult = () => {
-  const coptText = result.value.slice(1, -1) || '';
-  console.log('coptText: ', coptText);
-  if (coptText) {
-    navigator.clipboard.writeText(coptText);
-    ElMessage.success('复制成功');
   }
 };
 
 onMounted(() => {
-  const inputContainerDom = document.querySelector('#inputContainer');
-  const outputContainerDom = document.querySelector('#outputContainer');
-  if (inputContainerDom) {
-    inputEditor.value = monaco.editor.create(inputContainerDom, {
+  if (inputContainer.value) {
+    inputEditor.value = monaco.editor.create(inputContainer.value, {
       value: `<template>
-        <div><\/div>
-<\/template>
+  <div></div>
+</template>
 <script lang="ts" setup><\/script>
 <style scoped><\/style>`,
       language: 'html',
-      ...commonConfig,
+      ...commonConfig.value,
     });
   }
 
-  if (outputContainerDom) {
-    outputEditor.value = monaco.editor.create(outputContainerDom, {
-      value: JSON.stringify({}),
+  if (outputContainer.value) {
+    outputEditor.value = monaco.editor.create(outputContainer.value, {
+      value: '{\n  \n}',
       language: 'json',
-      ...commonConfig,
+      ...commonConfig.value,
     });
   }
-
-  window.addEventListener('resize', () => {
-    const editor1 = document.querySelector(
-      '#inputContainer .monaco-editor.vs-dark',
-    );
-    // const editor2 = document.querySelector(
-    //   '#outputContainer .monaco-editor.vs-dark'
-    // );
-    toRaw(inputEditor.value).layout({
-      width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight,
-    });
-    toRaw(outputEditor.value).layout({
-      width: editor1.parentElement.offsetWidth,
-      height: editor1.parentElement.offsetHeight,
-    });
-  });
 });
 
-const useCode = data => {
-  console.log('data: ', data);
-  inputForm.snippetName = data.snippetName;
-  inputForm.prefix = data.prefix;
-  inputForm.description = data.description;
-
-  if (data.code) {
-    toRaw(inputEditor.value).setValue(data.code);
-    onFormat(1);
-  }
-};
+onBeforeUnmount(() => {
+  toRaw(inputEditor.value)?.dispose();
+  toRaw(outputEditor.value)?.dispose();
+});
 </script>
 
 <template>
-  <div class="w-full h-full grid grid-cols-[1fr_300px_1fr]">
-    <div class="left">
-      <div id="inputContainer" ref="inputContainer" style="max-width: 100%; height: 80vh"></div>
-    </div>
-    <div class="flex flex-col items-center justify-center">
-      <div class="flex flex-col gap-5">
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">snippet name</span>
-          </div>
-          <input v-model="inputForm.snippetName" type="text" placeholder="输入片段名称"
-            class="input input-bordered w-full max-w-xs" />
-        </label>
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">prefix</span>
-          </div>
-          <input v-model="inputForm.prefix" type="text" placeholder="输入触发指令"
-            class="input input-bordered w-full max-w-xs" />
-        </label>
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">description</span>
-          </div>
-          <input v-model="inputForm.description" type="text" placeholder="输入描述"
-            class="input input-bordered w-full max-w-xs" />
-        </label>
-        <button @click="onTransform" class="btn">转换</button>
-        <DemoChoose @useCode="useCode" />
-        <button @click="copyResult" class="btn">复制结果</button>
-      </div>
-    </div>
+  <div class="mx-auto w-full max-w-[1600px] px-3 pb-10 pt-2 sm:px-4">
+    <header class="mb-5 text-center sm:mb-6">
+      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
+        VS Code 代码片段生成
+      </h1>
+      <p class="text-xs text-base-content/50 sm:text-sm">
+        粘贴代码 → 填写触发词 → 转换成 snippet JSON
+      </p>
+    </header>
 
-    <div class="right">
-      <div id="outputContainer" ref="outputContainer" style="max-width: 100%; height: 80vh"></div>
+    <div
+      class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_280px_minmax(0,1fr)] xl:gap-5"
+    >
+      <!-- 输入 -->
+      <section
+        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+      >
+        <div
+          class="flex flex-wrap items-center justify-between gap-2 border-b border-base-300/50 px-3 py-2.5 sm:px-4"
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-sm text-primary"
+            >
+              1
+            </span>
+            <div>
+              <p class="text-sm font-medium text-base-content">源代码</p>
+              <p class="text-[11px] text-base-content/45">编辑要做成片段的代码</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <select
+              v-model="language"
+              class="select select-bordered select-sm w-auto min-w-[8.5rem]"
+              aria-label="编辑器语言"
+            >
+              <option v-for="item in languages" :key="item" :value="item">
+                {{ item }}
+              </option>
+            </select>
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm border border-base-300"
+              @click="onFormat(1)"
+            >
+              格式化
+            </button>
+          </div>
+        </div>
+        <div
+          ref="inputContainer"
+          class="h-[min(62vh,560px)] w-full"
+          :class="isDark ? 'bg-[#1e1e1e]' : 'bg-white'"
+        />
+      </section>
+
+      <!-- 中间配置 -->
+      <aside
+        class="flex flex-col gap-4 rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-lg backdrop-blur-sm xl:self-start"
+      >
+        <div class="flex items-center gap-2">
+          <span
+            class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-sm text-primary"
+          >
+            2
+          </span>
+          <div>
+            <p class="text-sm font-medium text-base-content">片段信息</p>
+            <p class="text-[11px] text-base-content/45">名称 · 触发词 · 描述</p>
+          </div>
+        </div>
+
+        <label class="form-control w-full">
+          <div class="label py-1">
+            <span class="label-text text-xs text-base-content/60">片段名称</span>
+          </div>
+          <input
+            v-model="inputForm.snippetName"
+            type="text"
+            placeholder="例如 vue3-setup"
+            class="input input-bordered input-sm w-full"
+          />
+        </label>
+
+        <label class="form-control w-full">
+          <div class="label py-1">
+            <span class="label-text text-xs text-base-content/60">触发指令 prefix</span>
+          </div>
+          <input
+            v-model="inputForm.prefix"
+            type="text"
+            placeholder="例如 v3-setup"
+            class="input input-bordered input-sm w-full"
+          />
+        </label>
+
+        <label class="form-control w-full">
+          <div class="label py-1">
+            <span class="label-text text-xs text-base-content/60">描述 description</span>
+          </div>
+          <input
+            v-model="inputForm.description"
+            type="text"
+            placeholder="简要说明用途"
+            class="input input-bordered input-sm w-full"
+          />
+        </label>
+
+        <div class="mt-1 flex flex-col gap-2">
+          <button type="button" class="btn btn-primary btn-sm" @click="onTransform">
+            转换为 Snippet
+          </button>
+          <DemoChoose @useCode="useCode" />
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm border border-base-300"
+            @click="copyResult"
+          >
+            复制结果
+          </button>
+        </div>
+
+        <p class="text-[11px] leading-relaxed text-base-content/40">
+          复制结果会去掉最外层花括号，可直接粘贴进
+          <code class="rounded bg-base-200 px-1">*.code-snippets</code>
+        </p>
+      </aside>
+
+      <!-- 输出 -->
+      <section
+        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+      >
+        <div
+          class="flex flex-wrap items-center justify-between gap-2 border-b border-base-300/50 px-3 py-2.5 sm:px-4"
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-lg bg-success/15 text-sm text-success"
+            >
+              3
+            </span>
+            <div>
+              <p class="text-sm font-medium text-base-content">Snippet JSON</p>
+              <p class="text-[11px] text-base-content/45">生成后的代码片段</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm border border-base-300"
+            @click="onFormat(2)"
+          >
+            格式化
+          </button>
+        </div>
+        <div
+          ref="outputContainer"
+          class="h-[min(62vh,560px)] w-full"
+          :class="isDark ? 'bg-[#1e1e1e]' : 'bg-white'"
+        />
+      </section>
     </div>
-  </div>
-  <div class="m-4">
-    选择编辑器语言
-    <select v-model="language" placeholder="language" size="default" class="select select-bordered">
-      <option v-for="item in [
-            'css',
-            'html',
-            'javascript',
-            'json',
-            'less',
-            'scss',
-            'typescript',
-          ]" :key="item" :label="item" :value="item">{{ item }}</option>
-    </select>
   </div>
 </template>

@@ -2,16 +2,6 @@
   <div class="mx-auto w-full max-w-5xl px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
     <header class="mb-10 max-w-2xl">
       <p class="mb-2 text-sm text-base-content/50">欢迎回来</p>
-      <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
-        工具台
-      </h1>
-      <p class="mt-3 text-base leading-relaxed text-base-content/65">
-        从顶部菜单进入各分类，或在下方浏览全部工具。当前共
-        <span class="font-medium text-base-content">{{ toolList.length }}</span>
-        个工具，分属
-        <span class="font-medium text-base-content">{{ groupedTools.length }}</span>
-        个分组。
-      </p>
     </header>
 
     <section
