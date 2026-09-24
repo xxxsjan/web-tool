@@ -1,7 +1,7 @@
 <template>
   <section
-    class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
-    <div class="border-b border-base-300/50 px-4 py-3 sm:px-5">
+    class="overflow-hidden rounded-2xl tool-panel">
+    <div class="tool-panel-head px-4 py-3 sm:px-5">
       <h2 class="text-sm font-semibold text-base-content sm:text-base">AVIF 转 PNG</h2>
       <p class="mt-0.5 text-[11px] text-base-content/45 sm:text-xs">
         浏览器端解码，单文件，建议不超过 10MB
@@ -10,7 +10,7 @@
 
     <div class="space-y-4 p-4 sm:p-5">
       <label
-        class="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-base-300/80 bg-base-200/30 px-4 py-10 transition-colors hover:border-primary/50 hover:bg-base-200/50"
+        class="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-app-strong bg-base-200/30 px-4 py-10 transition-colors hover:border-primary/50 hover:bg-base-200/50"
         @dragover.prevent
         @drop.prevent="onDrop">
         <input
@@ -35,7 +35,7 @@
       <div v-show="showPreview" class="space-y-3">
         <p class="text-sm font-medium text-base-content">预览</p>
         <div
-          class="overflow-hidden rounded-xl border border-base-300/60 bg-base-200/40 p-3">
+          class="overflow-hidden rounded-xl border border-app bg-base-200/40 p-3">
           <canvas ref="previewCanvas" class="mx-auto max-h-64 max-w-full rounded-lg" />
         </div>
         <a

@@ -10,7 +10,7 @@
     </header>
 
     <section
-      class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+      class="overflow-hidden rounded-2xl tool-panel"
     >
       <div class="space-y-4 p-4 sm:p-5">
         <div>
@@ -38,7 +38,7 @@
               :class="
                 downloadMode === 'video'
                   ? 'btn-primary'
-                  : 'btn-ghost border border-base-300'
+                  : 'btn-ghost border border-app-strong'
               "
               :disabled="loading || downloading"
               @click="downloadMode = 'video'"
@@ -51,7 +51,7 @@
               :class="
                 downloadMode === 'audio'
                   ? 'btn-primary'
-                  : 'btn-ghost border border-base-300'
+                  : 'btn-ghost border border-app-strong'
               "
               :disabled="loading || downloading"
               @click="downloadMode = 'audio'"
@@ -73,7 +73,7 @@
           </button>
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 sm:w-28"
+            class="btn btn-ghost border border-app-strong sm:w-28"
             :disabled="loading || downloading || !inputText"
             @click="resetAll"
           >
@@ -91,7 +91,7 @@
 
       <div
         v-if="result"
-        class="space-y-4 border-t border-base-300/50 p-4 sm:p-5"
+        class="space-y-4 tool-panel-foot p-4 sm:p-5"
       >
         <div class="flex flex-wrap items-start justify-between gap-2">
           <div class="min-w-0 flex-1">
@@ -113,7 +113,7 @@
           <span
             v-for="chip in metaChips"
             :key="chip"
-            class="badge badge-outline border-base-300 text-base-content/80"
+            class="badge badge-outline border-app-strong text-base-content/80"
           >
             {{ chip }}
           </span>
@@ -121,7 +121,7 @@
 
         <div
           v-if="result.cover || selectedVideoUrl"
-          class="overflow-hidden rounded-xl border border-base-300/60 bg-neutral"
+          class="overflow-hidden rounded-xl border border-app bg-neutral"
         >
           <video
             v-if="downloadMode === 'video' && previewVideoUrl"
@@ -154,7 +154,7 @@
               :class="
                 selectedRatio === item.ratio
                   ? 'btn-primary'
-                  : 'btn-ghost border border-base-300'
+                  : 'btn-ghost border border-app-strong'
               "
               :disabled="downloading || !item.available"
               @click="selectedRatio = item.ratio"
@@ -169,13 +169,13 @@
 
         <div class="grid gap-2 text-sm sm:grid-cols-2">
           <div
-            class="rounded-lg border border-base-300/60 bg-base-200/40 px-3 py-2"
+            class="rounded-lg border border-app bg-base-200/40 px-3 py-2"
           >
             <span class="text-base-content/50">当前画质：</span>
             <span>{{ currentQualityLabel }}</span>
           </div>
           <div
-            class="rounded-lg border border-base-300/60 bg-base-200/40 px-3 py-2"
+            class="rounded-lg border border-app bg-base-200/40 px-3 py-2"
           >
             <span class="text-base-content/50">音频：</span>
             <span>

@@ -10,7 +10,7 @@
     </header>
 
     <section
-      class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+      class="overflow-hidden rounded-2xl tool-panel"
     >
       <!-- 上传区 -->
       <div
@@ -71,7 +71,7 @@
 
           <div
             v-if="selectedFile"
-            class="inline-flex max-w-full items-center gap-2 rounded-lg border border-base-300/60 bg-base-100 px-3 py-2"
+            class="inline-flex max-w-full items-center gap-2 rounded-lg border border-app bg-base-100 px-3 py-2"
             @click.stop
           >
             <svg
@@ -110,11 +110,11 @@
       </div>
 
       <!-- 有文件后的操作区 -->
-      <div v-if="selectedFile" class="space-y-5 border-t border-base-300/50 p-4 sm:p-5">
+      <div v-if="selectedFile" class="space-y-5 tool-panel-foot p-4 sm:p-5">
         <!-- 预览 -->
         <div
           v-if="videoUrl"
-          class="overflow-hidden rounded-xl border border-base-300/60 bg-neutral"
+          class="overflow-hidden rounded-xl border border-app bg-neutral"
         >
           <video
             :src="videoUrl"
@@ -139,7 +139,7 @@
               :class="
                 selectedFormat === item.value
                   ? 'btn-primary'
-                  : 'btn-ghost border border-base-300'
+                  : 'btn-ghost border border-app-strong'
               "
               :disabled="isConverting"
               @click="selectedFormat = item.value"
@@ -165,7 +165,7 @@
           </button>
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 sm:w-28"
+            class="btn btn-ghost border border-app-strong sm:w-28"
             :disabled="isConverting"
             @click="removeFile"
           >

@@ -12,7 +12,7 @@
     <!-- 空状态 -->
     <div v-if="!imgBaseUrl" class="mx-auto w-full max-w-lg">
       <div
-        class="bg-container is-empty relative flex w-full items-center justify-center overflow-hidden rounded-2xl border border-base-300/60 shadow-lg"
+        class="bg-container is-empty relative flex w-full items-center justify-center overflow-hidden rounded-2xl border border-app bg-base-100/80 shadow-lg backdrop-blur-sm"
         :class="{ 'ring-2 ring-primary ring-offset-2 ring-offset-base-100': isDragging }" v-loading="loading"
         @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
         @drop.prevent="onDrop">
@@ -51,7 +51,7 @@
           </span>
         </div>
         <div
-          class="bg-container has-image relative flex w-full items-center justify-center rounded-2xl border border-base-300/60 shadow-lg"
+          class="bg-container has-image relative flex w-full items-center justify-center rounded-2xl border border-app bg-base-100/80 shadow-lg backdrop-blur-sm"
           v-loading="loading">
           <div class="px-bg"></div>
           <div class="mask-bg"></div>
@@ -104,7 +104,7 @@
           <button class="btn btn-primary btn-sm flex-1" :disabled="loading" @click="handleCut">
             {{ loading ? '处理中…' : '粗略裁剪' }}
           </button>
-          <button class="btn btn-ghost btn-sm shrink-0 border border-base-300" @click="reset">
+          <button class="btn btn-ghost btn-sm shrink-0 border border-app-strong" @click="reset">
             重选
           </button>
         </div>
@@ -113,10 +113,10 @@
       <!-- 右侧：流水线操作 -->
       <aside class="w-full shrink-0 lg:sticky lg:top-4 lg:w-80 xl:w-96">
         <div
-          class="pipeline rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-lg backdrop-blur-sm sm:p-5">
+          class="pipeline tool-panel p-4 sm:p-5">
           <div class="mb-4 flex items-center justify-between gap-2">
             <h2 class="text-sm font-semibold text-base-content">处理流水线</h2>
-            <button type="button" class="btn btn-ghost btn-xs border border-base-300" @click="reset">
+            <button type="button" class="btn btn-ghost btn-xs border border-app-strong" @click="reset">
               重选图片
             </button>
           </div>
@@ -164,7 +164,7 @@
                 </div>
 
                 <button type="button"
-                  class="result-img-container group relative flex h-36 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-base-300 bg-white p-2 text-left sm:h-40 sm:p-3"
+                  class="result-img-container group relative flex h-36 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-app bg-white p-2 text-left sm:h-40 sm:p-3"
                   :class="resultPreviewUrl ? 'cursor-zoom-in hover:border-primary/50' : 'cursor-default opacity-70'"
                   :disabled="!resultPreviewUrl" @click="openPreviewDialog">
                   <img v-if="resultPreviewUrl" :src="resultPreviewUrl" alt="裁剪结果"
@@ -242,7 +242,7 @@
                     <label v-for="opt in exportFormatOptions" :key="opt.value" class="cursor-pointer">
                       <input v-model="exportFormat" type="radio" class="peer hidden" name="export-format"
                         :value="opt.value" />
-                      <span class="btn btn-ghost btn-xs w-full border border-base-300 peer-checked:btn-primary">
+                      <span class="btn btn-ghost btn-xs w-full border border-app-strong peer-checked:btn-primary">
                         {{ opt.label }}
                       </span>
                     </label>
@@ -272,7 +272,7 @@
                         <span class="text-base-content/50">({{ outputExtLabel }})</span>
                       </span>
                     </div>
-                    <div v-if="sizeSavedLabel" class="border-t border-base-300/40 pt-1 text-success">
+                    <div v-if="sizeSavedLabel" class="border-t border-app-muted pt-1 text-success">
                       {{ sizeSavedLabel }}
                     </div>
                   </div>

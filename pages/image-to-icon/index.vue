@@ -10,8 +10,8 @@
     </header>
 
     <section
-      class="mb-5 overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm sm:mb-6">
-      <div class="border-b border-base-300/50 px-4 py-3 sm:px-5">
+      class="mb-5 overflow-hidden rounded-2xl tool-panel sm:mb-6">
+      <div class="tool-panel-head px-4 py-3 sm:px-5">
         <h2 class="text-sm font-semibold text-base-content sm:text-base">转换设置</h2>
       </div>
 
@@ -48,17 +48,17 @@
           </button>
         </div>
 
-        <div v-if="resultArr.length" class="space-y-3 border-t border-base-300/50 pt-4">
+        <div v-if="resultArr.length" class="space-y-3 tool-panel-foot pt-4">
           <h3 class="text-sm font-medium text-base-content">生成结果</h3>
           <ul class="space-y-2">
             <li
               v-for="(item, index) in resultArr"
               :key="index"
-              class="flex items-center gap-3 rounded-xl border border-base-300/60 bg-base-200/40 px-3 py-2.5">
+              class="flex items-center gap-3 rounded-xl border border-app bg-base-200/40 px-3 py-2.5">
               <img
                 :src="item.dataURL"
                 alt=""
-                class="h-12 w-12 shrink-0 rounded-lg border border-base-300/70 bg-base-100 object-contain p-1" />
+                class="h-12 w-12 shrink-0 rounded-lg border border-app-strong bg-base-100 object-contain p-1" />
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-medium text-base-content">
                   {{ item.iconName }}

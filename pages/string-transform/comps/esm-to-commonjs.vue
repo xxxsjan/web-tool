@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div
-        class="inline-flex rounded-full border border-base-300/60 bg-base-200/50 p-1">
+        class="inline-flex rounded-full border border-app bg-base-200/50 p-1">
         <button
           type="button"
           class="mode-btn"
@@ -45,7 +45,7 @@
           </button>
         </div>
         <pre
-          class="min-h-[220px] overflow-auto rounded-lg border border-base-300/60 bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content whitespace-pre-wrap break-all">{{ code2 }}</pre>
+          class="min-h-[220px] overflow-auto rounded-lg border border-app bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content whitespace-pre-wrap break-all">{{ code2 }}</pre>
       </div>
     </div>
   </div>

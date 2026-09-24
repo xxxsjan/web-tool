@@ -14,14 +14,14 @@
         v-for="(btn, i) in buttons"
         :key="i"
         type="button"
-        class="btn btn-sm border border-base-300/70 bg-base-200/60 font-normal hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+        class="btn btn-sm border border-app-strong bg-base-200/60 font-normal hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
         @click="btn.action">
         {{ btn.label }}
       </button>
     </div>
 
     <div
-      class="rounded-xl border border-base-300/50 bg-base-200/40 px-4 py-3">
+      class="rounded-xl border border-app-muted bg-base-200/40 px-4 py-3">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0 flex-1">
           <p class="mb-1 text-xs text-base-content/50">转换结果</p>

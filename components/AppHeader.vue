@@ -58,7 +58,7 @@
               :class="group.group === groupedTools[groupedTools.length - 1]?.group ? 'left-auto right-0' : ''"
             >
               <div
-                class="rounded-xl border border-base-300 bg-base-100 p-1.5 shadow-xl"
+                class="rounded-xl border border-app bg-base-100/95 p-1.5 shadow-xl backdrop-blur-sm"
               >
                 <button
                   v-for="item in group.list"

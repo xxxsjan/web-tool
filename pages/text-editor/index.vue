@@ -10,10 +10,10 @@
     </header>
 
     <section
-      class="overflow-hidden rounded-xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm sm:rounded-2xl"
+      class="overflow-hidden rounded-xl tool-panel sm:rounded-2xl"
     >
       <!-- 工具栏：搜索替换 -->
-      <div class="space-y-2 border-b border-base-300/50 px-2.5 py-2 sm:space-y-2.5 sm:px-4 sm:py-3">
+      <div class="space-y-2 tool-panel-head px-2.5 py-2 sm:space-y-2.5 sm:px-4 sm:py-3">
         <div class="flex items-stretch gap-1.5 sm:gap-2">
           <label class="relative min-w-0 flex-1">
             <span class="sr-only">查找</span>
@@ -38,7 +38,7 @@
           </span>
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 btn-icon"
+            class="btn btn-ghost border border-app-strong btn-icon"
             :disabled="!canSearch"
             aria-label="上一个"
             @click="onFindPrev"
@@ -47,7 +47,7 @@
           </button>
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 btn-icon"
+            class="btn btn-ghost border border-app-strong btn-icon"
             :disabled="!canSearch"
             aria-label="下一个"
             @click="onFindNext"
@@ -72,7 +72,7 @@
           <div class="grid grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:shrink-0 sm:gap-2">
             <button
               type="button"
-              class="btn btn-ghost border border-base-300 btn-mobile"
+              class="btn btn-ghost border border-app-strong btn-mobile"
               :disabled="!canReplace"
               @click="onReplaceOne"
             >
@@ -142,7 +142,7 @@
 
       <!-- 底栏 -->
       <div
-        class="flex flex-col gap-2 border-t border-base-300/50 px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2.5"
+        class="flex flex-col gap-2 tool-panel-foot px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2.5"
       >
         <div class="font-mono text-[11px] text-base-content/50 sm:text-xs">
           {{ lineCount }} 行 · {{ charCount }} 字
@@ -151,7 +151,7 @@
         <div class="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-1.5">
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 btn-mobile sm:btn-xs"
+            class="btn btn-ghost border border-app-strong btn-mobile sm:btn-xs"
             :disabled="!content"
             @click="clearContent"
           >
@@ -159,7 +159,7 @@
           </button>
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 btn-mobile sm:btn-xs"
+            class="btn btn-ghost border border-app-strong btn-mobile sm:btn-xs"
             :disabled="!content"
             @click="copyContent"
           >
@@ -167,7 +167,7 @@
           </button>
           <button
             type="button"
-            class="btn btn-ghost border border-base-300 btn-mobile sm:btn-xs"
+            class="btn btn-ghost border border-app-strong btn-mobile sm:btn-xs"
             :disabled="!content"
             @click="downloadContent"
           >
@@ -619,7 +619,7 @@ function downloadContent() {
   min-height: 2.25rem;
   padding: 0 0.75rem;
   border-radius: 9999px;
-  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
+  border: 1px solid var(--app-border-strong);
   background: transparent;
   color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   font-size: 12px;

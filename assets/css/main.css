@@ -6,6 +6,18 @@
   themes: dark --default, light;
 }
 
+/* 柔化暗色主题 base-300：避免面板边框发白、发硬 */
+@plugin "daisyui/theme" {
+  name: "dark";
+  default: true;
+  --color-base-300: oklch(28% 0.012 265);
+}
+
+@plugin "daisyui/theme" {
+  name: "light";
+  --color-base-300: oklch(90% 0.008 265);
+}
+
 html,
 body,
 #__nuxt {
@@ -29,3 +41,64 @@ canvas {
     vertical-align: bottom;
 }
 
+@layer base {
+    :root,
+    [data-theme] {
+        /* 发丝线描边：随主题自适应，比纯 base-300 更干净 */
+        --app-border: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+        --app-border-muted: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+        --app-border-strong: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+    }
+}
+
+@layer components {
+    /* 工具页主面板 */
+    .tool-panel {
+        overflow: hidden;
+        border-radius: 1rem;
+        border: 1px solid var(--app-border);
+        background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+        box-shadow:
+            0 1px 0 color-mix(in oklab, var(--color-base-content) 4%, transparent) inset,
+            0 10px 28px -12px rgb(0 0 0 / 0.35);
+        backdrop-filter: blur(10px);
+    }
+
+    .tool-panel-head {
+        border-bottom: 1px solid var(--app-border-muted);
+    }
+
+    .tool-panel-foot {
+        border-top: 1px solid var(--app-border-muted);
+    }
+
+    /* DaisyUI 表单默认边框偏硬，统一柔化 */
+    .input-bordered,
+    .select-bordered,
+    .textarea-bordered,
+    .file-input-bordered {
+        border-color: var(--app-border-strong);
+    }
+
+    .input-bordered:focus,
+    .select-bordered:focus,
+    .textarea-bordered:focus,
+    .file-input-bordered:focus {
+        border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
+        outline-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+    }
+}
+
+@layer utilities {
+    .border-app {
+        border-color: var(--app-border);
+    }
+
+    .border-app-muted {
+        border-color: var(--app-border-muted);
+    }
+
+    .border-app-strong {
+        border-color: var(--app-border-strong);
+    }
+}

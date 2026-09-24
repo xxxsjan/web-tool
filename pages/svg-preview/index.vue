@@ -9,17 +9,17 @@
       </p>
     </header>
 
-    <section class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5">
+    <section class="overflow-hidden rounded-2xl tool-panel">
+      <div class="flex flex-wrap items-center justify-between gap-3 tool-panel-head px-4 py-3 sm:px-5">
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" class="btn btn-primary btn-sm" :disabled="!svgCode.trim()" @click="parseSvg">
             预览
           </button>
-          <button type="button" class="btn btn-ghost btn-sm border border-base-300" :disabled="!parsedSvg"
+          <button type="button" class="btn btn-ghost btn-sm border border-app-strong" :disabled="!parsedSvg"
             @click="saveFile('png')">
             导出 PNG
           </button>
-          <button type="button" class="btn btn-ghost btn-sm border border-base-300" :disabled="!parsedSvg"
+          <button type="button" class="btn btn-ghost btn-sm border border-app-strong" :disabled="!parsedSvg"
             @click="saveFile('svg')">
             导出 SVG
           </button>
@@ -34,7 +34,7 @@
         </label>
       </div>
 
-      <div class="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-base-300/50">
+      <div class="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-base-content/10">
         <div class="flex min-h-[min(52vh,520px)] flex-col p-4 sm:p-5">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-sm font-medium text-base-content">SVG 代码</span>
@@ -54,7 +54,7 @@
             <span v-if="parsedSvg && !error" class="text-[11px] text-success/80">就绪</span>
           </div>
           <div
-            class="preview-stage relative flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-dashed border-base-300/70 p-4">
+            class="preview-stage relative flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-dashed border-app-strong p-4">
             <div v-if="error"
               class="max-w-sm rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-center text-sm text-error">
               {{ error }}
@@ -286,17 +286,17 @@ function clearAll() {
   background-color: color-mix(in oklab, var(--color-base-200) 70%, transparent);
   background-image:
     linear-gradient(45deg,
-      color-mix(in oklab, var(--color-base-300) 55%, transparent) 25%,
+      var(--app-border) 25%,
       transparent 25%),
     linear-gradient(-45deg,
-      color-mix(in oklab, var(--color-base-300) 55%, transparent) 25%,
+      var(--app-border) 25%,
       transparent 25%),
     linear-gradient(45deg,
       transparent 75%,
-      color-mix(in oklab, var(--color-base-300) 55%, transparent) 75%),
+      var(--app-border) 75%),
     linear-gradient(-45deg,
       transparent 75%,
-      color-mix(in oklab, var(--color-base-300) 55%, transparent) 75%);
+      var(--app-border) 75%);
   background-size: 16px 16px;
   background-position:
     0 0,

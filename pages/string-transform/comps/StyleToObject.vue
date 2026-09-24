@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
           转换
         </button>
         <button
-          class="btn btn-ghost btn-sm border border-base-300"
+          class="btn btn-ghost btn-sm border border-app-strong"
           :disabled="!ready"
           @click="copyResult">
           复制结果
@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
         <p class="text-sm font-medium text-base-content">CSS 输入</p>
         <div
           ref="inputContainer"
-          class="editor-pane relative h-[min(55vh,480px)] overflow-hidden rounded-xl border border-base-300/60">
+          class="editor-pane relative h-[min(55vh,480px)] overflow-hidden rounded-xl border border-app">
           <div
             v-if="!ready"
             class="absolute inset-0 z-10 flex items-center justify-center bg-base-200/60 text-xs text-base-content/50">
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
         <p class="text-sm font-medium text-base-content">对象输出</p>
         <div
           ref="outputContainer"
-          class="editor-pane relative h-[min(55vh,480px)] overflow-hidden rounded-xl border border-base-300/60">
+          class="editor-pane relative h-[min(55vh,480px)] overflow-hidden rounded-xl border border-app">
           <div
             v-if="!ready"
             class="absolute inset-0 z-10 flex items-center justify-center bg-base-200/60 text-xs text-base-content/50">

@@ -100,7 +100,7 @@
         <div class="flex items-center gap-1.5">
           <button
             type="button"
-            class="btn btn-ghost btn-xs border border-base-300"
+            class="btn btn-ghost btn-xs border border-app-strong"
             @click="resetDemo"
           >
             恢复示例
@@ -213,10 +213,12 @@ onUnmounted(() => {
   flex-direction: column;
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px solid color-mix(in oklab, var(--color-base-300) 60%, transparent);
-  background: color-mix(in oklab, var(--color-base-100) 90%, transparent);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08);
-  backdrop-filter: blur(8px);
+  border: 1px solid var(--app-border);
+  background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--color-base-content) 4%, transparent) inset,
+    0 10px 28px -12px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(10px);
 }
 
 .editor-card {
@@ -247,7 +249,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-base-300) 50%, transparent);
+  border-bottom: 1px solid var(--app-border-muted);
   padding: 0.625rem 0.75rem;
 }
 

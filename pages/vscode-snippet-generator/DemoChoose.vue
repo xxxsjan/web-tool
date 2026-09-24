@@ -1,5 +1,5 @@
 <template>
-  <button type="button" class="btn btn-ghost btn-sm border border-base-300" @click="show">
+  <button type="button" class="btn btn-ghost btn-sm border border-app-strong" @click="show">
     选择预设
   </button>
 
@@ -25,7 +25,7 @@
           v-for="(item, index) in demoList"
           :key="index"
           type="button"
-          class="flex w-full items-start gap-3 rounded-xl border border-base-300/70 bg-base-200/30 px-3 py-3 text-left transition hover:border-primary/40 hover:bg-base-200/60"
+          class="flex w-full items-start gap-3 rounded-xl border border-app-strong bg-base-200/30 px-3 py-3 text-left transition hover:border-primary/40 hover:bg-base-200/60"
           @click="handleBtn(item)"
         >
           <span

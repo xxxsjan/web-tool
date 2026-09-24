@@ -23,7 +23,7 @@
           v-for="item in group.list"
           :key="item.path"
           type="button"
-          class="group flex items-center gap-3 rounded-2xl border border-base-300/70 bg-base-100/70 px-4 py-3.5 text-left transition
+          class="group flex items-center gap-3 rounded-2xl border border-app bg-base-100/70 px-4 py-3.5 text-left transition
                  hover:border-primary/40 hover:bg-base-200/60"
           @click="goTool(item.path)"
         >
@@ -48,7 +48,7 @@
 
     <p
       v-if="!toolList.length"
-      class="rounded-2xl border border-dashed border-base-300 px-4 py-10 text-center text-sm text-base-content/50"
+      class="rounded-2xl border border-dashed border-app px-4 py-10 text-center text-sm text-base-content/50"
     >
       暂无已注册工具
     </p>

@@ -22,7 +22,7 @@
       </div>
 
       <div v-for="item in resultFields" :key="item.key"
-        class="rounded-xl border border-base-300 bg-base-200/40 space-y-2">
+        class="rounded-xl border border-app-strong bg-base-200/40 space-y-2">
         <span class="text-sm font-medium text-base-content">{{ item.label }}：</span>
         <span>{{ item.value }}</span>
       </div>

@@ -23,7 +23,7 @@
           </button>
         </div>
         <pre
-          class="output-box h-64 overflow-auto rounded-lg border border-base-300/60 bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content"
+          class="output-box h-64 overflow-auto rounded-lg border border-app bg-base-200/40 p-3 font-mono text-sm leading-relaxed text-base-content"
           >{{ codeRight }}</pre
         >
       </div>

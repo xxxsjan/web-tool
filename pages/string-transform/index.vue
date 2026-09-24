@@ -29,10 +29,10 @@
     <Transition name="panel-fade" mode="out-in">
       <section
         :key="curTab"
-        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+        class="overflow-hidden rounded-2xl tool-panel"
       >
         <div
-          class="flex items-center justify-between gap-3 border-b border-base-300/50 px-4 py-3 sm:px-5"
+          class="flex items-center justify-between gap-3 tool-panel-head px-4 py-3 sm:px-5"
         >
           <div class="min-w-0">
             <h2
@@ -139,7 +139,7 @@ const getComponent = (name: TabKey) => componentMap[name];
   align-items: center;
   gap: 0.375rem;
   border-radius: 9999px;
-  border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  border: 1px solid var(--app-border-strong);
   background: color-mix(in oklab, var(--color-base-200) 55%, transparent);
   padding: 0.4rem 0.85rem;
   font-size: 0.8125rem;

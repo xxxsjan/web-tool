@@ -256,7 +256,7 @@
             <!-- 右键菜单 -->
             <div
               v-if="showContextMenu"
-              class="absolute bg-base-100 shadow-xl rounded-lg p-2 text-sm border border-base-300 z-50"
+              class="absolute bg-base-100 shadow-xl rounded-lg p-2 text-sm border border-app-strong z-50"
               :style="{ left: `${menuX}px`, top: `${menuY}px` }"
             >
               <button
@@ -309,7 +309,7 @@
                 </svg>
                 查看原图
               </button>
-              <div class="border-t border-base-300 my-1"></div>
+              <div class="border-t border-app-muted my-1"></div>
               <div class="px-1">
                 <CopyBtn
                   :text="currentDownloadUrl"

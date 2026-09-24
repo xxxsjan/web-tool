@@ -1,7 +1,7 @@
 <template>
   <section
-    class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm">
-    <div class="border-b border-base-300/50 px-4 py-3 sm:px-5">
+    class="overflow-hidden rounded-2xl tool-panel">
+    <div class="tool-panel-head px-4 py-3 sm:px-5">
       <h2 class="text-sm font-semibold text-base-content sm:text-base">DOM 转 PNG</h2>
       <p class="mt-0.5 text-[11px] text-base-content/45 sm:text-xs">
         粘贴 HTML 片段，预览并导出为 PNG
@@ -22,7 +22,7 @@
         <p class="mb-1.5 text-sm font-medium text-base-content">预览</p>
         <div
           ref="previewRef"
-          class="preview-stage flex min-h-[160px] items-center justify-center overflow-auto rounded-xl border border-dashed border-base-300/70 p-4">
+          class="preview-stage flex min-h-[160px] items-center justify-center overflow-auto rounded-xl border border-dashed border-app-strong p-4">
           <p
             v-if="!domContent.trim()"
             class="text-center text-xs text-base-content/40">
@@ -45,7 +45,7 @@
           href="https://cdkm.com/cn/svg-to-jpg"
           target="_blank"
           rel="noopener noreferrer"
-          class="btn btn-ghost btn-sm border border-base-300 w-full sm:w-auto">
+          class="btn btn-ghost btn-sm border border-app-strong w-full sm:w-auto">
           在线 SVG 转 JPG
         </a>
       </div>

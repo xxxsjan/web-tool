@@ -179,10 +179,10 @@ onBeforeUnmount(() => {
     >
       <!-- 输入 -->
       <section
-        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+        class="overflow-hidden rounded-2xl tool-panel"
       >
         <div
-          class="flex flex-wrap items-center justify-between gap-2 border-b border-base-300/50 px-3 py-2.5 sm:px-4"
+          class="flex flex-wrap items-center justify-between gap-2 tool-panel-head px-3 py-2.5 sm:px-4"
         >
           <div class="flex items-center gap-2">
             <span
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
             </select>
             <button
               type="button"
-              class="btn btn-ghost btn-sm border border-base-300"
+              class="btn btn-ghost btn-sm border border-app-strong"
               @click="onFormat(1)"
             >
               格式化
@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
 
       <!-- 中间配置 -->
       <aside
-        class="flex flex-col gap-4 rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-lg backdrop-blur-sm xl:self-start"
+        class="tool-panel flex flex-col gap-4 p-4 xl:self-start"
       >
         <div class="flex items-center gap-2">
           <span
@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
           <DemoChoose @useCode="useCode" />
           <button
             type="button"
-            class="btn btn-ghost btn-sm border border-base-300"
+            class="btn btn-ghost btn-sm border border-app-strong"
             @click="copyResult"
           >
             复制结果
@@ -295,10 +295,10 @@ onBeforeUnmount(() => {
 
       <!-- 输出 -->
       <section
-        class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-lg backdrop-blur-sm"
+        class="overflow-hidden rounded-2xl tool-panel"
       >
         <div
-          class="flex flex-wrap items-center justify-between gap-2 border-b border-base-300/50 px-3 py-2.5 sm:px-4"
+          class="flex flex-wrap items-center justify-between gap-2 tool-panel-head px-3 py-2.5 sm:px-4"
         >
           <div class="flex items-center gap-2">
             <span
@@ -313,7 +313,7 @@ onBeforeUnmount(() => {
           </div>
           <button
             type="button"
-            class="btn btn-ghost btn-sm border border-base-300"
+            class="btn btn-ghost btn-sm border border-app-strong"
             @click="onFormat(2)"
           >
             格式化
