@@ -1,62 +1,58 @@
 <template>
-  <section
-    class="overflow-hidden rounded-2xl tool-panel">
-    <div class="tool-panel-head px-4 py-3 sm:px-5">
-      <h2 class="text-sm font-semibold text-base-content sm:text-base">DOM 转 PNG</h2>
-      <p class="mt-0.5 text-[11px] text-base-content/45 sm:text-xs">
-        粘贴 HTML 片段，预览并导出为 PNG
-      </p>
+  <div class="space-y-4">
+    <div>
+      <label class="mb-1.5 block text-sm font-medium text-base-content">HTML 内容</label>
+      <textarea
+        v-model="domContent"
+        class="textarea textarea-bordered h-40 w-full font-mono text-sm leading-relaxed"
+        placeholder="请输入要转换的 HTML 代码…"
+        spellcheck="false"
+      />
     </div>
 
-    <div class="space-y-4 p-4 sm:p-5">
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-base-content">HTML 内容</label>
-        <textarea
-          v-model="domContent"
-          class="textarea textarea-bordered h-40 w-full font-mono text-sm leading-relaxed"
-          placeholder="请输入要转换的 HTML 代码…"
-          spellcheck="false" />
-      </div>
-
-      <div>
-        <p class="mb-1.5 text-sm font-medium text-base-content">预览</p>
-        <div
-          ref="previewRef"
-          class="preview-stage flex min-h-[160px] items-center justify-center overflow-auto rounded-xl border border-dashed border-app-strong p-4">
-          <p
-            v-if="!domContent.trim()"
-            class="text-center text-xs text-base-content/40">
-            输入 HTML 后点击生成
-          </p>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          class="btn btn-primary btn-sm w-full sm:w-auto"
-          :disabled="isLoading"
-          @click="customToDo">
-          <span v-if="isLoading" class="loading loading-spinner loading-xs" />
-          {{ isLoading ? '转换中…' : '生成 PNG' }}
-        </button>
-
-        <a
-          href="https://cdkm.com/cn/svg-to-jpg"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn btn-ghost btn-sm border border-app-strong w-full sm:w-auto">
-          在线 SVG 转 JPG
-        </a>
-      </div>
-
+    <div>
+      <p class="mb-1.5 text-sm font-medium text-base-content">预览</p>
       <div
-        v-if="error"
-        class="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
-        {{ error }}
+        ref="previewRef"
+        class="preview-stage flex min-h-[160px] items-center justify-center overflow-auto rounded-xl border border-dashed border-app-strong p-4"
+      >
+        <p
+          v-if="!domContent.trim()"
+          class="text-center text-xs text-base-content/40"
+        >
+          输入 HTML 后点击生成
+        </p>
       </div>
     </div>
-  </section>
+
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm w-full sm:w-auto"
+        :disabled="isLoading"
+        @click="customToDo"
+      >
+        <span v-if="isLoading" class="loading loading-spinner loading-xs" />
+        {{ isLoading ? '转换中…' : '生成 PNG' }}
+      </button>
+
+      <a
+        href="https://cdkm.com/cn/svg-to-jpg"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-ghost btn-sm border border-app-strong w-full sm:w-auto"
+      >
+        在线 SVG 转 JPG
+      </a>
+    </div>
+
+    <div
+      v-if="error"
+      class="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error"
+    >
+      {{ error }}
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>

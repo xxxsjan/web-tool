@@ -53,4 +53,9 @@ export default defineNuxtConfig({
     'pinia-plugin-persistedstate/nuxt',
     '@element-plus/nuxt',
   ],
+
+  routeRules: {
+    '/image-to-icon': { redirect: '/image-convert' },
+    '/image-to-icon/**': { redirect: '/image-convert' },
+  },
 });
