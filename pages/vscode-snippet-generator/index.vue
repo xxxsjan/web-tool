@@ -1,6 +1,5 @@
 <script setup>
 definePageMeta({
-  tool: true,
   title: '⛏️vscode代码片段生成',
   group: '工具',
 });
