@@ -1,119 +1,183 @@
 <template>
   <div class="github-image-host mx-auto w-full max-w-5xl px-3 pb-12 sm:px-4">
-    <header class="mb-5 text-center sm:mb-6">
-      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
+    <header class="mb-4 text-center sm:mb-5">
+      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-2xl">
         Git 图床
       </h1>
-      <p class="text-xs text-base-content/50 sm:text-sm">
-        支持 GitHub / Gitee · 粘贴上传 · 压缩 · 外链
+      <p class="text-xs text-base-content/50">
+        Ctrl+V 粘贴上传 · 右键复制外链
       </p>
     </header>
 
-    <section class="overflow-hidden rounded-2xl tool-panel">
-      <!-- 仓库摘要 + 压缩设置 -->
-      <div class="tool-panel-head space-y-3 px-4 py-3 sm:px-5">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <div class="flex shrink-0 gap-1.5">
-              <button
-                v-for="opt in providerOptions"
-                :key="opt.value"
-                type="button"
-                class="btn btn-sm"
-                :class="
-                  activeProvider === opt.value
-                    ? 'btn-primary'
-                    : 'btn-ghost bg-base-content/5 hover:bg-base-content/10'
-                "
-                @click="switchProvider(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            </div>
-            <div class="min-w-0">
-              <p class="truncate text-[11px] text-base-content/45">
-                <template v-if="configReady">
-                  {{ activeProfile.owner }}/{{ activeProfile.repo }} · {{ activeProfile.branch }} ·
-                  {{ activeProfile.path || '/' }}
-                </template>
-                <template v-else>当前平台尚未配置，请先填写 Token 与仓库信息</template>
-              </p>
-            </div>
-          </div>
-          <div class="flex shrink-0 gap-2">
-            <button
-              type="button"
-              class="btn btn-ghost btn-sm bg-base-content/5 hover:bg-base-content/10"
-              :disabled="!configReady || loadingRemote"
-              @click="fetchRemoteImages"
-            >
-              <span v-if="loadingRemote" class="loading loading-spinner loading-xs"></span>
-              {{ loadingRemote ? '同步中' : '同步远端' }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-ghost btn-sm shrink-0 bg-base-content/5 hover:bg-base-content/10"
-              @click="openConfigDialog"
-            >
-              {{ configReady ? '修改配置' : '去配置' }}
-            </button>
-          </div>
+    <section
+      class="fm-panel flex min-h-[min(72vh,720px)] flex-col overflow-hidden rounded-2xl tool-panel"
+      :class="isDragging ? 'ring-2 ring-primary/50' : ''"
+      @dragenter.prevent="onDragEnter"
+      @dragover.prevent="onDragOver"
+      @dragleave.prevent="onDragLeave"
+      @drop.prevent="onDrop"
+    >
+      <!-- 工具栏：平台 + 操作 -->
+      <div class="fm-toolbar flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
+        <div class="flex shrink-0 gap-1.5">
+          <button
+            v-for="opt in providerOptions"
+            :key="opt.value"
+            type="button"
+            class="btn btn-sm"
+            :class="
+              activeProvider === opt.value
+                ? 'btn-primary'
+                : 'btn-ghost bg-base-content/5 hover:bg-base-content/10'
+            "
+            @click="switchProvider(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
         </div>
+        <div class="flex shrink-0 gap-1.5">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm bg-base-content/5 hover:bg-base-content/10"
+            :disabled="!configReady || loadingRemote"
+            @click="fetchRemoteImages"
+          >
+            <span v-if="loadingRemote" class="loading loading-spinner loading-xs"></span>
+            {{ loadingRemote ? '刷新中' : '刷新' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm bg-base-content/5 hover:bg-base-content/10"
+            @click="openConfigDialog"
+          >
+            {{ configReady ? '配置' : '去配置' }}
+          </button>
+        </div>
+      </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-base-content/8 pt-3">
-          <label class="flex cursor-pointer items-center gap-2 text-sm text-base-content">
-            <input v-model="compressEnabled" type="checkbox" class="toggle toggle-sm toggle-primary" />
-            上传前压缩
+      <!-- 地址栏 -->
+      <div class="fm-pathbar px-3 py-2 sm:px-4">
+        <div
+          v-if="!configReady"
+          class="fm-path-box rounded-lg px-3 py-2 text-xs text-base-content/50"
+        >
+          尚未配置仓库，请先点击「去配置」
+        </div>
+        <div
+          v-else
+          class="fm-path-box flex items-center gap-2 rounded-lg px-2.5 py-1.5"
+        >
+          <span class="shrink-0 text-xs text-base-content/50">路径</span>
+          <span class="hidden shrink-0 font-mono text-xs text-base-content/60 sm:inline">
+            {{ activeProfile.owner }}/{{ activeProfile.repo }}@{{ activeProfile.branch }}/
+          </span>
+          <input
+            v-model="pathDraft"
+            type="text"
+            class="input input-xs h-7 min-w-0 flex-1 bg-transparent px-1 font-mono text-xs"
+            placeholder="目录（空为根目录）"
+            title="当前目录，回车或失焦保存"
+            @change="commitPathEdit"
+            @keydown.enter.prevent="blurPathInput"
+          />
+          <span class="shrink-0 text-[11px] text-base-content/40">
+            {{ remoteFetched ? `${remoteImages.length} 项` : '—' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 次级工具：压缩 + 粘贴提示 / 待上传 -->
+      <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4">
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <label class="flex cursor-pointer items-center gap-1.5 text-base-content/70">
+            <input
+              v-model="compressEnabled"
+              type="checkbox"
+              class="toggle toggle-xs toggle-primary"
+            />
+            压缩
           </label>
-          <div v-if="compressEnabled" class="flex flex-wrap items-center gap-2 text-xs">
-            <label class="flex items-center gap-1.5 text-base-content/60">
-              质量
+          <template v-if="compressEnabled">
+            <label class="flex items-center gap-1 text-base-content/50">
+              {{ Math.round(compressQuality * 100) }}%
               <input
                 v-model.number="compressQuality"
                 type="range"
                 min="0.1"
                 max="1"
                 step="0.05"
-                class="range range-primary range-xs w-24"
-              />
-              <span class="font-mono w-8">{{ Math.round(compressQuality * 100) }}%</span>
-            </label>
-            <label class="flex items-center gap-1.5 text-base-content/60">
-              最大边
-              <input
-                v-model.number="maxEdge"
-                type="number"
-                min="0"
-                step="100"
-                class="input input-sm w-20 bg-base-200/60"
-                title="0 表示不限制"
+                class="range range-primary range-xs w-16"
               />
             </label>
-            <select v-model="compressFormat" class="select select-sm bg-base-200/60">
+            <input
+              v-model.number="maxEdge"
+              type="number"
+              min="0"
+              step="100"
+              class="input input-xs h-7 w-16 bg-base-200/60"
+              title="最大边，0 不限制"
+            />
+            <select v-model="compressFormat" class="select select-xs h-7 min-h-7 bg-base-200/60">
               <option value="image/jpeg">JPEG</option>
               <option value="image/webp">WebP</option>
               <option value="image/png">PNG</option>
             </select>
-          </div>
+          </template>
         </div>
+        <p class="text-[11px] text-base-content/40">
+          {{ isDragging ? '松开以上传到当前目录' : 'Ctrl+V 粘贴到当前目录' }}
+        </p>
       </div>
 
-      <!-- 上传区 -->
+      <!-- 待上传条 -->
       <div
-        class="relative m-4 overflow-hidden rounded-xl transition-colors sm:m-5"
-        :class="
-          isDragging
-            ? 'bg-primary/15 ring-2 ring-primary/50'
-            : pendingFile
-              ? 'bg-base-200/50'
-              : 'bg-base-200/35 hover:bg-base-200/55'
-        "
-        @click="triggerFileInput"
-        @dragenter.prevent="onDragEnter"
-        @dragover.prevent="onDragOver"
-        @dragleave.prevent="onDragLeave"
-        @drop.prevent="onDrop"
+        v-if="pendingFile"
+        class="mx-3 mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-primary/35 bg-primary/10 px-3 py-2 sm:mx-4"
       >
+        <img
+          v-if="pendingPreview"
+          :src="pendingPreview"
+          alt=""
+          class="h-10 w-10 rounded object-cover"
+        />
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-xs font-medium text-base-content">{{ pendingFile.name }}</p>
+          <p class="text-[11px] text-base-content/50">
+            {{ formatBytes(pendingFile.size) }}
+            <template v-if="compressedInfo">
+              → {{ formatBytes(compressedInfo.size) }}
+              <span class="text-success">(−{{ compressedInfo.ratio }}%)</span>
+            </template>
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary btn-xs"
+          :disabled="uploading || !configReady"
+          @click="uploadImage"
+        >
+          <span v-if="uploading" class="loading loading-spinner loading-xs"></span>
+          {{ uploading ? '上传中' : '上传' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs"
+          :disabled="uploading"
+          @click="clearPending"
+        >
+          取消
+        </button>
+      </div>
+
+      <div
+        v-if="errorMessage"
+        class="mx-3 mb-2 whitespace-pre-line rounded-lg bg-error/10 px-3 py-2 text-xs text-error sm:mx-4"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <!-- 内容区 -->
+      <div class="relative min-h-0 flex-1 overflow-y-auto px-3 pb-3 sm:px-4">
         <input
           ref="fileInput"
           type="file"
@@ -123,215 +187,118 @@
         />
 
         <div
-          class="flex min-h-[200px] cursor-pointer flex-col items-center justify-center gap-3 px-4 py-8 text-center"
+          v-if="loadingRemote && !remoteImages.length"
+          class="flex h-full min-h-[240px] items-center justify-center text-sm text-base-content/45"
         >
-          <template v-if="!pendingPreview">
-            <span
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-7 w-7"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
-                />
-              </svg>
-            </span>
-            <div>
-              <p class="text-base font-medium text-base-content">
-                {{ isDragging ? '松开即可添加图片' : '点击、拖拽或 Ctrl+V 粘贴图片' }}
-              </p>
-              <p class="mt-1 text-xs text-base-content/50">
-                PNG / JPG / WebP / GIF · 建议单张小于 5MB
-              </p>
-            </div>
-          </template>
-
-          <template v-else>
-            <img
-              :src="pendingPreview"
-              alt="预览"
-              class="max-h-48 max-w-full rounded-lg object-contain"
-              @click.stop
-            />
+          正在加载…
+        </div>
+        <div
+          v-else-if="!configReady"
+          class="flex h-full min-h-[240px] flex-col items-center justify-center gap-3 text-sm text-base-content/45"
+        >
+          <p>请先配置仓库</p>
+          <button type="button" class="btn btn-primary btn-sm" @click="openConfigDialog">
+            去配置
+          </button>
+        </div>
+        <div
+          v-else-if="remoteFetched && !remoteImages.length"
+          class="flex h-full min-h-[240px] flex-col items-center justify-center gap-2 text-sm text-base-content/45"
+        >
+          <p>当前目录为空</p>
+          <p class="text-xs text-base-content/35">Ctrl+V 粘贴图片即可上传</p>
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs bg-base-content/5"
+            @click="triggerFileInput"
+          >
+            或选择文件
+          </button>
+        </div>
+        <div
+          v-else-if="!remoteFetched"
+          class="flex h-full min-h-[240px] items-center justify-center text-sm text-base-content/45"
+        >
+          点击「刷新」加载当前目录
+        </div>
+        <ul
+          v-else
+          class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        >
+          <li
+            v-for="item in remoteImages"
+            :key="item.path"
+            class="fm-card overflow-hidden rounded-xl transition-colors"
+          >
             <div
-              class="inline-flex max-w-full items-center gap-2 rounded-lg bg-base-100/70 px-3 py-2"
-              @click.stop
+              class="aspect-square cursor-context-menu bg-base-200/40"
+              @contextmenu.prevent="openImageMenu($event, item)"
             >
-              <div class="min-w-0 text-left">
-                <p class="truncate text-sm font-medium text-base-content">
-                  {{ pendingFile?.name }}
-                </p>
-                <p class="text-[11px] text-base-content/50">
-                  {{ formatBytes(pendingFile?.size || 0) }}
-                  <template v-if="compressedInfo">
-                    → {{ formatBytes(compressedInfo.size) }}
-                    <span class="text-success">
-                      (−{{ compressedInfo.ratio }}%)
-                    </span>
-                  </template>
-                </p>
-              </div>
-              <button
-                type="button"
-                class="btn btn-ghost btn-xs btn-circle shrink-0"
-                :disabled="uploading"
-                aria-label="移除"
-                @click="clearPending"
-              >
-                ✕
-              </button>
+              <img
+                :src="previewUrl(item)"
+                :alt="item.name"
+                class="h-full w-full object-cover"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                @error="onPreviewError"
+              />
             </div>
-          </template>
-        </div>
-      </div>
-
-      <!-- 操作 -->
-      <div class="tool-panel-foot space-y-3 p-4 sm:p-5">
-        <div class="flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            class="btn btn-primary flex-1"
-            :disabled="!pendingFile || uploading || !configReady"
-            @click="uploadImage"
-          >
-            <span v-if="uploading" class="loading loading-spinner loading-sm"></span>
-            {{ uploading ? '上传中…' : `上传到 ${providerLabel}` }}
-          </button>
-          <button
-            type="button"
-            class="btn btn-ghost bg-base-content/5 hover:bg-base-content/10 sm:w-28"
-            :disabled="!pendingFile || uploading"
-            @click="clearPending"
-          >
-            清空
-          </button>
-        </div>
+            <div class="space-y-0.5 px-2 py-2">
+              <p class="truncate text-xs font-medium text-base-content" :title="item.name">
+                {{ item.name }}
+              </p>
+              <p class="text-[10px] text-base-content/40">
+                {{ item.size ? formatBytes(item.size) : '—' }}
+              </p>
+            </div>
+          </li>
+        </ul>
 
         <div
-          v-if="errorMessage"
-          class="whitespace-pre-line rounded-xl bg-error/10 px-3 py-2.5 text-sm text-error"
+          v-if="isDragging"
+          class="pointer-events-none absolute inset-2 flex items-center justify-center rounded-xl bg-primary/15 text-sm font-medium text-primary"
         >
-          {{ errorMessage }}
+          松开以上传到当前目录
         </div>
       </div>
     </section>
 
-    <!-- 远端图库 -->
-    <section class="mt-5 overflow-hidden rounded-2xl tool-panel">
-      <div class="flex items-center justify-between gap-2 tool-panel-head px-4 py-3 sm:px-5">
-        <div class="min-w-0">
-          <h2 class="text-sm font-semibold text-base-content">远端图片</h2>
-          <p class="text-[11px] text-base-content/45">
-            <template v-if="remoteFetched">共 {{ remoteImages.length }} 张 · {{ activeProfile.path || '仓库根目录' }}</template>
-            <template v-else>配置仓库后点击「同步远端」加载</template>
-          </p>
-        </div>
+    <!-- 图片右键菜单 -->
+    <teleport to="body">
+      <div
+        v-if="imageMenu.visible"
+        class="image-ctx-menu fixed z-[4000] min-w-[11rem] overflow-hidden rounded-xl bg-base-100 py-1 shadow-xl"
+        :style="{ left: `${imageMenu.x}px`, top: `${imageMenu.y}px` }"
+        @click.stop
+      >
         <button
           type="button"
-          class="btn btn-ghost btn-xs shrink-0 bg-base-content/5 hover:bg-base-content/10"
-          :disabled="!configReady || loadingRemote"
-          @click="fetchRemoteImages"
+          class="flex w-full px-3 py-2 text-left text-sm text-base-content hover:bg-base-content/8"
+          @click="onMenuOpenImage"
         >
-          <span v-if="loadingRemote" class="loading loading-spinner loading-xs"></span>
-          {{ loadingRemote ? '同步中…' : '刷新' }}
+          打开这个图片
+        </button>
+        <div class="my-1 h-px bg-base-content/8"></div>
+        <button
+          v-for="opt in linkTypeOptions"
+          :key="opt.key"
+          type="button"
+          class="flex w-full px-3 py-2 text-left text-sm text-base-content hover:bg-base-content/8"
+          @click="onMenuCopyLink(opt.key)"
+        >
+          复制{{ opt.label }}
+        </button>
+        <div class="my-1 h-px bg-base-content/8"></div>
+        <button
+          type="button"
+          class="flex w-full px-3 py-2 text-left text-sm text-error hover:bg-error/10"
+          :disabled="!imageMenu.item || deletingId === imageMenu.item.id || !configReady"
+          @click="onMenuDelete"
+        >
+          删除
         </button>
       </div>
-
-      <div v-if="loadingRemote && !remoteImages.length" class="px-4 py-10 text-center text-sm text-base-content/45">
-        正在拉取远端图片…
-      </div>
-      <div
-        v-else-if="remoteFetched && !remoteImages.length"
-        class="px-4 py-10 text-center text-sm text-base-content/45"
-      >
-        当前目录下没有图片
-      </div>
-      <div
-        v-else-if="!remoteFetched"
-        class="px-4 py-10 text-center text-sm text-base-content/45"
-      >
-        点击上方「同步远端」获取仓库中的图片
-      </div>
-      <div v-else class="remote-table-wrap max-h-[min(70vh,720px)] overflow-auto">
-        <table class="table table-sm table-pin-rows remote-table">
-          <thead>
-            <tr class="text-xs text-base-content/55">
-              <th class="w-14">预览</th>
-              <th>文件名</th>
-              <th class="w-20">大小</th>
-              <th
-                v-for="opt in linkTypeOptions"
-                :key="opt.key"
-                class="w-24 text-center"
-              >
-                {{ opt.label }}
-              </th>
-              <th class="w-16 text-center">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in remoteImages" :key="item.path">
-              <td>
-                <img
-                  :src="previewUrl(item)"
-                  :alt="item.name"
-                  class="h-10 w-10 rounded-lg object-cover bg-base-200/60"
-                  loading="lazy"
-                  referrerpolicy="no-referrer"
-                  @error="onPreviewError"
-                />
-              </td>
-              <td class="max-w-[12rem] sm:max-w-xs">
-                <p class="truncate text-xs font-medium text-base-content" :title="item.name">
-                  {{ item.name }}
-                </p>
-                <p class="truncate font-mono text-[10px] text-base-content/40" :title="item.path">
-                  {{ item.path }}
-                </p>
-              </td>
-              <td class="whitespace-nowrap text-xs text-base-content/55">
-                {{ item.size ? formatBytes(item.size) : '—' }}
-              </td>
-              <td
-                v-for="opt in linkTypeOptions"
-                :key="opt.key"
-                class="text-center"
-              >
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-xs bg-base-content/5 hover:bg-primary/20 hover:text-primary"
-                  @click="copyItemLink(item, opt.key)"
-                >
-                  复制
-                </button>
-              </td>
-              <td class="text-center">
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-xs text-error hover:bg-error/15"
-                  :disabled="deletingId === item.id || !configReady"
-                  @click="deleteImage(item)"
-                >
-                  <span
-                    v-if="deletingId === item.id"
-                    class="loading loading-spinner loading-xs"
-                  ></span>
-                  {{ deletingId === item.id ? '…' : '删除' }}
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </teleport>
 
     <el-dialog
       v-model="showConfigDialog"
@@ -345,7 +312,9 @@
     >
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div class="sm:col-span-2">
-          <p class="mb-1.5 text-xs text-base-content/60">配置平台（两套配置互不影响）</p>
+          <p class="mb-1.5 text-xs text-base-content/60">
+            配置平台（两套配置互不影响）
+          </p>
           <div class="flex gap-2">
             <button
               v-for="opt in providerOptions"
@@ -364,7 +333,9 @@
           </div>
         </div>
         <label class="form-control sm:col-span-2">
-          <span class="mb-1 text-xs text-base-content/60">{{ tokenFieldLabel }}</span>
+          <span class="mb-1 text-xs text-base-content/60">{{
+            tokenFieldLabel
+          }}</span>
           <input
             v-model="drafts[draftProvider].token"
             type="password"
@@ -409,7 +380,9 @@
             placeholder="fromtool"
           />
         </label>
-        <p class="sm:col-span-2 text-[11px] leading-relaxed text-base-content/40">
+        <p
+          class="sm:col-span-2 text-[11px] leading-relaxed text-base-content/40"
+        >
           {{ tokenHelpText }}
         </p>
       </div>
@@ -422,7 +395,11 @@
           >
             取消
           </button>
-          <button type="button" class="btn btn-primary btn-sm" @click="saveConfigDialog">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            @click="saveConfigDialog"
+          >
             保存
           </button>
         </div>
@@ -503,7 +480,9 @@ const drafts = reactive<Record<Provider, RepoProfile>>({
 const compressEnabled = ref(true);
 const compressQuality = ref(0.8);
 const maxEdge = ref(1920);
-const compressFormat = ref<'image/webp' | 'image/jpeg' | 'image/png'>('image/jpeg');
+const compressFormat = ref<'image/webp' | 'image/jpeg' | 'image/png'>(
+  'image/jpeg',
+);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const isDragging = ref(false);
@@ -516,10 +495,22 @@ const remoteFetched = ref(false);
 const deletingId = ref('');
 const errorMessage = ref('');
 const remoteImages = ref<UploadResult[]>([]);
+const imageMenu = reactive<{
+  visible: boolean;
+  x: number;
+  y: number;
+  item: UploadResult | null;
+}>({
+  visible: false,
+  x: 0,
+  y: 0,
+  item: null,
+});
 
 const activeProfile = computed(() => profiles[activeProvider.value]);
 const isGitee = computed(() => activeProvider.value === 'gitee');
 const providerLabel = computed(() => (isGitee.value ? 'Gitee' : 'GitHub'));
+const pathDraft = ref('fromtool');
 
 const linkTypeOptions = computed(() => {
   if (isGitee.value) {
@@ -555,11 +546,14 @@ const tokenHelpText = computed(() =>
 
 const configReady = computed(() => {
   const p = activeProfile.value;
-  return Boolean(p.token.trim() && p.owner.trim() && p.repo.trim() && p.branch.trim());
+  return Boolean(
+    p.token.trim() && p.owner.trim() && p.repo.trim() && p.branch.trim(),
+  );
 });
 
 onMounted(() => {
   loadConfig();
+  pathDraft.value = profiles[activeProvider.value].path;
   if (!configReady.value) {
     showConfigDialog.value = true;
     draftProvider.value = activeProvider.value;
@@ -568,11 +562,21 @@ onMounted(() => {
     fetchRemoteImages({ silent: true });
   }
   window.addEventListener('paste', onPaste);
+  window.addEventListener('click', closeImageMenu);
+  window.addEventListener('scroll', closeImageMenu, true);
+  window.addEventListener('keydown', onGlobalKeydown);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('paste', onPaste);
+  window.removeEventListener('click', closeImageMenu);
+  window.removeEventListener('scroll', closeImageMenu, true);
+  window.removeEventListener('keydown', onGlobalKeydown);
   revokePreview();
+});
+
+watch(activeProvider, () => {
+  pathDraft.value = profiles[activeProvider.value].path;
 });
 
 watch([compressEnabled, compressQuality, maxEdge, compressFormat], () => {
@@ -595,12 +599,18 @@ function syncDraftsFromProfiles() {
 }
 
 function isProfileReady(profile: RepoProfile) {
-  return Boolean(profile.token.trim() && profile.owner.trim() && profile.repo.trim() && profile.branch.trim());
+  return Boolean(
+    profile.token.trim() &&
+    profile.owner.trim() &&
+    profile.repo.trim() &&
+    profile.branch.trim(),
+  );
 }
 
 function switchProvider(provider: Provider) {
   if (activeProvider.value === provider) return;
   activeProvider.value = provider;
+  pathDraft.value = profiles[provider].path;
   persistConfig();
   remoteImages.value = [];
   remoteFetched.value = false;
@@ -608,6 +618,30 @@ function switchProvider(provider: Provider) {
   if (configReady.value) {
     fetchRemoteImages({ silent: true });
   }
+}
+
+function blurPathInput(e: KeyboardEvent) {
+  (e.target as HTMLInputElement | null)?.blur();
+}
+
+function commitPathEdit() {
+  const next = sanitizePath(pathDraft.value);
+  pathDraft.value = next;
+  if (profiles[activeProvider.value].path === next) return;
+  profiles[activeProvider.value].path = next;
+  drafts[activeProvider.value].path = next;
+  persistConfig();
+  remoteImages.value = [];
+  remoteFetched.value = false;
+  if (configReady.value) {
+    fetchRemoteImages({ silent: true });
+  }
+  ElMessage({
+    message: next ? `目录已切换为 ${next}` : '目录已切换为仓库根目录',
+    type: 'success',
+    duration: 1200,
+    showClose: false,
+  });
 }
 
 function openConfigDialog() {
@@ -623,7 +657,9 @@ function onConfigDialogClosed() {
 function saveConfigDialog() {
   const current = drafts[draftProvider.value];
   if (!isProfileReady(current)) {
-    ElMessage.warning(`请完整填写 ${draftProvider.value === 'gitee' ? 'Gitee' : 'GitHub'} 的 Token、Owner、Repo 和 Branch`);
+    ElMessage.warning(
+      `请完整填写 ${draftProvider.value === 'gitee' ? 'Gitee' : 'GitHub'} 的 Token、Owner、Repo 和 Branch`,
+    );
     return;
   }
 
@@ -633,7 +669,7 @@ function saveConfigDialog() {
     owner: drafts.github.owner.trim(),
     repo: drafts.github.repo.trim(),
     branch: drafts.github.branch.trim(),
-    path: drafts.github.path.trim(),
+    path: sanitizePath(drafts.github.path),
   };
   profiles.gitee = {
     ...cloneProfile(drafts.gitee),
@@ -641,9 +677,10 @@ function saveConfigDialog() {
     owner: drafts.gitee.owner.trim(),
     repo: drafts.gitee.repo.trim(),
     branch: drafts.gitee.branch.trim(),
-    path: drafts.gitee.path.trim(),
+    path: sanitizePath(drafts.gitee.path),
   };
 
+  pathDraft.value = profiles[activeProvider.value].path;
   persistConfig();
   showConfigDialog.value = false;
   remoteImages.value = [];
@@ -660,7 +697,8 @@ function loadConfig() {
     const parsed = JSON.parse(raw) as any;
 
     if (parsed?.profiles?.github || parsed?.profiles?.gitee) {
-      activeProvider.value = parsed.activeProvider === 'gitee' ? 'gitee' : 'github';
+      activeProvider.value =
+        parsed.activeProvider === 'gitee' ? 'gitee' : 'github';
       if (parsed.profiles.github) {
         Object.assign(profiles.github, {
           ...emptyProfile('github'),
@@ -714,7 +752,10 @@ function previewUrl(item: UploadResult) {
 function formatBytes(bytes: number) {
   if (!bytes) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const i = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1,
+  );
   const value = bytes / 1024 ** i;
   return `${value < 10 && i > 0 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
 }
@@ -757,9 +798,13 @@ function onPaste(e: ClipboardEvent) {
         const named =
           file.name && file.name !== 'image.png'
             ? file
-            : new File([file], `paste-${Date.now()}.${extFromMime(file.type)}`, {
-                type: file.type,
-              });
+            : new File(
+                [file],
+                `paste-${Date.now()}.${extFromMime(file.type)}`,
+                {
+                  type: file.type,
+                },
+              );
         prepareFile(named);
         ElMessage.success('已从剪贴板获取图片');
       }
@@ -884,7 +929,9 @@ function pad2(n: number) {
 }
 
 function buildFileName(original: string, ext: string) {
-  const base = original.replace(/\.[^.]+$/, '').replace(/[^\w\u4e00-\u9fff-]+/g, '_') || 'image';
+  const base =
+    original.replace(/\.[^.]+$/, '').replace(/[^\w\u4e00-\u9fff-]+/g, '_') ||
+    'image';
   const now = new Date();
   const stamp = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}-${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
   return `${base}-${stamp}.${ext}`;
@@ -920,7 +967,9 @@ function formatApiError(status: number, data: any) {
   if (status === 400) {
     return [
       `请求无效（400）：${platform} 拒绝了本次请求。`,
-      apiMsg ? `${platform}：${apiMsg}` : '请检查分支名、目录路径、Token 权限，或文件是否已存在。',
+      apiMsg
+        ? `${platform}：${apiMsg}`
+        : '请检查分支名、目录路径、Token 权限，或文件是否已存在。',
     ]
       .filter(Boolean)
       .join('\n');
@@ -1030,7 +1079,12 @@ function onPreviewError(e: Event) {
   }
 }
 
-function toRemoteItem(entry: { path: string; sha: string; size?: number; html_url?: string }): UploadResult {
+function toRemoteItem(entry: {
+  path: string;
+  sha: string;
+  size?: number;
+  html_url?: string;
+}): UploadResult {
   const contentPath = entry.path.replace(/^\/+/, '');
   const name = contentPath.split('/').pop() || contentPath;
   const urls = buildPublicUrls(contentPath);
@@ -1066,7 +1120,12 @@ async function fetchRemoteImages(options: { silent?: boolean } = {}) {
 
     const tree = Array.isArray(data?.tree) ? data.tree : [];
     const images = tree
-      .filter((node: any) => node?.type === 'blob' && typeof node.path === 'string' && IMAGE_EXT_RE.test(node.path))
+      .filter(
+        (node: any) =>
+          node?.type === 'blob' &&
+          typeof node.path === 'string' &&
+          IMAGE_EXT_RE.test(node.path),
+      )
       .filter((node: any) => {
         if (!dir) return true;
         return node.path === dir || node.path.startsWith(`${dir}/`);
@@ -1078,7 +1137,9 @@ async function fetchRemoteImages(options: { silent?: boolean } = {}) {
           size: node.size,
         }),
       )
-      .sort((a: UploadResult, b: UploadResult) => b.name.localeCompare(a.name, 'zh'));
+      .sort((a: UploadResult, b: UploadResult) =>
+        b.name.localeCompare(a.name, 'zh'),
+      );
 
     remoteImages.value = images;
     remoteFetched.value = true;
@@ -1098,7 +1159,11 @@ async function fetchRemoteImages(options: { silent?: boolean } = {}) {
   }
 }
 
-async function resolveFileSha(token: string, filePath: string, knownSha?: string) {
+async function resolveFileSha(
+  token: string,
+  filePath: string,
+  knownSha?: string,
+) {
   if (knownSha) return knownSha;
   const url = withAccessToken(
     `${contentsApiUrl(filePath)}?ref=${encodeURIComponent(activeProfile.value.branch.trim())}`,
@@ -1127,7 +1192,8 @@ async function uploadImage() {
     }
 
     const sourceBlob = compressedInfo.value?.blob || pendingFile.value;
-    const ext = compressedInfo.value?.ext || extFromMime(pendingFile.value.type);
+    const ext =
+      compressedInfo.value?.ext || extFromMime(pendingFile.value.type);
     const fileName = buildFileName(pendingFile.value.name, ext);
     const dir = sanitizePath(activeProfile.value.path);
     const contentPath = dir ? `${dir}/${fileName}` : fileName;
@@ -1142,11 +1208,14 @@ async function uploadImage() {
 
     // Gitee：新建用 POST；GitHub：PUT
     const method = isGitee.value ? 'POST' : 'PUT';
-    const res = await fetch(withAccessToken(contentsApiUrl(contentPath), token), {
-      method,
-      headers: requestHeaders(token),
-      body: JSON.stringify(body),
-    });
+    const res = await fetch(
+      withAccessToken(contentsApiUrl(contentPath), token),
+      {
+        method,
+        headers: requestHeaders(token),
+        body: JSON.stringify(body),
+      },
+    );
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -1164,7 +1233,10 @@ async function uploadImage() {
       raw: urls.raw,
       page: data?.content?.html_url || urls.page,
     };
-    remoteImages.value = [result, ...remoteImages.value.filter(i => i.path !== result.path)];
+    remoteImages.value = [
+      result,
+      ...remoteImages.value.filter(i => i.path !== result.path),
+    ];
     remoteFetched.value = true;
     clearPending();
     ElMessage.success('上传成功');
@@ -1254,16 +1326,90 @@ function toMarkdownImage(item: UploadResult) {
 }
 
 function copyItemLink(item: UploadResult, type: LinkKey) {
-  const label = linkTypeOptions.value.find(opt => opt.key === type)?.label || type;
+  const label =
+    linkTypeOptions.value.find(opt => opt.key === type)?.label || type;
   if (type === 'markdown') {
     copyText(toMarkdownImage(item), `已复制 ${label}`);
     return;
   }
   copyText(item[type], `已复制 ${label}`);
 }
+
+function closeImageMenu() {
+  imageMenu.visible = false;
+  imageMenu.item = null;
+}
+
+function onGlobalKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeImageMenu();
+}
+
+function openImageMenu(e: MouseEvent, item: UploadResult) {
+  const menuWidth = 180;
+  const menuHeight = 44 + linkTypeOptions.value.length * 36 + 48;
+  const maxX = window.innerWidth - menuWidth - 8;
+  const maxY = window.innerHeight - menuHeight - 8;
+  imageMenu.item = item;
+  imageMenu.x = Math.max(8, Math.min(e.clientX, maxX));
+  imageMenu.y = Math.max(8, Math.min(e.clientY, maxY));
+  imageMenu.visible = true;
+}
+
+function onMenuOpenImage() {
+  const item = imageMenu.item;
+  closeImageMenu();
+  if (!item) return;
+  window.open(preferredEmbedUrl(item), '_blank', 'noopener,noreferrer');
+}
+
+function onMenuCopyLink(type: LinkKey) {
+  const item = imageMenu.item;
+  closeImageMenu();
+  if (!item) return;
+  copyItemLink(item, type);
+}
+
+function onMenuDelete() {
+  const item = imageMenu.item;
+  closeImageMenu();
+  if (!item) return;
+  deleteImage(item);
+}
 </script>
 
 <style scoped>
+.github-image-host {
+  --fm-border: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+  --fm-border-strong: color-mix(in oklab, var(--color-base-content) 32%, transparent);
+}
+
+.github-image-host :deep(.fm-panel.tool-panel) {
+  border: 1px solid var(--fm-border-strong);
+}
+
+.fm-toolbar {
+  border-bottom: 1px solid var(--fm-border);
+}
+
+.fm-pathbar {
+  border-bottom: 1px solid var(--fm-border);
+}
+
+.fm-path-box {
+  border: 1px solid var(--fm-border-strong);
+  background: color-mix(in oklab, var(--color-base-200) 70%, transparent);
+}
+
+.fm-card {
+  border: 1px solid var(--fm-border);
+  background: color-mix(in oklab, var(--color-base-content) 3%, transparent);
+}
+
+.fm-card:hover {
+  border-color: var(--fm-border-strong);
+  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+}
+
 .github-image-host :deep(.input),
 .github-image-host :deep(.select) {
   border-width: 0;
@@ -1273,30 +1419,19 @@ function copyItemLink(item: UploadResult, type: LinkKey) {
 
 .github-image-host :deep(.input:focus),
 .github-image-host :deep(.select:focus) {
-  outline: 2px solid color-mix(in oklab, var(--color-primary) 35%, transparent);
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 40%, transparent);
   outline-offset: 0;
-}
-
-.remote-table :deep(th),
-.remote-table :deep(td) {
-  border-color: color-mix(in oklab, var(--color-base-content) 6%, transparent);
-  background-color: transparent;
-}
-
-.remote-table :deep(thead tr) {
-  background: color-mix(in oklab, var(--color-base-content) 4%, transparent);
-}
-
-.remote-table :deep(tbody tr:hover) {
-  background: color-mix(in oklab, var(--color-base-content) 5%, transparent);
-}
-
-.remote-table :deep(.table) {
-  --fallback-b2: transparent;
 }
 </style>
 
 <style>
+.image-ctx-menu {
+  border: 1px solid color-mix(in oklab, var(--color-base-content) 22%, transparent);
+  backdrop-filter: blur(10px);
+  background: color-mix(in oklab, var(--color-base-100) 96%, transparent);
+  box-shadow: 0 12px 36px -12px rgb(0 0 0 / 0.55);
+}
+
 /* el-dialog 挂到 body，需非 scoped */
 .github-host-config-dialog.el-dialog {
   border: none;
