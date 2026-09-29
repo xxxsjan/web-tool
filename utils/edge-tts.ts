@@ -31,7 +31,10 @@ export type EdgeExportFormatConfig = {
   ext: string;
 };
 
-/** 导出可选格式（Edge 在线合成直接输出） */
+/**
+ * 导出可选格式。
+ * Edge 免费接口稳定输出主要为 MP3；WAV / OGG 由服务端转码得到。
+ */
 export const EDGE_EXPORT_FORMATS: EdgeExportFormatConfig[] = [
   {
     value: 'mp3',
@@ -43,14 +46,14 @@ export const EDGE_EXPORT_FORMATS: EdgeExportFormatConfig[] = [
   {
     value: 'wav',
     label: 'WAV',
-    edgeFormat: 'riff-24khz-16bit-mono-pcm',
+    edgeFormat: 'audio-24khz-48kbitrate-mono-mp3',
     mime: 'audio/wav',
     ext: 'wav',
   },
   {
     value: 'ogg',
     label: 'OGG',
-    edgeFormat: 'ogg-24khz-16bit-mono-opus',
+    edgeFormat: 'audio-24khz-48kbitrate-mono-mp3',
     mime: 'audio/ogg',
     ext: 'ogg',
   },

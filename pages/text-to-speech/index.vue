@@ -745,31 +745,73 @@ const triggerDownload = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
+const readFetchErrorMessage = async (e: any, fallback: string) => {
+  const fromFields =
+    e?.data?.message ||
+    e?.data?.statusMessage ||
+    e?.statusMessage ||
+    e?.message;
+  if (typeof fromFields === 'string' && fromFields.trim()) {
+    // ofetch 常把 body 摘要拼进 message；优先拆出可读中文
+    const m = fromFields.match(/"message"\s*:\s*"((?:\\.|[^"\\])*)"/);
+    if (m?.[1]) {
+      try {
+        return JSON.parse(`"${m[1]}"`);
+      } catch {
+        return m[1];
+      }
+    }
+    if (!/^\[(?:GET|POST|PUT|DELETE|PATCH)\]/i.test(fromFields)) {
+      return fromFields;
+    }
+  }
+
+  const data = e?.data;
+  if (data instanceof Blob) {
+    try {
+      const text = await data.text();
+      const json = JSON.parse(text);
+      if (json?.message || json?.statusMessage) {
+        return String(json.message || json.statusMessage);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return fallback;
+};
+
 const synthesize = async (
   content: string,
   format: EdgeExportFormat = 'mp3',
 ) => {
   const locale = selectedMeta.value?.Locale || 'zh-CN';
   const formatConfig = getEdgeExportFormat(format);
-  const blob = await $fetch<Blob>('/api/edge-tts/speak', {
-    method: 'POST',
-    body: {
+  try {
+    const blob = await $fetch<Blob>('/api/edge-tts/speak', {
+      method: 'POST',
+      body: {
+        text: content,
+        voice: selectedVoice.value,
+        rate: rate.value,
+        locale,
+        format: formatConfig.value,
+      },
+      responseType: 'blob',
+    });
+    lastAudioBlob.value = blob;
+    lastAudioMeta.value = {
       text: content,
       voice: selectedVoice.value,
       rate: rate.value,
-      locale,
       format: formatConfig.value,
-    },
-    responseType: 'blob',
-  });
-  lastAudioBlob.value = blob;
-  lastAudioMeta.value = {
-    text: content,
-    voice: selectedVoice.value,
-    rate: rate.value,
-    format: formatConfig.value,
-  };
-  return { blob, locale, format: formatConfig };
+    };
+    return { blob, locale, format: formatConfig };
+  } catch (e: any) {
+    const msg = await readFetchErrorMessage(e, '合成失败，请检查网络后重试');
+    throw new Error(msg);
+  }
 };
 
 const onAudioPlay = () => {
@@ -850,12 +892,7 @@ const speakText = async (content: string) => {
     )}`;
   } catch (e: any) {
     if (!aborting) {
-      const msg =
-        e?.data?.statusMessage ||
-        e?.statusMessage ||
-        e?.message ||
-        '合成失败，请检查网络后重试';
-      errorMessage.value = msg;
+      errorMessage.value = e?.message || '合成失败，请检查网络后重试';
       statusTip.value = '';
     }
   } finally {
@@ -896,11 +933,7 @@ const download = async () => {
     statusTip.value = `已开始下载 ${fmt.toUpperCase()}`;
   } catch (e: any) {
     if (!aborting) {
-      errorMessage.value =
-        e?.data?.statusMessage ||
-        e?.statusMessage ||
-        e?.message ||
-        '下载失败，请重试';
+      errorMessage.value = e?.message || '下载失败，请重试';
       statusTip.value = '';
     }
   } finally {

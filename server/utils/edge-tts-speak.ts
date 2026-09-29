@@ -8,6 +8,10 @@ import {
   randomHex,
   type EdgeExportFormat,
 } from '~/utils/edge-tts';
+import { convertMp3Buffer } from './convert-audio';
+
+/** Edge 免费 WebSocket 对 RIFF/OGG 常直接断连，合成一律走 MP3 */
+const EDGE_SYNTH_FORMAT = 'mp3' as const;
 
 function parseBinaryAudioFrame(raw: Buffer): Buffer | null {
   if (raw.length < 2) return null;
@@ -54,6 +58,7 @@ export function synthesizeEdgeTtsServer(options: {
   } = options;
 
   const formatConfig = getEdgeExportFormat(format);
+  const edgeFormatConfig = getEdgeExportFormat(EDGE_SYNTH_FORMAT);
   const trimmed = text.trim();
   if (!trimmed) {
     return Promise.reject(new Error('文本为空'));
@@ -78,17 +83,28 @@ export function synthesizeEdgeTtsServer(options: {
         reject(err);
         return;
       }
-      const audio = Buffer.concat(chunks);
-      if (!audio.length) {
+      const mp3 = Buffer.concat(chunks);
+      if (!mp3.length) {
         reject(new Error('未收到音频数据'));
         return;
       }
-      resolve({
-        audio,
-        mime: formatConfig.mime,
-        ext: formatConfig.ext,
-        format: formatConfig.value,
-      });
+
+      void (async () => {
+        try {
+          let audio = mp3;
+          if (formatConfig.value === 'wav' || formatConfig.value === 'ogg') {
+            audio = await convertMp3Buffer(mp3, formatConfig.value);
+          }
+          resolve({
+            audio,
+            mime: formatConfig.mime,
+            ext: formatConfig.ext,
+            format: formatConfig.value,
+          });
+        } catch (e: any) {
+          reject(e instanceof Error ? e : new Error(String(e)));
+        }
+      })();
     };
 
     timer = setTimeout(() => {
@@ -109,7 +125,7 @@ export function synthesizeEdgeTtsServer(options: {
         const ts = edgeTtsTimestamp();
         const config =
           `X-Timestamp:${ts}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n` +
-          `{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"true"},"outputFormat":"${formatConfig.edgeFormat}"}}}}\r\n`;
+          `{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"true"},"outputFormat":"${edgeFormatConfig.edgeFormat}"}}}}\r\n`;
         ws!.send(config);
 
         const ssml = buildSsml(trimmed, voice, rate, locale);
