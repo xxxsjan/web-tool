@@ -39,6 +39,16 @@ export default defineNuxtConfig({
         },
       },
     },
+    optimizeDeps: {
+      // Prebundle so bare imports inside the package resolve in the browser.
+      // Excluding it serves raw ESM with unresolved `onnxruntime-web` imports.
+      include: [
+        '@imgly/background-removal',
+        'onnxruntime-web',
+        'onnxruntime-web/webgpu',
+      ],
+    },
+    assetsInclude: ['**/*.onnx', '**/*.wasm'],
   },
 
   modules: [
