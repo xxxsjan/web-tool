@@ -28,7 +28,7 @@
             id="tts-text"
             v-model="text"
             rows="10"
-            class="textarea textarea-bordered w-full resize-y text-sm leading-relaxed"
+            class="tts-textarea w-full resize-y text-sm leading-relaxed"
             placeholder="在此输入要朗读的文本…"
             :disabled="busy"
           ></textarea>
@@ -49,7 +49,7 @@
                 </span>
                 <span
                   v-if="!voicePanelOpen"
-                  class="badge badge-primary badge-sm truncate font-normal"
+                  class="tts-badge tts-badge--primary truncate"
                 >
                   {{ selectedVoiceLabel }}
                 </span>
@@ -84,11 +84,11 @@
                   v-for="item in localeOptions"
                   :key="item.value"
                   type="button"
-                  class="btn btn-sm rounded-full border"
+                  class="tts-chip"
                   :class="
                     localeFilter === item.value
-                      ? 'btn-primary border-primary'
-                      : 'btn-ghost border-app-strong'
+                      ? 'tts-chip--active'
+                      : 'tts-chip--ghost'
                   "
                   @click="localeFilter = item.value"
                 >
@@ -100,7 +100,7 @@
             <div>
               <div class="mb-2 flex items-center justify-between gap-2">
                 <p class="text-xs font-medium text-base-content/55">可选音色</p>
-                <span class="badge badge-ghost badge-sm">
+                <span class="tts-badge tts-badge--muted">
                   {{ filteredVoices.length }} 个
                 </span>
               </div>
@@ -111,11 +111,11 @@
                   v-for="v in filteredVoices"
                   :key="v.ShortName"
                   type="button"
-                  class="btn btn-sm h-auto min-h-0 rounded-full border px-3 py-1.5 font-normal"
+                  class="tts-chip"
                   :class="
                     selectedVoice === v.ShortName
-                      ? 'btn-primary border-primary'
-                      : 'btn-ghost border-app-strong'
+                      ? 'tts-chip--active'
+                      : 'tts-chip--ghost'
                   "
                   :title="friendlyVoiceLabel(v)"
                   :disabled="busy"
@@ -135,10 +135,8 @@
         </div>
 
         <!-- 语速 / 音量：固定一行两列 -->
-        <div
-          class="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-5 gap-y-4"
-        >
-          <div class="min-w-0 w-full">
+        <div class="grid w-full grid-cols-2 gap-x-5 gap-y-4">
+          <div class="min-w-0">
             <div class="mb-2 flex items-center justify-between gap-2">
               <label
                 for="tts-rate"
@@ -150,7 +148,7 @@
                 {{ rate.toFixed(1) }}x
               </span>
             </div>
-            <div class="flex w-full min-w-0 items-center gap-2">
+            <div class="flex min-w-0 items-center gap-2">
               <span
                 class="w-9 shrink-0 text-right font-mono text-[11px] text-base-content/45"
               >
@@ -163,18 +161,18 @@
                 min="0.5"
                 max="2"
                 step="0.1"
-                class="range range-primary range-sm min-w-0 w-auto flex-1"
+                class="tts-range min-w-0 flex-1"
                 :disabled="busy"
               />
               <span
-                class="w-10 shrink-0 text-left font-mono text-[11px] text-base-content/45"
+                class="w-10 shrink-0 font-mono text-[11px] text-base-content/45"
               >
                 2.0x
               </span>
             </div>
           </div>
 
-          <div class="min-w-0 w-full">
+          <div class="min-w-0">
             <div class="mb-2 flex items-center justify-between gap-2">
               <label
                 for="tts-volume"
@@ -189,7 +187,7 @@
                 </span>
               </span>
             </div>
-            <div class="flex w-full min-w-0 items-center gap-2">
+            <div class="flex min-w-0 items-center gap-2">
               <span
                 class="w-9 shrink-0 text-right font-mono text-[11px] text-base-content/45"
               >
@@ -202,10 +200,10 @@
                 min="0"
                 max="200"
                 step="1"
-                class="range range-primary range-sm min-w-0 w-auto flex-1"
+                class="tts-range min-w-0 flex-1"
               />
               <span
-                class="w-10 shrink-0 text-left font-mono text-[11px] text-base-content/45"
+                class="w-10 shrink-0 font-mono text-[11px] text-base-content/45"
               >
                 200%
               </span>
@@ -244,7 +242,7 @@
             v-else-if="busy && busyMode === 'speak'"
             class="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-[11px] text-base-content/50"
           >
-            <span class="loading loading-spinner loading-xs"></span>
+            <span class="tts-spinner tts-spinner--xs" aria-hidden="true"></span>
             合成中…
           </p>
           <p
@@ -291,7 +289,7 @@
                 </span>
               </div>
               <div
-                class="export-formats inline-flex rounded-full border border-app-strong bg-base-100 p-1"
+                class="inline-flex rounded-full border border-app-strong bg-base-100 p-1"
                 role="group"
                 aria-label="导出格式"
               >
@@ -299,11 +297,11 @@
                   v-for="item in EDGE_EXPORT_FORMATS"
                   :key="item.value"
                   type="button"
-                  class="export-format-btn btn btn-sm h-8 min-h-8 rounded-full border-0 px-4 font-medium"
+                  class="tts-chip h-8 px-4"
                   :class="
                     exportFormat === item.value
-                      ? 'btn-primary'
-                      : 'btn-ghost text-base-content/70 hover:bg-base-200'
+                      ? 'tts-chip--active'
+                      : 'tts-chip--ghost'
                   "
                   :disabled="busy"
                   @click="exportFormat = item.value"
@@ -315,13 +313,14 @@
 
             <button
               type="button"
-              class="btn btn-success gap-2 border-0 shadow-sm sm:min-w-[8.5rem]"
+              class="tts-btn-success inline-flex items-center justify-center gap-2 sm:min-w-[8.5rem]"
               :disabled="!canDownload"
               @click="download"
             >
               <span
                 v-if="busy && busyMode === 'download'"
-                class="loading loading-spinner loading-sm"
+                class="tts-spinner tts-spinner--sm"
+                aria-hidden="true"
               ></span>
               <svg
                 v-else
@@ -979,5 +978,176 @@ onUnmounted(() => {
 .wave-canvas {
   width: 100%;
   height: 3rem;
+}
+
+.tts-textarea {
+  border-radius: 0.75rem;
+  border: 1px solid var(--app-border-strong);
+  background: color-mix(in oklab, var(--color-base-100) 88%, transparent);
+  color: var(--color-base-content);
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.tts-textarea:focus {
+  border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--color-primary) 22%, transparent);
+}
+
+.tts-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tts-badge {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+
+.tts-badge--primary {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.tts-badge--muted {
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}
+
+.tts-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.tts-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tts-chip--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.tts-chip--ghost {
+  border-color: var(--app-border-strong);
+  background: transparent;
+  color: var(--color-base-content);
+}
+
+.tts-chip--ghost:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+}
+
+.tts-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: auto;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+  outline: none;
+  cursor: pointer;
+}
+
+.tts-range:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tts-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  border: 2px solid
+    color-mix(in oklab, var(--color-primary) 35%, white);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.tts-range::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  border: 2px solid
+    color-mix(in oklab, var(--color-primary) 35%, white);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.tts-range::-moz-range-track {
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+}
+
+.tts-btn-success {
+  border-radius: 0.75rem;
+  border: 0;
+  background: var(--color-success);
+  color: var(--color-success-content, #fff);
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.tts-btn-success:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.tts-btn-success:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tts-spinner {
+  display: inline-block;
+  border-style: solid;
+  border-color: currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  animation: tts-spin 0.65s linear infinite;
+}
+
+.tts-spinner--xs {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-width: 2px;
+}
+
+.tts-spinner--sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
+@keyframes tts-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
