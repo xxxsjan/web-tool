@@ -34,7 +34,7 @@
           ></textarea>
         </div>
 
-        <!-- 音色（可折叠） -->
+        <!-- 音色（可折叠：仅用户点击后展开，避免刷新时被浏览器恢复展开） -->
         <div class="rounded-xl border border-app-strong bg-base-200/30">
           <button
             type="button"
@@ -47,19 +47,17 @@
                 <span class="text-sm font-medium text-base-content/70">
                   音色
                 </span>
-                <Transition name="voice-summary">
-                  <span
-                    v-if="!voicePanelOpen"
-                    class="badge badge-primary badge-sm truncate font-normal"
-                  >
-                    {{ selectedVoiceLabel }}
-                  </span>
-                </Transition>
+                <span
+                  v-if="!voicePanelOpen"
+                  class="badge badge-primary badge-sm truncate font-normal"
+                >
+                  {{ selectedVoiceLabel }}
+                </span>
               </div>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 shrink-0 text-base-content/45 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              class="h-4 w-4 shrink-0 text-base-content/45 transition-transform duration-300"
               :class="{ 'rotate-180': voicePanelOpen }"
               fill="none"
               viewBox="0 0 24 24"
@@ -75,138 +73,142 @@
             </svg>
           </button>
 
-          <ClientOnly>
-            <Transition name="voice-panel">
-              <div
-                v-if="voicePanelOpen"
-                class="voice-panel-body overflow-hidden border-t border-app"
-              >
-                <div class="space-y-3 px-3 pb-3 pt-3 sm:px-3.5">
-                  <div>
-                    <p class="mb-2 text-xs font-medium text-base-content/55">
-                      语言
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <button
-                        v-for="item in localeOptions"
-                        :key="item.value"
-                        type="button"
-                        class="btn btn-sm rounded-full border"
-                        :class="
-                          localeFilter === item.value
-                            ? 'btn-primary border-primary'
-                            : 'btn-ghost border-app-strong'
-                        "
-                        @click="localeFilter = item.value"
-                      >
-                        {{ item.label }}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="mb-2 flex items-center justify-between gap-2">
-                      <p class="text-xs font-medium text-base-content/55">
-                        可选音色
-                      </p>
-                      <span class="badge badge-ghost badge-sm">
-                        {{ filteredVoices.length }} 个
-                      </span>
-                    </div>
-                    <div
-                      class="voice-tags flex max-h-44 flex-wrap content-start gap-2 overflow-y-auto pr-1 sm:max-h-52"
-                    >
-                      <button
-                        v-for="v in filteredVoices"
-                        :key="v.ShortName"
-                        type="button"
-                        class="btn btn-sm h-auto min-h-0 rounded-full border px-3 py-1.5 font-normal"
-                        :class="
-                          selectedVoice === v.ShortName
-                            ? 'btn-primary border-primary'
-                            : 'btn-ghost border-app-strong'
-                        "
-                        :title="friendlyVoiceLabel(v)"
-                        :disabled="busy"
-                        @click="selectVoice(v.ShortName)"
-                      >
-                        <span>{{ shortVoiceName(v) }}</span>
-                      </button>
-                      <p
-                        v-if="!filteredVoices.length"
-                        class="text-xs text-base-content/50"
-                      >
-                        当前语言下暂无音色
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <div
+            v-if="voicePanelOpen"
+            class="space-y-3 border-t border-app px-3 pb-3 pt-3 sm:px-3.5"
+          >
+            <div>
+              <p class="mb-2 text-xs font-medium text-base-content/55">语言</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="item in localeOptions"
+                  :key="item.value"
+                  type="button"
+                  class="btn btn-sm rounded-full border"
+                  :class="
+                    localeFilter === item.value
+                      ? 'btn-primary border-primary'
+                      : 'btn-ghost border-app-strong'
+                  "
+                  @click="localeFilter = item.value"
+                >
+                  {{ item.label }}
+                </button>
               </div>
-            </Transition>
-          </ClientOnly>
+            </div>
+
+            <div>
+              <div class="mb-2 flex items-center justify-between gap-2">
+                <p class="text-xs font-medium text-base-content/55">可选音色</p>
+                <span class="badge badge-ghost badge-sm">
+                  {{ filteredVoices.length }} 个
+                </span>
+              </div>
+              <div
+                class="voice-tags flex max-h-44 flex-wrap content-start gap-2 overflow-y-auto pr-1 sm:max-h-52"
+              >
+                <button
+                  v-for="v in filteredVoices"
+                  :key="v.ShortName"
+                  type="button"
+                  class="btn btn-sm h-auto min-h-0 rounded-full border px-3 py-1.5 font-normal"
+                  :class="
+                    selectedVoice === v.ShortName
+                      ? 'btn-primary border-primary'
+                      : 'btn-ghost border-app-strong'
+                  "
+                  :title="friendlyVoiceLabel(v)"
+                  :disabled="busy"
+                  @click="selectVoice(v.ShortName)"
+                >
+                  <span>{{ shortVoiceName(v) }}</span>
+                </button>
+                <p
+                  v-if="!filteredVoices.length"
+                  class="text-xs text-base-content/50"
+                >
+                  当前语言下暂无音色
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- 语速 / 音量 -->
-        <div class="grid grid-cols-2 gap-5 sm:gap-4">
+        <!-- 语速 / 音量：固定一行两列 -->
+        <div
+          class="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-5 gap-y-4"
+        >
           <div class="min-w-0 w-full">
-            <div class="mb-2 flex w-full items-center justify-between gap-2">
+            <div class="mb-2 flex items-center justify-between gap-2">
               <label
                 for="tts-rate"
-                class="shrink-0 text-sm font-medium text-base-content/70"
+                class="text-sm font-medium text-base-content/70"
               >
                 语速
               </label>
-              <span class="shrink-0 font-mono text-sm text-base-content">
+              <span class="font-mono text-sm text-base-content">
                 {{ rate.toFixed(1) }}x
               </span>
             </div>
-            <input
-              id="tts-rate"
-              v-model.number="rate"
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.1"
-              class="range range-primary range-sm block w-full"
-              :disabled="busy"
-            />
-            <div
-              class="mt-1 flex w-full justify-between px-0.5 text-[11px] text-base-content/40"
-            >
-              <span class="shrink-0">慢</span>
-              <span class="shrink-0">快</span>
+            <div class="flex w-full min-w-0 items-center gap-2">
+              <span
+                class="w-9 shrink-0 text-right font-mono text-[11px] text-base-content/45"
+              >
+                0.5x
+              </span>
+              <input
+                id="tts-rate"
+                v-model.number="rate"
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                class="range range-primary range-sm min-w-0 w-auto flex-1"
+                :disabled="busy"
+              />
+              <span
+                class="w-10 shrink-0 text-left font-mono text-[11px] text-base-content/45"
+              >
+                2.0x
+              </span>
             </div>
           </div>
+
           <div class="min-w-0 w-full">
-            <div class="mb-2 flex w-full items-center justify-between gap-2">
+            <div class="mb-2 flex items-center justify-between gap-2">
               <label
                 for="tts-volume"
-                class="shrink-0 text-sm font-medium text-base-content/70"
+                class="text-sm font-medium text-base-content/70"
               >
                 音量
               </label>
-              <span class="shrink-0 font-mono text-sm text-base-content">
+              <span class="font-mono text-sm text-base-content">
                 {{ volume }}%
                 <span v-if="volume > 100" class="ml-1 text-[11px] text-warning">
                   增强
                 </span>
               </span>
             </div>
-            <input
-              id="tts-volume"
-              v-model.number="volume"
-              type="range"
-              min="0"
-              max="200"
-              step="1"
-              class="range range-primary range-sm block w-full"
-            />
-            <div
-              class="mt-1 grid w-full grid-cols-3 px-0.5 text-[11px] text-base-content/40"
-            >
-              <span class="justify-self-start">0%</span>
-              <span class="justify-self-center">100%</span>
-              <span class="justify-self-end">200%</span>
+            <div class="flex w-full min-w-0 items-center gap-2">
+              <span
+                class="w-9 shrink-0 text-right font-mono text-[11px] text-base-content/45"
+              >
+                0%
+              </span>
+              <input
+                id="tts-volume"
+                v-model.number="volume"
+                type="range"
+                min="0"
+                max="200"
+                step="1"
+                class="range range-primary range-sm min-w-0 w-auto flex-1"
+              />
+              <span
+                class="w-10 shrink-0 text-left font-mono text-[11px] text-base-content/45"
+              >
+                200%
+              </span>
             </div>
           </div>
         </div>
@@ -359,6 +361,7 @@ definePageMeta({
   tool: true,
   title: '🔊文本转语音',
   group: '媒体类',
+  ssr: false,
 });
 
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -933,8 +936,6 @@ const onWaveResize = () => {
 };
 
 onMounted(() => {
-  // 刷新/水合后强制收起，避免列表先闪一下再消失
-  voicePanelOpen.value = false;
   loadPrefs();
   prefsReady = true;
   persistPrefs();
@@ -978,28 +979,5 @@ onUnmounted(() => {
 .wave-canvas {
   width: 100%;
   height: 3rem;
-}
-
-.voice-summary-enter-active,
-.voice-summary-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.voice-summary-enter-from,
-.voice-summary-leave-to {
-  opacity: 0;
-  transform: translateY(-2px);
-}
-
-.voice-panel-enter-active,
-.voice-panel-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.voice-panel-enter-from,
-.voice-panel-leave-to {
-  opacity: 0;
 }
 </style>
