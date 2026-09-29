@@ -34,74 +34,129 @@
           ></textarea>
         </div>
 
-        <!-- 语言筛选 -->
-        <div>
-          <p class="mb-2 text-sm font-medium text-base-content/70">语言</p>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="item in localeOptions"
-              :key="item.value"
-              type="button"
-              class="btn btn-sm rounded-full border"
-              :class="
-                localeFilter === item.value
-                  ? 'btn-primary border-primary'
-                  : 'btn-ghost border-app-strong'
-              "
-              @click="localeFilter = item.value"
-            >
-              {{ item.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- 音色 tag 平铺 -->
-        <div>
-          <div class="mb-2 flex items-center justify-between gap-2">
-            <p class="text-sm font-medium text-base-content/70">音色</p>
-            <span class="badge badge-primary badge-outline badge-sm">
-              {{ filteredVoices.length }} 个
-            </span>
-          </div>
-          <div
-            class="voice-tags flex max-h-52 flex-wrap content-start gap-2 overflow-y-auto pr-1 sm:max-h-64"
+        <!-- 音色（可折叠） -->
+        <div class="rounded-xl border border-app-strong bg-base-200/30">
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-base-200/50 sm:px-3.5"
+            :aria-expanded="voicePanelOpen"
+            @click="voicePanelOpen = !voicePanelOpen"
           >
-            <button
-              v-for="v in filteredVoices"
-              :key="v.ShortName"
-              type="button"
-              class="btn btn-sm h-auto min-h-0 rounded-full border px-3 py-1.5 font-normal"
-              :class="
-                selectedVoice === v.ShortName
-                  ? 'btn-primary border-primary'
-                  : 'btn-ghost border-app-strong'
-              "
-              :title="friendlyVoiceLabel(v)"
-              :disabled="busy"
-              @click="selectedVoice = v.ShortName"
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-base-content/70">
+                  音色
+                </span>
+                <Transition name="voice-summary">
+                  <span
+                    v-if="!voicePanelOpen"
+                    class="badge badge-primary badge-sm truncate font-normal"
+                  >
+                    {{ selectedVoiceLabel }}
+                  </span>
+                </Transition>
+              </div>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 shrink-0 text-base-content/45 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              :class="{ 'rotate-180': voicePanelOpen }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
             >
-              <span>{{ shortVoiceName(v) }}</span>
-            </button>
-            <p
-              v-if="!filteredVoices.length"
-              class="text-xs text-base-content/50"
-            >
-              当前语言下暂无音色
-            </p>
-          </div>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          <ClientOnly>
+            <Transition name="voice-panel">
+              <div
+                v-if="voicePanelOpen"
+                class="voice-panel-body overflow-hidden border-t border-app"
+              >
+                <div class="space-y-3 px-3 pb-3 pt-3 sm:px-3.5">
+                  <div>
+                    <p class="mb-2 text-xs font-medium text-base-content/55">
+                      语言
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <button
+                        v-for="item in localeOptions"
+                        :key="item.value"
+                        type="button"
+                        class="btn btn-sm rounded-full border"
+                        :class="
+                          localeFilter === item.value
+                            ? 'btn-primary border-primary'
+                            : 'btn-ghost border-app-strong'
+                        "
+                        @click="localeFilter = item.value"
+                      >
+                        {{ item.label }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="mb-2 flex items-center justify-between gap-2">
+                      <p class="text-xs font-medium text-base-content/55">
+                        可选音色
+                      </p>
+                      <span class="badge badge-ghost badge-sm">
+                        {{ filteredVoices.length }} 个
+                      </span>
+                    </div>
+                    <div
+                      class="voice-tags flex max-h-44 flex-wrap content-start gap-2 overflow-y-auto pr-1 sm:max-h-52"
+                    >
+                      <button
+                        v-for="v in filteredVoices"
+                        :key="v.ShortName"
+                        type="button"
+                        class="btn btn-sm h-auto min-h-0 rounded-full border px-3 py-1.5 font-normal"
+                        :class="
+                          selectedVoice === v.ShortName
+                            ? 'btn-primary border-primary'
+                            : 'btn-ghost border-app-strong'
+                        "
+                        :title="friendlyVoiceLabel(v)"
+                        :disabled="busy"
+                        @click="selectVoice(v.ShortName)"
+                      >
+                        <span>{{ shortVoiceName(v) }}</span>
+                      </button>
+                      <p
+                        v-if="!filteredVoices.length"
+                        class="text-xs text-base-content/50"
+                      >
+                        当前语言下暂无音色
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </ClientOnly>
         </div>
 
         <!-- 语速 / 音量 -->
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <div class="mb-2 flex items-center justify-between gap-2">
+        <div class="grid grid-cols-2 gap-5 sm:gap-4">
+          <div class="min-w-0 w-full">
+            <div class="mb-2 flex w-full items-center justify-between gap-2">
               <label
                 for="tts-rate"
-                class="text-sm font-medium text-base-content/70"
+                class="shrink-0 text-sm font-medium text-base-content/70"
               >
                 语速
               </label>
-              <span class="font-mono text-sm text-base-content">
+              <span class="shrink-0 font-mono text-sm text-base-content">
                 {{ rate.toFixed(1) }}x
               </span>
             </div>
@@ -112,25 +167,25 @@
               min="0.5"
               max="2"
               step="0.1"
-              class="range range-primary range-sm w-full"
+              class="range range-primary range-sm block w-full"
               :disabled="busy"
             />
             <div
-              class="mt-1 flex justify-between px-0.5 text-[11px] text-base-content/40"
+              class="mt-1 flex w-full justify-between px-0.5 text-[11px] text-base-content/40"
             >
-              <span>慢</span>
-              <span>快</span>
+              <span class="shrink-0">慢</span>
+              <span class="shrink-0">快</span>
             </div>
           </div>
-          <div>
-            <div class="mb-2 flex items-center justify-between gap-2">
+          <div class="min-w-0 w-full">
+            <div class="mb-2 flex w-full items-center justify-between gap-2">
               <label
                 for="tts-volume"
-                class="text-sm font-medium text-base-content/70"
+                class="shrink-0 text-sm font-medium text-base-content/70"
               >
                 音量
               </label>
-              <span class="font-mono text-sm text-base-content">
+              <span class="shrink-0 font-mono text-sm text-base-content">
                 {{ volume }}%
                 <span v-if="volume > 100" class="ml-1 text-[11px] text-warning">
                   增强
@@ -144,18 +199,81 @@
               min="0"
               max="200"
               step="1"
-              class="range range-primary range-sm w-full"
+              class="range range-primary range-sm block w-full"
             />
             <div
-              class="mt-1 flex justify-between px-0.5 text-[11px] text-base-content/40"
+              class="mt-1 grid w-full grid-cols-3 px-0.5 text-[11px] text-base-content/40"
             >
-              <span>0%</span>
-              <span>100%</span>
-              <span>200%</span>
+              <span class="justify-self-start">0%</span>
+              <span class="justify-self-center">100%</span>
+              <span class="justify-self-end">200%</span>
             </div>
           </div>
         </div>
 
+        <!-- 操作 -->
+        <button
+          type="button"
+          class="wave-panel relative w-full overflow-hidden rounded-xl border border-app bg-base-200/40 px-3 py-2 text-left transition hover:border-primary/40 hover:bg-base-200/70 disabled:cursor-not-allowed disabled:opacity-60"
+          :class="{
+            'wave-panel--active': playing && !paused,
+            'wave-panel--paused': paused,
+            'wave-panel--busy': busy && busyMode === 'speak',
+          }"
+          :disabled="
+            (!canSpeak && !playing && !paused) || (busy && busyMode !== 'speak')
+          "
+          :aria-label="speakerAriaLabel"
+          :title="speakerAriaLabel"
+          @click="toggleSpeak"
+        >
+          <canvas
+            ref="waveCanvas"
+            class="wave-canvas block h-12 w-full"
+            aria-hidden="true"
+          ></canvas>
+          <p
+            v-if="!playing && !paused && !(busy && busyMode === 'speak')"
+            class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] text-base-content/40"
+          >
+            点击开始朗读
+          </p>
+          <p
+            v-else-if="busy && busyMode === 'speak'"
+            class="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-[11px] text-base-content/50"
+          >
+            <span class="loading loading-spinner loading-xs"></span>
+            合成中…
+          </p>
+          <p
+            v-else-if="paused"
+            class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] text-base-content/50"
+          >
+            已暂停，点击继续播放
+          </p>
+        </button>
+
+        <audio
+          ref="audioEl"
+          class="hidden"
+          @play="onAudioPlay"
+          @pause="onAudioPause"
+          @ended="onAudioEnded"
+        ></audio>
+
+        <div
+          v-if="errorMessage"
+          class="rounded-xl border border-error/30 bg-error/10 px-3 py-2.5 text-sm text-error"
+        >
+          {{ errorMessage }}
+        </div>
+
+        <div
+          v-if="statusTip"
+          class="rounded-xl border border-app bg-base-200/40 px-3 py-2 text-xs text-base-content/60"
+        >
+          {{ statusTip }}
+        </div>
         <!-- 导出 -->
         <div
           class="export-bar rounded-xl border border-app bg-base-200/30 p-3 sm:p-3.5"
@@ -227,73 +345,6 @@
             </button>
           </div>
         </div>
-
-        <!-- 操作 -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            class="speaker-btn btn btn-primary btn-circle h-14 w-14 min-h-14 shrink-0 border-0 sm:h-16 sm:w-16 sm:min-h-16"
-            :class="{
-              'speaker-btn--playing': playing && !paused,
-              'speaker-btn--paused': paused,
-              'speaker-btn--busy': busy && busyMode === 'speak',
-            }"
-            :disabled="
-              (!canSpeak && !playing && !paused) ||
-              (busy && busyMode !== 'speak')
-            "
-            :aria-label="speakerAriaLabel"
-            :title="speakerAriaLabel"
-            @click="toggleSpeak"
-          >
-            <span
-              v-if="busy && busyMode === 'speak'"
-              class="loading loading-spinner loading-md"
-            ></span>
-            <span v-else class="speaker-icon" aria-hidden="true">
-              <svg class="speaker-body" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 9v6h4l5 5V4L7 9H3z" />
-              </svg>
-              <span class="speaker-waves">
-                <span class="wave wave-1"></span>
-                <span class="wave wave-2"></span>
-              </span>
-            </span>
-          </button>
-
-          <div class="flex min-w-0 flex-1 flex-wrap gap-2">
-            <button
-              v-if="playing || paused || (busy && busyMode === 'speak')"
-              type="button"
-              class="btn btn-ghost border border-app-strong sm:w-28"
-              @click="stop"
-            >
-              停止
-            </button>
-          </div>
-        </div>
-
-        <audio
-          ref="audioEl"
-          class="hidden"
-          @play="onAudioPlay"
-          @pause="onAudioPause"
-          @ended="onAudioEnded"
-        ></audio>
-
-        <div
-          v-if="errorMessage"
-          class="rounded-xl border border-error/30 bg-error/10 px-3 py-2.5 text-sm text-error"
-        >
-          {{ errorMessage }}
-        </div>
-
-        <div
-          v-if="statusTip"
-          class="rounded-xl border border-app bg-base-200/40 px-3 py-2 text-xs text-base-content/60"
-        >
-          {{ statusTip }}
-        </div>
       </div>
     </section>
 
@@ -343,6 +394,7 @@ const exportFormat = ref<EdgeExportFormat>('wav');
 const voices = ref<EdgeVoice[]>(getFallbackZhVoices());
 const selectedVoice = ref('zh-CN-XiaoxiaoNeural');
 const localeFilter = ref<string>('zh');
+const voicePanelOpen = ref(false);
 const busy = ref(false);
 const busyMode = ref<'speak' | 'download' | ''>('');
 const playing = ref(false);
@@ -350,6 +402,7 @@ const paused = ref(false);
 const statusTip = ref('');
 const errorMessage = ref('');
 const audioEl = ref<HTMLAudioElement | null>(null);
+const waveCanvas = ref<HTMLCanvasElement | null>(null);
 const lastAudioBlob = ref<Blob | null>(null);
 const lastAudioMeta = ref<{
   text: string;
@@ -436,7 +489,12 @@ let objectUrl = '';
 let aborting = false;
 let audioCtx: AudioContext | null = null;
 let gainNode: GainNode | null = null;
+let analyserNode: AnalyserNode | null = null;
 let mediaSource: MediaElementAudioSourceNode | null = null;
+let waveRaf = 0;
+let freqData: Uint8Array | null = null;
+
+const BAR_COUNT = 48;
 
 const ensureAudioGraph = () => {
   const el = audioEl.value;
@@ -451,17 +509,118 @@ const ensureAudioGraph = () => {
   if (!audioCtx) {
     audioCtx = new Ctx();
   }
+  if (!analyserNode) {
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 256;
+    analyserNode.smoothingTimeConstant = 0.72;
+    freqData = new Uint8Array(analyserNode.frequencyBinCount);
+  }
   if (!gainNode) {
     gainNode = audioCtx.createGain();
+    analyserNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
   }
   // createMediaElementSource 每个 audio 元素只能调用一次
   if (!mediaSource) {
     mediaSource = audioCtx.createMediaElementSource(el);
-    mediaSource.connect(gainNode);
+    mediaSource.connect(analyserNode);
     // 音量改由 GainNode 控制，元素本身固定满幅
     el.volume = 1;
   }
+};
+
+const getWaveColor = () => {
+  if (typeof window === 'undefined') return '#3b82f6';
+  const styles = getComputedStyle(document.documentElement);
+  return (
+    styles.getPropertyValue('--color-primary').trim() ||
+    styles.getPropertyValue('--p').trim() ||
+    '#3b82f6'
+  );
+};
+
+const resizeWaveCanvas = () => {
+  const canvas = waveCanvas.value;
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = Math.max(1, Math.floor(rect.width * dpr));
+  const h = Math.max(1, Math.floor(rect.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+};
+
+const drawWaveFrame = (active: boolean) => {
+  const canvas = waveCanvas.value;
+  if (!canvas) return;
+  resizeWaveCanvas();
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const { width, height } = canvas;
+  ctx.clearRect(0, 0, width, height);
+
+  const color = getWaveColor();
+  const gap = Math.max(2, width / BAR_COUNT / 4);
+  const barWidth = (width - gap * (BAR_COUNT - 1)) / BAR_COUNT;
+  const midY = height / 2;
+
+  let values: number[] = [];
+  if (active && analyserNode && freqData) {
+    analyserNode.getByteFrequencyData(freqData as Uint8Array<ArrayBuffer>);
+    const usable = Math.floor(freqData.length * 0.7);
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const idx = Math.floor((i / BAR_COUNT) * usable);
+      values.push(freqData[idx] / 255);
+    }
+  } else {
+    // 空闲 / 暂停：低矮静态波形
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const t = i / (BAR_COUNT - 1);
+      values.push(0.08 + 0.06 * Math.sin(t * Math.PI * 4));
+    }
+  }
+
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const amp = Math.max(0.04, values[i] || 0);
+    const barH = Math.max(2, amp * height * 0.9);
+    const x = i * (barWidth + gap);
+    const y = midY - barH / 2;
+    ctx.globalAlpha = active ? 0.55 + amp * 0.45 : 0.28;
+    ctx.fillStyle = color;
+    const radius = Math.min(barWidth / 2, 3);
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, barWidth, barH, radius);
+    } else {
+      ctx.rect(x, y, barWidth, barH);
+    }
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+};
+
+const stopWaveLoop = () => {
+  if (waveRaf) {
+    cancelAnimationFrame(waveRaf);
+    waveRaf = 0;
+  }
+};
+
+const startWaveLoop = () => {
+  stopWaveLoop();
+  const tick = () => {
+    const active = playing.value && !paused.value;
+    drawWaveFrame(active);
+    if (active) {
+      waveRaf = requestAnimationFrame(tick);
+    } else {
+      waveRaf = 0;
+    }
+  };
+  waveRaf = requestAnimationFrame(tick);
 };
 
 const applyVolume = (pct = volume.value) => {
@@ -487,9 +646,7 @@ const filteredVoices = computed(() => {
   const filtered =
     localeFilter.value === 'all'
       ? list
-      : list.filter(v =>
-          v.Locale.toLowerCase().startsWith(localeFilter.value),
-        );
+      : list.filter(v => v.Locale.toLowerCase().startsWith(localeFilter.value));
   return sortEdgeVoices(filtered);
 });
 
@@ -515,6 +672,16 @@ const exportFormatLabel = computed(
 const selectedMeta = computed(
   () => voices.value.find(v => v.ShortName === selectedVoice.value) || null,
 );
+
+const selectedVoiceLabel = computed(() => {
+  if (selectedMeta.value) return shortVoiceName(selectedMeta.value);
+  return selectedVoice.value.replace(/^.*-/, '') || selectedVoice.value;
+});
+
+const selectVoice = (shortName: string) => {
+  selectedVoice.value = shortName;
+  voicePanelOpen.value = false;
+};
 
 watch(filteredVoices, list => {
   if (!list.length) return;
@@ -553,6 +720,7 @@ const stop = () => {
   busyMode.value = '';
   playing.value = false;
   paused.value = false;
+  drawWaveFrame(false);
 };
 
 const buildFileName = () => {
@@ -605,15 +773,18 @@ const synthesize = async (
 const onAudioPlay = () => {
   playing.value = true;
   paused.value = false;
+  startWaveLoop();
 };
 const onAudioPause = () => {
   if (audioEl.value && !audioEl.value.ended) {
     paused.value = true;
+    drawWaveFrame(false);
   }
 };
 const onAudioEnded = () => {
   playing.value = false;
   paused.value = false;
+  drawWaveFrame(false);
 };
 
 const pause = () => {
@@ -743,7 +914,8 @@ const loadVoices = async () => {
     if (data?.voices?.length) {
       voices.value = sortEdgeVoices(data.voices);
       ensureVoiceSelection(voices.value);
-      statusTip.value = `已加载 ${data.voices.length} 个 Edge 在线音色`;
+      // 全库 300+，界面按语言筛选展示；加载完成后不再常驻提示，避免与「14 个」混淆
+      statusTip.value = '';
       return;
     }
   } catch (e: any) {
@@ -755,123 +927,79 @@ const loadVoices = async () => {
   statusTip.value = `音色列表拉取失败，已使用内置中文音色（含晓晓）`;
 };
 
+const onWaveResize = () => {
+  resizeWaveCanvas();
+  drawWaveFrame(playing.value && !paused.value);
+};
+
 onMounted(() => {
+  // 刷新/水合后强制收起，避免列表先闪一下再消失
+  voicePanelOpen.value = false;
   loadPrefs();
   prefsReady = true;
   persistPrefs();
   loadVoices();
+  requestAnimationFrame(() => drawWaveFrame(false));
+  window.addEventListener('resize', onWaveResize);
 });
 
 onUnmounted(() => {
+  stopWaveLoop();
+  window.removeEventListener('resize', onWaveResize);
   stop();
   lastAudioBlob.value = null;
   lastAudioMeta.value = null;
   try {
     mediaSource?.disconnect();
+    analyserNode?.disconnect();
     gainNode?.disconnect();
     audioCtx?.close();
   } catch {
     /* ignore */
   }
   mediaSource = null;
+  analyserNode = null;
   gainNode = null;
   audioCtx = null;
+  freqData = null;
 });
 </script>
 
 <style scoped>
-.speaker-btn {
-  position: relative;
-  box-shadow: 0 8px 24px
-    color-mix(in oklab, var(--color-primary) 35%, transparent);
+.wave-panel {
+  min-height: 3.25rem;
+  cursor: pointer;
 }
 
-.speaker-icon {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-}
-
-.speaker-body {
-  width: 1.5rem;
-  height: 1.5rem;
-  display: block;
-}
-
-.speaker-waves {
-  position: absolute;
-  left: 58%;
-  top: 50%;
-  width: 0.7rem;
-  height: 1rem;
-  transform: translateY(-50%);
+.wave-panel--busy {
   pointer-events: none;
 }
 
-.wave {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 0.45rem;
-  height: 0.45rem;
-  border: 2px solid currentColor;
-  border-left: none;
-  border-radius: 0 100% 100% 0 / 0 50% 50% 0;
-  opacity: 0.35;
-  transform: translateY(-50%) scale(0.85);
-  transform-origin: left center;
+.wave-canvas {
+  width: 100%;
+  height: 3rem;
 }
 
-.wave-2 {
-  width: 0.7rem;
-  height: 0.7rem;
-  left: 0.1rem;
-  opacity: 0.25;
+.voice-summary-enter-active,
+.voice-summary-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
-.speaker-btn--playing .wave {
-  opacity: 1;
-  animation: speaker-wave 1s ease-in-out infinite;
+.voice-summary-enter-from,
+.voice-summary-leave-to {
+  opacity: 0;
+  transform: translateY(-2px);
 }
 
-.speaker-btn--playing .wave-2 {
-  animation-delay: 0.2s;
+.voice-panel-enter-active,
+.voice-panel-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.speaker-btn--playing .speaker-body {
-  animation: speaker-bob 1s ease-in-out infinite;
-}
-
-.speaker-btn--paused .wave {
-  opacity: 0.45;
-}
-
-.speaker-btn--busy {
-  pointer-events: none;
-}
-
-@keyframes speaker-wave {
-  0%,
-  100% {
-    transform: translateY(-50%) scale(0.75);
-    opacity: 0.35;
-  }
-  50% {
-    transform: translateY(-50%) scale(1.15);
-    opacity: 1;
-  }
-}
-
-@keyframes speaker-bob {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.06);
-  }
+.voice-panel-enter-from,
+.voice-panel-leave-to {
+  opacity: 0;
 }
 </style>
