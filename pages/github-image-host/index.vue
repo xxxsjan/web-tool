@@ -87,9 +87,15 @@
       </div>
 
       <!-- 次级工具：压缩 + 粘贴提示 / 待上传 -->
-      <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4">
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <label class="flex cursor-pointer items-center gap-1.5 text-base-content/70">
+      <div
+        class="flex flex-nowrap items-center justify-between gap-3 overflow-x-auto px-3 py-2 sm:px-4"
+      >
+        <div
+          class="flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap text-xs"
+        >
+          <label
+            class="flex shrink-0 cursor-pointer items-center gap-1.5 text-base-content/70"
+          >
             <input
               v-model="compressEnabled"
               type="checkbox"
@@ -98,7 +104,9 @@
             压缩
           </label>
           <template v-if="compressEnabled">
-            <label class="flex items-center gap-1 text-base-content/50">
+            <label
+              class="flex shrink-0 items-center gap-1 text-base-content/50"
+            >
               {{ Math.round(compressQuality * 100) }}%
               <input
                 v-model.number="compressQuality"
@@ -109,22 +117,27 @@
                 class="range range-primary range-xs w-16"
               />
             </label>
+            <span class="shrink-0 text-base-content/50">最大边</span>
             <input
               v-model.number="maxEdge"
               type="number"
               min="0"
               step="100"
-              class="input input-xs h-7 w-16 bg-base-200/60"
+              class="input input-xs h-7 w-16 shrink-0 bg-base-200/60"
               title="最大边，0 不限制"
             />
-            <select v-model="compressFormat" class="select select-xs h-7 min-h-7 bg-base-200/60">
+            <span class="shrink-0 text-base-content/50">格式</span>
+            <select
+              v-model="compressFormat"
+              class="select select-xs h-7 min-h-7 w-auto shrink-0 bg-base-200/60"
+            >
               <option value="image/jpeg">JPEG</option>
               <option value="image/webp">WebP</option>
               <option value="image/png">PNG</option>
             </select>
           </template>
         </div>
-        <p class="text-[11px] text-base-content/40">
+        <p class="shrink-0 whitespace-nowrap text-[11px] text-base-content/40">
           {{ isDragging ? '松开以上传到当前目录' : 'Ctrl+V 粘贴到当前目录' }}
         </p>
       </div>
@@ -134,35 +147,53 @@
         v-if="pendingFile"
         class="mx-3 mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-primary/35 bg-primary/10 px-3 py-2 sm:mx-4"
       >
-        <img
-          v-if="pendingPreview"
-          :src="pendingPreview"
-          alt=""
-          class="h-10 w-10 rounded object-cover"
-        />
+        <div class="relative h-10 w-10 shrink-0">
+          <img
+            v-if="pendingPreview"
+            :src="pendingPreview"
+            alt=""
+            class="h-10 w-10 rounded object-cover"
+            :class="{ 'opacity-50': compressing || uploading }"
+          />
+          <div
+            v-if="compressing || uploading"
+            class="absolute inset-0 flex items-center justify-center rounded bg-base-300/50"
+          >
+            <span class="loading loading-spinner loading-xs text-primary"></span>
+          </div>
+        </div>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-xs font-medium text-base-content">{{ pendingFile.name }}</p>
+          <p class="truncate text-xs font-medium text-base-content">
+            {{ pendingFile.name }}
+          </p>
           <p class="text-[11px] text-base-content/50">
-            {{ formatBytes(pendingFile.size) }}
-            <template v-if="compressedInfo">
-              → {{ formatBytes(compressedInfo.size) }}
-              <span class="text-success">(−{{ compressedInfo.ratio }}%)</span>
+            <template v-if="compressing">正在压缩…</template>
+            <template v-else-if="uploading">正在上传…</template>
+            <template v-else>
+              {{ formatBytes(pendingFile.size) }}
+              <template v-if="compressedInfo">
+                → {{ formatBytes(compressedInfo.size) }}
+                <span class="text-success">(−{{ compressedInfo.ratio }}%)</span>
+              </template>
             </template>
           </p>
         </div>
         <button
           type="button"
           class="btn btn-primary btn-xs"
-          :disabled="uploading || !configReady"
+          :disabled="uploading || compressing || !configReady"
           @click="uploadImage"
         >
-          <span v-if="uploading" class="loading loading-spinner loading-xs"></span>
+          <span
+            v-if="uploading"
+            class="loading loading-spinner loading-xs"
+          ></span>
           {{ uploading ? '上传中' : '上传' }}
         </button>
         <button
           type="button"
           class="btn btn-ghost btn-xs"
-          :disabled="uploading"
+          :disabled="uploading || compressing"
           @click="clearPending"
         >
           取消
@@ -188,9 +219,10 @@
 
         <div
           v-if="loadingRemote && !remoteImages.length"
-          class="flex h-full min-h-[240px] items-center justify-center text-sm text-base-content/45"
+          class="flex h-full min-h-[240px] flex-col items-center justify-center gap-3 text-sm text-base-content/45"
         >
-          正在加载…
+          <span class="loading loading-spinner loading-md text-primary"></span>
+          <p>正在加载仓库图片…</p>
         </div>
         <div
           v-else-if="!configReady"
@@ -224,6 +256,7 @@
         <ul
           v-else
           class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+          :class="{ 'opacity-50 pointer-events-none': loadingRemote }"
         >
           <li
             v-for="item in remoteImages"
@@ -255,8 +288,20 @@
         </ul>
 
         <div
+          v-if="loadingRemote && remoteImages.length"
+          class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-base-100/55 backdrop-blur-[1px]"
+        >
+          <div
+            class="flex items-center gap-2 rounded-full border border-app bg-base-100/95 px-4 py-2 text-sm text-base-content/70 shadow-md"
+          >
+            <span class="loading loading-spinner loading-sm text-primary"></span>
+            刷新中…
+          </div>
+        </div>
+
+        <div
           v-if="isDragging"
-          class="pointer-events-none absolute inset-2 flex items-center justify-center rounded-xl bg-primary/15 text-sm font-medium text-primary"
+          class="pointer-events-none absolute inset-2 z-20 flex items-center justify-center rounded-xl bg-primary/15 text-sm font-medium text-primary"
         >
           松开以上传到当前目录
         </div>
@@ -291,11 +336,19 @@
         <div class="my-1 h-px bg-base-content/8"></div>
         <button
           type="button"
-          class="flex w-full px-3 py-2 text-left text-sm text-error hover:bg-error/10"
+          class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-error hover:bg-error/10 disabled:opacity-50"
           :disabled="!imageMenu.item || deletingId === imageMenu.item.id || !configReady"
           @click="onMenuDelete"
         >
-          删除
+          <span
+            v-if="imageMenu.item && deletingId === imageMenu.item.id"
+            class="loading loading-spinner loading-xs"
+          ></span>
+          {{
+            imageMenu.item && deletingId === imageMenu.item.id
+              ? '删除中…'
+              : '删除'
+          }}
         </button>
       </div>
     </teleport>
@@ -412,7 +465,7 @@
 definePageMeta({
   tool: true,
   title: '🖼️Git图床',
-  group: '媒体类',
+  group: '工具',
 });
 
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -490,6 +543,7 @@ const pendingFile = ref<File | null>(null);
 const pendingPreview = ref('');
 const compressedInfo = ref<CompressedInfo | null>(null);
 const uploading = ref(false);
+const compressing = ref(false);
 const loadingRemote = ref(false);
 const remoteFetched = ref(false);
 const deletingId = ref('');
@@ -786,7 +840,7 @@ function onDrop(e: DragEvent) {
   const file = e.dataTransfer?.files?.[0];
   if (file) prepareFile(file);
 }
-
+const prefix = 'fromtool';
 function onPaste(e: ClipboardEvent) {
   const items = e.clipboardData?.items;
   if (!items) return;
@@ -800,7 +854,7 @@ function onPaste(e: ClipboardEvent) {
             ? file
             : new File(
                 [file],
-                `paste-${Date.now()}.${extFromMime(file.type)}`,
+                `${prefix}-${Date.now()}.${extFromMime(file.type)}`,
                 {
                   type: file.type,
                 },
@@ -832,6 +886,7 @@ function clearPending() {
   revokePreview();
   pendingFile.value = null;
   compressedInfo.value = null;
+  compressing.value = false;
   errorMessage.value = '';
 }
 
@@ -853,6 +908,7 @@ async function prepareFile(file: File) {
     return;
   }
 
+  compressing.value = true;
   try {
     compressedInfo.value = await compressImage(file, {
       quality: compressQuality.value,
@@ -862,6 +918,8 @@ async function prepareFile(file: File) {
   } catch (err) {
     console.error(err);
     ElMessage.warning('压缩失败，将上传原图');
+  } finally {
+    compressing.value = false;
   }
 }
 
