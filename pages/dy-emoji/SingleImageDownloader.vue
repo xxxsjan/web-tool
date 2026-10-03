@@ -98,6 +98,6 @@ function handleAnimatedWebpDownload(url) {
 
 <style scoped>
 .single-image-downloader {
-  margin: 1rem 0;
+  margin: 0;
 }
 </style>
