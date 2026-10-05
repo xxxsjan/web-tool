@@ -153,7 +153,8 @@
         <li
           v-for="(step, index) in steps"
           :key="step.id"
-          class="min-w-[145px] flex-[1_1_185px] rounded-xl border border-app bg-base-200/35 p-3 transition hover:border-app-strong"
+          class="min-w-[145px] flex-[1_1_185px] rounded-xl border border-app bg-base-200/35 p-3 transition-[border-color,box-shadow,background-color] duration-500 hover:border-app-strong"
+          :class="{ 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/35': highlightedStepId === step.id }"
         >
           <div class="mb-2 flex items-center justify-between gap-2">
             <span
@@ -272,7 +273,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 
 definePageMeta({
   tool: true,
@@ -329,6 +330,8 @@ const copied = ref(false);
 const scriptToParse = ref('');
 const parseError = ref('');
 const parseStatus = ref('');
+const highlightedStepId = ref<number | null>(null);
+let highlightTimer: ReturnType<typeof setTimeout> | undefined;
 let nextId = 1;
 
 const script = computed(() =>
@@ -432,10 +435,21 @@ function moveStep(index: number, direction: -1 | 1) {
   if (target < 0 || target >= steps.value.length) return;
   const [step] = steps.value.splice(index, 1);
   steps.value.splice(target, 0, step);
+  highlightedStepId.value = step.id;
+  if (highlightTimer) clearTimeout(highlightTimer);
+  highlightTimer = setTimeout(() => {
+    highlightedStepId.value = null;
+    highlightTimer = undefined;
+  }, 650);
 }
 
 function removeStep(index: number) {
+  const removedStep = steps.value[index];
   steps.value.splice(index, 1);
+  if (removedStep?.id !== highlightedStepId.value) return;
+  highlightedStepId.value = null;
+  if (highlightTimer) clearTimeout(highlightTimer);
+  highlightTimer = undefined;
 }
 
 function clearSteps() {
@@ -541,4 +555,8 @@ function downloadScript() {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+onBeforeUnmount(() => {
+  if (highlightTimer) clearTimeout(highlightTimer);
+});
 </script>
