@@ -149,44 +149,44 @@
         </button>
       </div>
 
-      <ol v-if="steps.length" class="flex flex-wrap items-stretch gap-3 p-3 sm:p-5">
+      <ol v-if="steps.length" class="flex flex-wrap items-stretch gap-2 p-2 sm:p-3">
         <li
           v-for="(step, index) in steps"
           :key="step.id"
-          class="min-w-[145px] flex-[1_1_185px] rounded-xl border border-app bg-base-200/35 p-3 transition-[border-color,box-shadow,background-color] duration-500 hover:border-app-strong"
+          class="min-w-[125px] flex-[1_1_150px] rounded-lg border border-app bg-base-200/35 p-2 transition-[border-color,box-shadow,background-color] duration-500 hover:border-app-strong"
           :class="{ 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/35': highlightedStepId === step.id }"
         >
-          <div class="mb-2 flex items-center justify-between gap-2">
+          <div class="mb-1.5 flex items-center justify-between gap-1.5">
             <span
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-sm font-semibold"
+              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-semibold"
               :class="stepColorClass(step)"
             >
               {{ stepIcon(step) }}
             </span>
-            <span class="font-mono text-[10px] text-base-content/35">
+            <span class="font-mono text-[9px] text-base-content/35">
               {{ String(index + 1).padStart(2, '0') }} / {{ steps.length }}
             </span>
           </div>
 
-          <div class="min-h-16">
+          <div class="min-h-12">
             <span
-              class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium"
+              class="inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-medium"
               :class="stepColorClass(step)"
             >
               {{ stepCategory(step) }}
             </span>
-            <p class="mt-1.5 break-words text-sm font-semibold text-base-content">
+            <p class="mt-1 break-words text-xs font-semibold leading-4 text-base-content">
               {{ describeStep(step) }}
             </p>
-            <code class="mt-1 block break-all font-mono text-xs text-base-content/45">
+            <code class="mt-0.5 block break-all font-mono text-[10px] leading-4 text-base-content/45">
               {{ stepCommand(step) }}
             </code>
           </div>
 
-          <div class="mt-3 flex items-center justify-between gap-1 border-t border-app-muted pt-2">
+          <div class="mt-2 flex items-center justify-between gap-1 border-t border-app-muted pt-1.5">
             <label
               v-if="step.kind === 'delay' || step.kind === 'hold'"
-              class="flex items-center gap-1 text-[10px] text-base-content/45"
+              class="flex items-center gap-1 text-[9px] text-base-content/45"
             >
               {{ step.kind === 'hold' ? '按住时长' : '延迟时长' }}
               <input
@@ -194,16 +194,16 @@
                 type="number"
                 min="1"
                 max="60000"
-                class="input input-bordered input-xs w-16 text-right font-mono"
+                class="input input-bordered input-xs h-6 w-14 px-1 text-right font-mono text-[10px]"
                 :aria-label="`第 ${index + 1} 步的${step.kind === 'hold' ? '按住' : '延迟'}时长（毫秒）`"
               />
               ms
             </label>
-            <span v-else class="text-[10px] text-base-content/35">动作顺序</span>
+            <span v-else class="text-[9px] text-base-content/35">动作</span>
             <div class="flex items-center">
               <button
                 type="button"
-                class="btn btn-ghost btn-xs"
+                class="btn btn-ghost btn-xs h-6 min-h-6 w-6 px-0"
                 :disabled="index === 0"
                 :aria-label="`第 ${index + 1} 步上移`"
                 @click="moveStep(index, -1)"
@@ -212,7 +212,7 @@
               </button>
               <button
                 type="button"
-                class="btn btn-ghost btn-xs"
+                class="btn btn-ghost btn-xs h-6 min-h-6 w-6 px-0"
                 :disabled="index === steps.length - 1"
                 :aria-label="`第 ${index + 1} 步下移`"
                 @click="moveStep(index, 1)"
@@ -221,7 +221,7 @@
               </button>
               <button
                 type="button"
-                class="btn btn-ghost btn-xs text-error"
+                class="btn btn-ghost btn-xs h-6 min-h-6 w-6 px-0 text-error"
                 :aria-label="`删除第 ${index + 1} 步`"
                 @click="removeStep(index)"
               >
