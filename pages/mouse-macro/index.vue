@@ -137,19 +137,140 @@
       <div class="flex items-center justify-between gap-3 border-b border-app-muted px-4 py-3 sm:px-5">
         <div>
           <h2 class="font-semibold text-base-content">宏步骤</h2>
-          <p class="mt-1 text-xs text-base-content/45">{{ steps.length }} 个动作 · 可调整顺序并直接编辑延迟时长</p>
+          <p class="mt-1 text-xs text-base-content/45">
+            {{ steps.length }} 个动作 · 可调整顺序并直接编辑延迟时长
+          </p>
         </div>
-        <button
-          type="button"
-          class="btn btn-ghost btn-sm text-error"
-          :disabled="!steps.length"
-          @click="clearSteps"
-        >
-          清空
-        </button>
+        <div class="flex items-center gap-2">
+          <div class="join">
+            <button
+              type="button"
+              class="btn btn-sm join-item"
+              :class="stepView === 'cards' ? 'btn-primary' : 'btn-ghost border border-app-strong'"
+              :aria-pressed="stepView === 'cards'"
+              @click="stepView = 'cards'"
+            >
+              步骤
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm join-item"
+              :class="stepView === 'timeline' ? 'btn-primary' : 'btn-ghost border border-app-strong'"
+              :aria-pressed="stepView === 'timeline'"
+              @click="stepView = 'timeline'"
+            >
+              时间轴
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm text-error"
+            :disabled="!steps.length"
+            @click="clearSteps"
+          >
+            清空
+          </button>
+        </div>
       </div>
 
-      <ol v-if="steps.length" class="flex flex-wrap items-stretch gap-2 p-2 sm:p-3">
+      <div v-if="steps.length && stepView === 'timeline'" class="p-3 sm:p-5">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p class="text-xs text-base-content/45">
+            按执行顺序排列 · 按住区间与等待时长按比例显示 · 滚轮缩放
+          </p>
+          <div class="join">
+            <button
+              type="button"
+              class="btn btn-xs join-item border border-app-strong"
+              aria-label="缩小时间轴"
+              :disabled="timelineZoom <= minTimelineZoom"
+              @click="changeTimelineZoom(-0.2)"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              class="btn btn-xs join-item border-y border-app-strong px-2 font-mono"
+              aria-label="重置时间轴缩放"
+              @click="resetTimelineZoom"
+            >
+              {{ Math.round(timelineZoom * 100) }}%
+            </button>
+            <button
+              type="button"
+              class="btn btn-xs join-item border border-app-strong"
+              aria-label="放大时间轴"
+              :disabled="timelineZoom >= maxTimelineZoom"
+              @click="changeTimelineZoom(0.2)"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <div
+          ref="timelineViewport"
+          class="overflow-x-auto rounded-xl border border-app-muted bg-base-200/20"
+          :class="isDraggingTimeline ? 'cursor-grabbing select-none' : 'cursor-grab'"
+          @wheel.prevent="zoomTimeline"
+          @pointerdown="startTimelineDrag"
+          @pointermove="dragTimeline"
+          @pointerup="stopTimelineDrag"
+          @pointercancel="stopTimelineDrag"
+        >
+          <div
+            class="relative"
+            :style="{ width: `${timelineWidth}px`, height: `${timelineHeight}px` }"
+          >
+            <div
+              v-for="tick in timelineTicks"
+              :key="tick.time"
+              class="absolute bottom-0 top-0 border-l border-dashed border-base-content/10"
+              :style="{ left: `${tick.left}%` }"
+            >
+              <span
+                class="absolute whitespace-nowrap text-[10px] font-mono text-base-content/40"
+                :style="{ top: `${timelineAxisY + 9}px`, left: '4px' }"
+              >
+                {{ tick.label }}
+              </span>
+            </div>
+            <div
+              class="absolute left-0 right-0 h-0.5 bg-base-content/35"
+              :style="{ top: `${timelineAxisY}px` }"
+            />
+            <div
+              v-for="event in timelineEvents"
+              :key="event.id"
+              class="absolute flex h-7 min-w-0 items-center overflow-hidden rounded-md border px-1.5 shadow-sm"
+              :class="event.colorClass"
+              :style="{
+                left: `${event.left}%`,
+                top: `${event.top}px`,
+                width: `max(24px, ${event.width}%)`,
+              }"
+              :title="`${event.label} · ${event.start}–${event.end} ms · ${event.command}`"
+            >
+              <span class="truncate text-[10px] font-semibold">
+                {{ event.label }}
+              </span>
+            </div>
+            <span
+              class="absolute whitespace-nowrap text-[10px] font-medium text-base-content/55"
+              :style="{ top: `${timelineAxisY - 20}px`, right: '6px' }"
+            >
+              时间
+            </span>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-base-content/50">
+          <span v-for="legend in timelineLegend" :key="legend.label" class="inline-flex items-center gap-1.5">
+            <span class="h-2.5 w-2.5 rounded-sm border" :class="legend.colorClass" />
+            {{ legend.label }}
+          </span>
+        </div>
+      </div>
+
+      <ol v-else-if="steps.length" class="flex flex-wrap items-stretch gap-2 p-2 sm:p-3">
         <li
           v-for="(step, index) in steps"
           :key="step.id"
@@ -273,7 +394,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 definePageMeta({
   tool: true,
@@ -288,6 +409,19 @@ type MacroStep =
   | { id: number; kind: 'text'; text: string }
   | { id: number; kind: 'delay'; milliseconds: number }
   | { id: number; kind: 'hold'; milliseconds: number };
+type TimelineEvent = {
+  id: number;
+  label: string;
+  command: string;
+  start: number;
+  end: number;
+  side: 'top' | 'bottom';
+  lane: number;
+  colorClass: string;
+  left: number;
+  top: number;
+  width: number;
+};
 
 const mouseActions: { value: MouseButton; label: string }[] = [
   { value: 'LMB', label: '左键' },
@@ -331,8 +465,192 @@ const scriptToParse = ref('');
 const parseError = ref('');
 const parseStatus = ref('');
 const highlightedStepId = ref<number | null>(null);
+const stepView = ref<'cards' | 'timeline'>('cards');
+const timelineViewport = ref<HTMLDivElement | null>(null);
+const timelineViewportWidth = ref(900);
+const timelineZoom = ref(1);
+const minTimelineZoom = 0.25;
+const maxTimelineZoom = 4;
+const isDraggingTimeline = ref(false);
+let timelineDragStartX = 0;
+let timelineDragStartScrollLeft = 0;
 let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+let timelineResizeObserver: ResizeObserver | undefined;
 let nextId = 1;
+
+const timelineEvents = computed(() => {
+  const events: Omit<TimelineEvent, 'side' | 'lane' | 'left' | 'top' | 'width'>[] = [];
+  const activeMouseButtons = new Map<MouseButton, number>();
+  let elapsed = 0;
+
+  for (const step of steps.value) {
+    if (step.kind === 'delay') {
+      events.push({
+        id: step.id,
+        label: `${step.milliseconds} ms`,
+        command: stepCommand(step),
+        start: elapsed,
+        end: elapsed + step.milliseconds,
+        colorClass: 'border-app-strong bg-base-200 text-base-content/70',
+      });
+      elapsed += step.milliseconds;
+      continue;
+    }
+    if (step.kind === 'hold') {
+      events.push({
+        id: step.id,
+        label: `按住 ${step.milliseconds} ms`,
+        command: stepCommand(step),
+        start: elapsed,
+        end: elapsed + step.milliseconds,
+        colorClass: 'border-warning/40 bg-warning/15 text-warning',
+      });
+      elapsed += step.milliseconds;
+      continue;
+    }
+    if (step.kind === 'mouse') {
+      const label = mouseActions.find(mouse => mouse.value === step.button)?.label || step.button;
+      if (step.action === 'down') {
+        if (!activeMouseButtons.has(step.button)) {
+          activeMouseButtons.set(step.button, events.length);
+          events.push({
+            id: step.id,
+            label: `${label}按住`,
+            command: `{${step.button}D}`,
+            start: elapsed,
+            end: elapsed,
+            colorClass: 'border-error/40 bg-error/15 text-error',
+          });
+        }
+      } else if (step.action === 'up') {
+        const eventIndex = activeMouseButtons.get(step.button);
+        if (eventIndex !== undefined) {
+          events[eventIndex].end = Math.max(elapsed, events[eventIndex].start + 80);
+          events[eventIndex].command += ` … {${step.button}U}`;
+          activeMouseButtons.delete(step.button);
+        } else {
+          events.push({
+            id: step.id,
+            label: `${label}抬起`,
+            command: `{${step.button}U}`,
+            start: elapsed,
+            end: elapsed + 80,
+            colorClass: 'border-success/40 bg-success/15 text-success',
+          });
+        }
+      } else {
+        events.push({
+          id: step.id,
+          label: `${label}点击`,
+          command: `{${step.button}}`,
+          start: elapsed,
+          end: elapsed + 80,
+          colorClass: 'border-primary/40 bg-primary/15 text-primary',
+        });
+      }
+      continue;
+    }
+    if (step.kind === 'key') {
+      events.push({
+        id: step.id,
+        label: step.key,
+        command: stepCommand(step),
+        start: elapsed,
+        end: elapsed + 80,
+        colorClass: 'border-secondary/40 bg-secondary/15 text-secondary',
+      });
+      continue;
+    }
+    events.push({
+      id: step.id,
+      label: step.text.length > 12 ? `${step.text.slice(0, 12)}…` : step.text,
+      command: stepCommand(step),
+      start: elapsed,
+      end: elapsed + Math.max(80, step.text.length * 40),
+      colorClass: 'border-info/40 bg-info/15 text-info',
+    });
+  }
+
+  for (const eventIndex of activeMouseButtons.values()) {
+    events[eventIndex].end = Math.max(elapsed, events[eventIndex].start + 80);
+  }
+
+  const topLaneEnds: number[] = [];
+  const bottomLaneEnds: number[] = [];
+  const positioned = events.map(event => {
+    const visibleEnd = Math.max(event.end, event.start + 80);
+    let lane = topLaneEnds.findIndex(end => end <= event.start);
+    let side: TimelineEvent['side'] = 'top';
+    if (lane === -1) {
+      lane = bottomLaneEnds.findIndex(end => end <= event.start);
+      side = 'bottom';
+    }
+    if (lane === -1) {
+      if (topLaneEnds.length <= bottomLaneEnds.length) {
+        side = 'top';
+        lane = topLaneEnds.length;
+      } else {
+        side = 'bottom';
+        lane = bottomLaneEnds.length;
+      }
+    }
+    const laneEnds = side === 'top' ? topLaneEnds : bottomLaneEnds;
+    laneEnds[lane] = visibleEnd;
+    return { ...event, side, lane, visibleEnd };
+  });
+
+  const topLaneCount = Math.max(1, topLaneEnds.length);
+  const bottomLaneCount = Math.max(1, bottomLaneEnds.length);
+  const axisY = topLaneCount * 34 + 38;
+  const duration = Math.max(1000, ...positioned.map(event => event.end));
+
+  return positioned.map(({ visibleEnd, ...event }) => {
+    const left = (event.start / duration) * 100;
+    const width = ((visibleEnd - event.start) / duration) * 100;
+    const top =
+      event.side === 'top'
+        ? axisY - 34 * (event.lane + 1)
+        : axisY + 12 + 34 * event.lane;
+    return { ...event, left, width, top };
+  });
+});
+
+const timelineDuration = computed(() =>
+  Math.max(1000, ...timelineEvents.value.map(event => event.end)),
+);
+const timelineWidth = computed(() =>
+  Math.max(300, timelineViewportWidth.value * timelineZoom.value),
+);
+const timelineAxisY = computed(() => {
+  const topLanes = Math.max(1, ...timelineEvents.value
+    .filter(event => event.side === 'top')
+    .map(event => event.lane + 1));
+  return topLanes * 34 + 38;
+});
+const timelineHeight = computed(() => {
+  const bottomLanes = Math.max(1, ...timelineEvents.value
+    .filter(event => event.side === 'bottom')
+    .map(event => event.lane + 1));
+  return timelineAxisY.value + bottomLanes * 34 + 50;
+});
+const timelineTicks = computed(() => {
+  const step = timelineDuration.value > 10000 ? 2000 : 1000;
+  const ticks = [];
+  for (let time = 0; time <= timelineDuration.value; time += step) {
+    ticks.push({
+      time,
+      left: (time / timelineDuration.value) * 100,
+      label: time < 1000 ? `${time} ms` : `${(time / 1000).toFixed(time % 1000 ? 1 : 0)} s`,
+    });
+  }
+  return ticks;
+});
+const timelineLegend = [
+  { label: '鼠标动作', colorClass: 'border-primary/40 bg-primary/15' },
+  { label: '键盘动作', colorClass: 'border-secondary/40 bg-secondary/15' },
+  { label: '按住区间', colorClass: 'border-warning/40 bg-warning/15' },
+  { label: '等待', colorClass: 'border-app-strong bg-base-200' },
+];
 
 const script = computed(() =>
   steps.value
@@ -452,6 +770,63 @@ function removeStep(index: number) {
   highlightTimer = undefined;
 }
 
+function clampTimelineZoom(zoom: number) {
+  return Math.min(maxTimelineZoom, Math.max(minTimelineZoom, zoom));
+}
+
+async function setTimelineZoom(zoom: number, anchorX?: number) {
+  const viewport = timelineViewport.value;
+  const previousWidth = viewport?.scrollWidth ?? timelineWidth.value;
+  const previousScroll = viewport?.scrollLeft ?? 0;
+  const nextZoom = clampTimelineZoom(zoom);
+  if (nextZoom === timelineZoom.value) return;
+
+  timelineZoom.value = nextZoom;
+  await nextTick();
+
+  if (!viewport || anchorX === undefined || previousWidth === 0) return;
+  const nextWidth = viewport.scrollWidth;
+  viewport.scrollLeft = (previousScroll + anchorX) * (nextWidth / previousWidth) - anchorX;
+}
+
+function zoomTimeline(event: WheelEvent) {
+  if (!event.deltaY) return;
+  const rect = timelineViewport.value?.getBoundingClientRect();
+  const anchorX = rect ? event.clientX - rect.left : undefined;
+  const zoomFactor = Math.exp(-event.deltaY * 0.001);
+  void setTimelineZoom(timelineZoom.value * zoomFactor, anchorX);
+}
+
+function startTimelineDrag(event: PointerEvent) {
+  if (event.button !== 0 || !timelineViewport.value) return;
+  isDraggingTimeline.value = true;
+  timelineDragStartX = event.clientX;
+  timelineDragStartScrollLeft = timelineViewport.value.scrollLeft;
+  timelineViewport.value.setPointerCapture(event.pointerId);
+}
+
+function dragTimeline(event: PointerEvent) {
+  if (!isDraggingTimeline.value || !timelineViewport.value) return;
+  timelineViewport.value.scrollLeft = timelineDragStartScrollLeft - (event.clientX - timelineDragStartX);
+}
+
+function stopTimelineDrag(event: PointerEvent) {
+  if (!isDraggingTimeline.value) return;
+  isDraggingTimeline.value = false;
+  if (timelineViewport.value?.hasPointerCapture(event.pointerId)) {
+    timelineViewport.value.releasePointerCapture(event.pointerId);
+  }
+}
+
+function changeTimelineZoom(amount: number) {
+  void setTimelineZoom(timelineZoom.value + amount);
+}
+
+function resetTimelineZoom() {
+  void setTimelineZoom(1);
+  if (timelineViewport.value) timelineViewport.value.scrollLeft = 0;
+}
+
 function clearSteps() {
   steps.value = [];
 }
@@ -558,5 +933,16 @@ function downloadScript() {
 
 onBeforeUnmount(() => {
   if (highlightTimer) clearTimeout(highlightTimer);
+  timelineResizeObserver?.disconnect();
+});
+
+watch(timelineViewport, viewport => {
+  timelineResizeObserver?.disconnect();
+  if (!viewport) return;
+  timelineViewportWidth.value = viewport.clientWidth;
+  timelineResizeObserver = new ResizeObserver(([entry]) => {
+    timelineViewportWidth.value = entry.contentRect.width;
+  });
+  timelineResizeObserver.observe(viewport);
 });
 </script>
