@@ -253,6 +253,16 @@
           </p>
         </button>
 
+        <button
+          v-if="paused"
+          type="button"
+          class="w-full rounded-lg border border-app-strong px-3 py-2 text-sm text-base-content/70 transition hover:bg-base-200/60 disabled:cursor-not-allowed disabled:opacity-55"
+          :disabled="!canSpeak"
+          @click="speakText(text)"
+        >
+          用当前文本重新合成
+        </button>
+
         <audio
           ref="audioEl"
           class="hidden"
