@@ -10,20 +10,33 @@
     </header>
 
     <nav
-      class="mb-5 flex flex-wrap justify-center gap-2 sm:mb-6"
+      class="mb-5 flex justify-center sm:mb-6"
       aria-label="转换类型"
     >
-      <button
-        v-for="item in tabs"
-        :key="item.key"
-        type="button"
-        class="tab-chip"
-        :class="{ 'tab-chip--active': curTab === item.key }"
-        @click="curTab = item.key"
+      <div
+        class="tab-seg w-full"
+        role="tablist"
+        :style="{ '--seg-count': tabs.length }"
       >
-        <span class="tab-chip__icon" aria-hidden="true">{{ item.icon }}</span>
-        <span>{{ item.label }}</span>
-      </button>
+        <span
+          class="tab-seg__slider"
+          :style="{ '--seg-index': activeIndex }"
+          aria-hidden="true"
+        />
+        <button
+          v-for="item in tabs"
+          :key="item.key"
+          type="button"
+          role="tab"
+          class="tab-seg__item"
+          :class="{ 'tab-seg__item--active': curTab === item.key }"
+          :aria-selected="curTab === item.key"
+          @click="curTab = item.key"
+        >
+          <span class="tab-seg__icon" aria-hidden="true">{{ item.icon }}</span>
+          <span class="tab-seg__label">{{ item.label }}</span>
+        </button>
+      </div>
     </nav>
 
     <Transition name="panel-fade" mode="out-in">
@@ -87,6 +100,9 @@ const tabs = [
 
 const curTab = ref<TabKey>('ToIco');
 const currentTab = computed(() => tabs.find(t => t.key === curTab.value));
+const activeIndex = computed(() =>
+  tabs.findIndex(t => t.key === curTab.value),
+);
 
 const componentMap = {
   ToIco,
@@ -99,41 +115,82 @@ const getComponent = (name: TabKey) => componentMap[name];
 </script>
 
 <style scoped>
-.tab-chip {
+/* 分段式 Tab（segmented control） */
+.tab-seg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--app-border);
+  background: color-mix(in oklab, var(--color-base-200) 65%, transparent);
+}
+
+.tab-seg__slider {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc((100% - 0.5rem) / var(--seg-count));
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-primary) 18%, transparent);
+  border: 1px solid
+    color-mix(in oklab, var(--color-primary) 45%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in oklab, var(--color-primary) 12%, transparent);
+  transform: translateX(calc(var(--seg-index) * 100%));
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+
+.tab-seg__item {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  justify-content: center;
+  gap: 0.3rem;
   border-radius: 9999px;
-  border: 1px solid var(--app-border-strong);
-  background: color-mix(in oklab, var(--color-base-200) 55%, transparent);
-  padding: 0.4rem 0.85rem;
+  padding: 0.4rem 0.6rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
     color 0.2s ease,
     transform 0.15s ease;
 }
 
-.tab-chip:hover {
-  border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+.tab-seg__item:hover {
   color: var(--color-base-content);
-  transform: translateY(-1px);
 }
 
-.tab-chip--active {
-  border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
-  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+.tab-seg__item--active {
   color: var(--color-primary);
-  box-shadow: 0 0 0 1px
-    color-mix(in oklab, var(--color-primary) 20%, transparent);
+  font-weight: 600;
 }
 
-.tab-chip__icon {
+.tab-seg__icon {
   font-size: 0.9em;
   line-height: 1;
+}
+
+.tab-seg__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 419px) {
+  .tab-seg__icon {
+    display: none;
+  }
+
+  .tab-seg__item {
+    padding: 0.4rem 0.35rem;
+    font-size: 0.75rem;
+  }
 }
 
 .panel-fade-enter-active,
