@@ -253,11 +253,51 @@
         >
           点击「刷新」加载当前目录
         </div>
-        <ul
-          v-else
-          class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-          :class="{ 'opacity-50 pointer-events-none': loadingRemote }"
-        >
+        <template v-else>
+          <!-- 视图切换：紧贴数据表格上方 -->
+          <div class="sticky top-0 z-[5] -mx-3 bg-base-100/95 px-3 py-2 backdrop-blur-sm sm:-mx-4 sm:px-4">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] text-base-content/40">
+                共 {{ remoteImages.length }} 项
+              </span>
+              <div
+                class="join overflow-hidden border border-base-content/10 bg-base-content/5"
+                title="切换展示形式"
+              >
+                <button
+                  type="button"
+                  class="btn join-item btn-xs border-0"
+                  :class="
+                    viewMode === 'grid'
+                      ? 'btn-primary'
+                      : 'btn-ghost hover:bg-base-content/10'
+                  "
+                  @click="setViewMode('grid')"
+                >
+                  <span class="text-sm leading-none">▦</span>
+                  <span class="hidden sm:inline">九宫格</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn join-item btn-xs border-0"
+                  :class="
+                    viewMode === 'list'
+                      ? 'btn-primary'
+                      : 'btn-ghost hover:bg-base-content/10'
+                  "
+                  @click="setViewMode('list')"
+                >
+                  <span class="text-sm leading-none">☰</span>
+                  <span class="hidden sm:inline">列表</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <ul
+            v-if="viewMode === 'grid'"
+            class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            :class="{ 'opacity-50 pointer-events-none': loadingRemote }"
+          >
           <li
             v-for="item in remoteImages"
             :key="item.path"
@@ -270,7 +310,7 @@
               <img
                 :src="previewUrl(item)"
                 :alt="item.name"
-                class="h-full w-full object-cover"
+                class="h-full w-full object-contain"
                 loading="lazy"
                 referrerpolicy="no-referrer"
                 @error="onPreviewError"
@@ -286,6 +326,83 @@
             </div>
           </li>
         </ul>
+        <ul
+          v-else
+          class="flex flex-col gap-1.5"
+          :class="{ 'opacity-50 pointer-events-none': loadingRemote }"
+        >
+          <li
+            v-for="item in remoteImages"
+            :key="item.path"
+            class="fm-card flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors sm:gap-3 sm:px-3"
+            @contextmenu.prevent="openImageMenu($event, item)"
+          >
+            <div
+              class="h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-base-200/40"
+              @click="openImagePreview(item)"
+            >
+              <img
+                :src="previewUrl(item)"
+                :alt="item.name"
+                class="h-full w-full object-cover"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                @error="onPreviewError"
+              />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p
+                class="truncate text-xs font-medium text-base-content sm:text-sm"
+                :title="item.name"
+              >
+                {{ item.name }}
+              </p>
+              <p class="truncate font-mono text-[10px] text-base-content/40 sm:text-[11px]" :title="item.path">
+                {{ item.path }} · {{ item.size ? formatBytes(item.size) : '—' }}
+              </p>
+            </div>
+            <div class="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs"
+                title="复制 Markdown"
+                @click="copyItemLink(item, 'markdown')"
+              >
+                MD
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs"
+                title="复制 Raw 直链"
+                @click="copyItemLink(item, 'raw')"
+              >
+                Raw
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs"
+                title="在新标签页打开"
+                @click="openImagePreview(item)"
+              >
+                打开
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs text-error hover:bg-error/10"
+                title="删除"
+                :disabled="deletingId === item.id"
+                @click="deleteImage(item)"
+              >
+                <span
+                  v-if="deletingId === item.id"
+                  class="loading loading-spinner loading-xs"
+                ></span>
+                <template v-else>删除</template>
+              </button>
+            </div>
+          </li>
+        </ul>
+        </template>
 
         <div
           v-if="loadingRemote && remoteImages.length"
@@ -474,6 +591,7 @@ const STORAGE_KEY = 'web-tool-github-image-host';
 
 type Provider = 'github' | 'gitee';
 type LinkKey = 'cdn' | 'raw' | 'page' | 'markdown';
+type ViewMode = 'grid' | 'list';
 
 type RepoProfile = {
   token: string;
@@ -521,6 +639,7 @@ function emptyProfile(provider: Provider): RepoProfile {
 const showConfigDialog = ref(false);
 const activeProvider = ref<Provider>('github');
 const draftProvider = ref<Provider>('github');
+const viewMode = ref<ViewMode>('grid');
 const profiles = reactive<Record<Provider, RepoProfile>>({
   github: emptyProfile('github'),
   gitee: emptyProfile('gitee'),
@@ -674,6 +793,12 @@ function switchProvider(provider: Provider) {
   }
 }
 
+function setViewMode(mode: ViewMode) {
+  if (viewMode.value === mode) return;
+  viewMode.value = mode;
+  persistConfig();
+}
+
 function blurPathInput(e: KeyboardEvent) {
   (e.target as HTMLInputElement | null)?.blur();
 }
@@ -749,6 +874,9 @@ function loadConfig() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw) as any;
+    if (parsed.viewMode === 'list' || parsed.viewMode === 'grid') {
+      viewMode.value = parsed.viewMode;
+    }
 
     if (parsed?.profiles?.github || parsed?.profiles?.gitee) {
       activeProvider.value =
@@ -791,6 +919,7 @@ function persistConfig() {
     STORAGE_KEY,
     JSON.stringify({
       activeProvider: activeProvider.value,
+      viewMode: viewMode.value,
       profiles: {
         github: cloneProfile(profiles.github),
         gitee: cloneProfile(profiles.gitee),
@@ -1417,6 +1546,10 @@ function onMenuOpenImage() {
   const item = imageMenu.item;
   closeImageMenu();
   if (!item) return;
+  openImagePreview(item);
+}
+
+function openImagePreview(item: UploadResult) {
   window.open(preferredEmbedUrl(item), '_blank', 'noopener,noreferrer');
 }
 
