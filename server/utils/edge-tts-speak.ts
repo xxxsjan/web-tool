@@ -1,7 +1,9 @@
 import WebSocket from 'ws';
+import { execFileSync } from 'child_process';
+import { join } from 'path';
 import {
   buildSsml,
-  buildSynthWsUrl,
+  buildSynthWsUrlV2,
   edgeTtsTimestamp,
   edgeTtsWsHeaders,
   getEdgeExportFormat,
@@ -12,6 +14,30 @@ import { convertMp3Buffer } from './convert-audio';
 
 /** Edge 免费 WebSocket 对 RIFF/OGG 常直接断连，合成一律走 MP3 */
 const EDGE_SYNTH_FORMAT = 'mp3' as const;
+
+/** 生成 Sec-MS-GEC v2 token（调用 Python 移植的魔改 SHA-256 + CS64 算法） */
+function generateSecMsGecV2(): string {
+  const script = join(process.cwd(), 'server/utils/edge_gec.py');
+  const ts = Math.floor(Date.now() / 1000);
+  let output = '';
+  try {
+    output = execFileSync('python', [script, String(ts)], {
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024,
+      timeout: 10000,
+    }).trim();
+  } catch (e: any) {
+    throw new Error(
+      `生成 Edge TTS v2 token 失败：${e?.message || String(e)}\n输出：${output}`,
+    );
+  }
+  if (!/^[0-9A-F]{16}-[0-9A-F]{64}$/.test(output)) {
+    throw new Error(
+      `Edge TTS v2 token 格式不合法：${output}\n请确保 Python 环境可用且 server/utils/edge_gec.py 存在`,
+    );
+  }
+  return output;
+}
 
 function parseBinaryAudioFrame(raw: Buffer): Buffer | null {
   if (raw.length < 2) return null;
@@ -114,11 +140,13 @@ export function synthesizeEdgeTtsServer(options: {
     try {
       const connectionId = randomHex(16);
       const requestId = randomHex(16);
-      const url = await buildSynthWsUrl(connectionId);
+      const secMsGec = generateSecMsGecV2();
+      const url = buildSynthWsUrlV2(connectionId, secMsGec);
 
       ws = new WebSocket(url, {
         headers: edgeTtsWsHeaders(),
         handshakeTimeout: 15000,
+        compress: 15,
       });
 
       ws.on('open', () => {

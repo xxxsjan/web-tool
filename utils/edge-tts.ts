@@ -2,7 +2,7 @@
 
 export const EDGE_TTS_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
 export const EDGE_TTS_CHROMIUM_VERSION = '143.0.3650.75';
-export const EDGE_TTS_SEC_MS_GEC_VERSION = `1-${EDGE_TTS_CHROMIUM_VERSION}`;
+export const EDGE_TTS_SEC_MS_GEC_VERSION = `2-${EDGE_TTS_CHROMIUM_VERSION}`;
 
 const CHROMIUM_MAJOR = EDGE_TTS_CHROMIUM_VERSION.split('.')[0];
 
@@ -237,6 +237,17 @@ export function buildVoicesListUrl(secMsGec: string) {
 
 export async function buildSynthWsUrl(connectionId: string) {
   const secMsGec = await generateSecMsGec();
+  const q = new URLSearchParams({
+    TrustedClientToken: EDGE_TTS_TOKEN,
+    'Sec-MS-GEC': secMsGec,
+    'Sec-MS-GEC-Version': EDGE_TTS_SEC_MS_GEC_VERSION,
+    ConnectionId: connectionId,
+  });
+  return `${EDGE_TTS_WSS_BASE}?${q.toString()}`;
+}
+
+/** 服务端专用：使用 Python 生成的 v2 token 构建合成 WebSocket URL */
+export function buildSynthWsUrlV2(connectionId: string, secMsGec: string) {
   const q = new URLSearchParams({
     TrustedClientToken: EDGE_TTS_TOKEN,
     'Sec-MS-GEC': secMsGec,
