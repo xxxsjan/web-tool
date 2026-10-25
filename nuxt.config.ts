@@ -4,6 +4,12 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  runtimeConfig: {
+    /** 阿里云百炼 API Key，仅服务端可读 */
+    dashscopeApiKey: process.env.DASHSCOPE_API_KEY || '',
+    /** 可选：业务空间 ID，设置后走专属域名 */
+    dashscopeWorkspaceId: process.env.DASHSCOPE_WORKSPACE_ID || '',
+  },
   css: [
     '~/assets/css/main.css',
     'animate.css',

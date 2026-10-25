@@ -1,16 +1,69 @@
 <template>
-  <div class="mx-auto w-full max-w-3xl px-3 pb-12 sm:px-4">
+  <div class="mx-auto w-full max-w-6xl px-3 pb-12 sm:px-4">
     <header class="mb-5 text-center sm:mb-6">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
         文本转语音
       </h1>
       <p class="text-xs text-base-content/50 sm:text-sm">
-        Microsoft Edge 在线神经音色 · 含晓晓 / 云希等
+        Edge 神经音色 · 阿里云百炼 Sambert
       </p>
     </header>
 
     <section class="overflow-hidden rounded-2xl tool-panel">
-      <div class="space-y-5 p-4 sm:p-5">
+      <div class="p-4 sm:p-5">
+        <!-- 全局提示（横跨左右） -->
+        <div v-if="errorMessage" class="mb-4 rounded-xl border border-error/30 bg-error/10 px-3 py-2.5 text-sm text-error">
+          {{ errorMessage }}
+        </div>
+        <div v-if="statusTip" class="mb-4 rounded-xl border border-app bg-base-200/40 px-3 py-2 text-xs text-base-content/60">
+          {{ statusTip }}
+        </div>
+
+        <!-- 左右双栏：移动端单列，桌面端左右并排 -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-6">
+          <!-- 左侧：文本与操作 -->
+          <div class="space-y-5">
+        <!-- 引擎 -->
+        <div>
+          <p class="mb-2 text-sm font-medium text-base-content/70">合成引擎</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="item in providerOptions"
+              :key="item.value"
+              type="button"
+              class="tts-chip"
+              :class="
+                provider === item.value ? 'tts-chip--active' : 'tts-chip--ghost'
+              "
+              :disabled="busy"
+              @click="switchProvider(item.value)"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+          <div v-if="provider === 'sambert'" class="mt-3 space-y-1.5">
+            <label
+              for="tts-dashscope-key"
+              class="text-sm font-medium text-base-content/70"
+            >
+              百炼 API Key
+            </label>
+            <input
+              id="tts-dashscope-key"
+              v-model="dashscopeApiKey"
+              type="password"
+              class="tts-input w-full text-sm"
+              placeholder="sk-…"
+              autocomplete="off"
+              spellcheck="false"
+              :disabled="busy"
+            />
+            <p class="text-[11px] text-base-content/40">
+              仅保存在本机浏览器，合成时经服务端转发，不会写入仓库
+            </p>
+          </div>
+        </div>
+
         <!-- 文本 -->
         <div>
           <div class="mb-2 flex items-center justify-between gap-2">
@@ -117,11 +170,11 @@
                       ? 'tts-chip--active'
                       : 'tts-chip--ghost'
                   "
-                  :title="friendlyVoiceLabel(v)"
+                  :title="voiceTitle(v)"
                   :disabled="busy"
                   @click="selectVoice(v.ShortName)"
                 >
-                  <span>{{ shortVoiceName(v) }}</span>
+                  <span>{{ voiceChipLabel(v) }}</span>
                 </button>
                 <p
                   v-if="!filteredVoices.length"
@@ -134,8 +187,12 @@
           </div>
         </div>
 
-        <!-- 语速 / 音量：固定一行两列 -->
-        <div class="grid w-full grid-cols-2 gap-x-5 gap-y-4">
+          </div>
+
+          <!-- 右侧：配置 -->
+          <div class="space-y-5">
+            <!-- 语速 / 音量：右侧单列 -->
+            <div class="grid w-full grid-cols-1 gap-y-4">
           <div class="min-w-0">
             <div class="mb-2 flex items-center justify-between gap-2">
               <label
@@ -271,19 +328,6 @@
           @ended="onAudioEnded"
         ></audio>
 
-        <div
-          v-if="errorMessage"
-          class="rounded-xl border border-error/30 bg-error/10 px-3 py-2.5 text-sm text-error"
-        >
-          {{ errorMessage }}
-        </div>
-
-        <div
-          v-if="statusTip"
-          class="rounded-xl border border-app bg-base-200/40 px-3 py-2 text-xs text-base-content/60"
-        >
-          {{ statusTip }}
-        </div>
         <!-- 导出 -->
         <div
           class="export-bar rounded-xl border border-app bg-base-200/30 p-3 sm:p-3.5"
@@ -304,7 +348,7 @@
                 aria-label="导出格式"
               >
                 <button
-                  v-for="item in EDGE_EXPORT_FORMATS"
+                  v-for="item in exportFormatOptions"
                   :key="item.value"
                   type="button"
                   class="tts-chip h-8 px-4"
@@ -356,11 +400,14 @@
             </button>
           </div>
         </div>
+          </div>
+
+        </div>
       </div>
     </section>
 
     <p class="mt-5 text-center text-[11px] text-base-content/40 sm:text-xs">
-      使用 Edge 在线 TTS，需联网 · 导出支持 MP3 / WAV / OGG
+      {{ footerTip }}
     </p>
   </div>
 </template>
@@ -384,27 +431,44 @@ import {
   type EdgeExportFormat,
   type EdgeVoice,
 } from '~/utils/edge-tts';
+import {
+  SAMBERT_DEFAULT_VOICE,
+  SAMBERT_EXPORT_FORMATS,
+  SAMBERT_VOICES,
+  friendlySambertVoiceLabel,
+  getSambertExportFormat,
+  shortSambertVoiceName,
+  sortSambertVoices,
+  type SambertExportFormat,
+  type SambertVoice,
+} from '~/utils/sambert-tts';
+
+type TtsProvider = 'edge' | 'sambert';
+type TtsVoice = EdgeVoice | SambertVoice;
+type TtsExportFormat = EdgeExportFormat | SambertExportFormat;
 
 const STORAGE_KEY = 'web-tool-text-to-speech';
+const PROVIDER_VALUES = ['edge', 'sambert'] as const;
 const LOCALE_VALUES = ['zh', 'en', 'ja', 'ko', 'all'] as const;
 
-const localeOptions = [
-  { value: 'zh', label: '中文' },
-  { value: 'en', label: '英语' },
-  { value: 'ja', label: '日语' },
-  { value: 'ko', label: '韩语' },
-  { value: 'all', label: '全部' },
-] as const;
+const providerOptions: { value: TtsProvider; label: string }[] = [
+  { value: 'edge', label: 'Edge' },
+  { value: 'sambert', label: '百炼 Sambert' },
+];
 
-const DEFAULT_TEXT =
+const EDGE_DEFAULT_VOICE = 'zh-CN-XiaoxiaoNeural';
+const EDGE_DEFAULT_TEXT =
   '本网页直接调用 Microsoft Edge 在线神经语音合成，默认音色为晓晓，支持调节语速并下载音频。';
+const SAMBERT_DEFAULT_TEXT =
+  '本网页调用阿里云百炼 Sambert 语音合成，默认音色为知佳，支持调节语速并下载音频。';
 
-const text = ref(DEFAULT_TEXT);
+const provider = ref<TtsProvider>('edge');
+const text = ref(EDGE_DEFAULT_TEXT);
 const rate = ref(1.5);
 const volume = ref(100);
-const exportFormat = ref<EdgeExportFormat>('wav');
-const voices = ref<EdgeVoice[]>(getFallbackZhVoices());
-const selectedVoice = ref('zh-CN-XiaoxiaoNeural');
+const exportFormat = ref<TtsExportFormat>('wav');
+const voices = ref<TtsVoice[]>(getFallbackZhVoices());
+const selectedVoice = ref(EDGE_DEFAULT_VOICE);
 const localeFilter = ref<string>('zh');
 const voicePanelOpen = ref(false);
 const busy = ref(false);
@@ -413,14 +477,16 @@ const playing = ref(false);
 const paused = ref(false);
 const statusTip = ref('');
 const errorMessage = ref('');
+const dashscopeApiKey = ref('');
 const audioEl = ref<HTMLAudioElement | null>(null);
 const waveCanvas = ref<HTMLCanvasElement | null>(null);
 const lastAudioBlob = ref<Blob | null>(null);
 const lastAudioMeta = ref<{
+  provider: TtsProvider;
   text: string;
   voice: string;
   rate: number;
-  format: EdgeExportFormat;
+  format: TtsExportFormat;
 } | null>(null);
 
 let prefsReady = false;
@@ -434,20 +500,35 @@ const clampRate = (val: number) => {
 const clampVolumePct = (val: number) =>
   Math.min(200, Math.max(0, Number(val) || 0));
 
+const resolveExportFormat = (value?: string | null): TtsExportFormat => {
+  if (provider.value === 'sambert') {
+    return getSambertExportFormat(value).value;
+  }
+  return getEdgeExportFormat(value).value;
+};
+
 const loadPrefs = () => {
   if (typeof localStorage === 'undefined') return;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw) as {
+      provider?: string;
       text?: string;
       rate?: number;
       volume?: number;
       selectedVoice?: string;
       localeFilter?: string;
       exportFormat?: string;
+      dashscopeApiKey?: string;
     };
 
+    if (
+      typeof parsed.provider === 'string' &&
+      (PROVIDER_VALUES as readonly string[]).includes(parsed.provider)
+    ) {
+      provider.value = parsed.provider as TtsProvider;
+    }
     if (typeof parsed.text === 'string') text.value = parsed.text;
     if (parsed.rate != null) rate.value = clampRate(parsed.rate);
     if (parsed.volume != null) volume.value = clampVolumePct(parsed.volume);
@@ -464,7 +545,10 @@ const loadPrefs = () => {
       localeFilter.value = parsed.localeFilter;
     }
     if (typeof parsed.exportFormat === 'string') {
-      exportFormat.value = getEdgeExportFormat(parsed.exportFormat).value;
+      exportFormat.value = resolveExportFormat(parsed.exportFormat);
+    }
+    if (typeof parsed.dashscopeApiKey === 'string') {
+      dashscopeApiKey.value = parsed.dashscopeApiKey.trim();
     }
   } catch {
     /* ignore */
@@ -477,12 +561,14 @@ const persistPrefs = () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
+        provider: provider.value,
         text: text.value,
         rate: rate.value,
         volume: volume.value,
         selectedVoice: selectedVoice.value,
         localeFilter: localeFilter.value,
         exportFormat: exportFormat.value,
+        dashscopeApiKey: dashscopeApiKey.value.trim(),
       }),
     );
   } catch {
@@ -490,9 +576,15 @@ const persistPrefs = () => {
   }
 };
 
-const ensureVoiceSelection = (list: EdgeVoice[]) => {
+const ensureVoiceSelection = (list: TtsVoice[]) => {
   if (!list.length) return;
   if (list.some(v => v.ShortName === selectedVoice.value)) return;
+  if (provider.value === 'sambert') {
+    const preferred =
+      list.find(v => v.ShortName === SAMBERT_DEFAULT_VOICE) || list[0];
+    selectedVoice.value = preferred.ShortName;
+    return;
+  }
   const xiaoxiao = list.find(v => v.ShortName.includes('XiaoxiaoNeural'));
   selectedVoice.value = xiaoxiao?.ShortName || list[0].ShortName;
 };
@@ -653,22 +745,58 @@ const resumeAudioCtx = async () => {
   }
 };
 
+const localeOptions = computed(() => {
+  if (provider.value === 'sambert') {
+    return [
+      { value: 'zh', label: '中文' },
+      { value: 'en', label: '英语' },
+      { value: 'all', label: '全部' },
+    ] as const;
+  }
+  return [
+    { value: 'zh', label: '中文' },
+    { value: 'en', label: '英语' },
+    { value: 'ja', label: '日语' },
+    { value: 'ko', label: '韩语' },
+    { value: 'all', label: '全部' },
+  ] as const;
+});
+
+const exportFormatOptions = computed(() =>
+  provider.value === 'sambert' ? SAMBERT_EXPORT_FORMATS : EDGE_EXPORT_FORMATS,
+);
+
+const footerTip = computed(() =>
+  provider.value === 'sambert'
+    ? '使用阿里云百炼 Sambert，请填写 API Key · 导出支持 MP3 / WAV / OGG'
+    : '使用 Edge 在线 TTS，需联网 · 导出支持 MP3 / WAV / OGG',
+);
+
+const hasSambertKey = computed(() => !!dashscopeApiKey.value.trim());
+
 const filteredVoices = computed(() => {
   const list = voices.value;
   const filtered =
     localeFilter.value === 'all'
       ? list
       : list.filter(v => v.Locale.toLowerCase().startsWith(localeFilter.value));
-  return sortEdgeVoices(filtered);
+  if (provider.value === 'sambert') {
+    return sortSambertVoices(filtered as SambertVoice[]);
+  }
+  return sortEdgeVoices(filtered as EdgeVoice[]);
 });
 
-const canSpeak = computed(
-  () => !!text.value.trim() && !!selectedVoice.value && !busy.value,
-);
+const canSpeak = computed(() => {
+  if (!text.value.trim() || !selectedVoice.value || busy.value) return false;
+  if (provider.value === 'sambert' && !hasSambertKey.value) return false;
+  return true;
+});
 
-const canDownload = computed(
-  () => !!text.value.trim() && !!selectedVoice.value && !busy.value,
-);
+const canDownload = computed(() => {
+  if (!text.value.trim() || !selectedVoice.value || busy.value) return false;
+  if (provider.value === 'sambert' && !hasSambertKey.value) return false;
+  return true;
+});
 
 const speakerAriaLabel = computed(() => {
   if (busy.value && busyMode.value === 'speak') return '合成中';
@@ -677,22 +805,62 @@ const speakerAriaLabel = computed(() => {
   return '开始朗读';
 });
 
-const exportFormatLabel = computed(
-  () => getEdgeExportFormat(exportFormat.value).label,
-);
+const exportFormatLabel = computed(() => {
+  if (provider.value === 'sambert') {
+    return getSambertExportFormat(exportFormat.value).label;
+  }
+  return getEdgeExportFormat(exportFormat.value).label;
+});
 
 const selectedMeta = computed(
   () => voices.value.find(v => v.ShortName === selectedVoice.value) || null,
 );
 
+const isSambertVoice = (v: TtsVoice): v is SambertVoice =>
+  'Style' in v && typeof (v as SambertVoice).Style === 'string';
+
+const voiceChipLabel = (v: TtsVoice) =>
+  isSambertVoice(v) ? shortSambertVoiceName(v) : shortVoiceName(v);
+
+const voiceTitle = (v: TtsVoice) =>
+  isSambertVoice(v) ? friendlySambertVoiceLabel(v) : friendlyVoiceLabel(v);
+
 const selectedVoiceLabel = computed(() => {
-  if (selectedMeta.value) return shortVoiceName(selectedMeta.value);
+  if (selectedMeta.value) {
+    // 折叠态也展示完整描述（含男女），避免只剩名字
+    return voiceTitle(selectedMeta.value);
+  }
   return selectedVoice.value.replace(/^.*-/, '') || selectedVoice.value;
 });
 
 const selectVoice = (shortName: string) => {
   selectedVoice.value = shortName;
   voicePanelOpen.value = false;
+};
+
+const clearCachedAudio = () => {
+  lastAudioBlob.value = null;
+  lastAudioMeta.value = null;
+};
+
+const switchProvider = async (next: TtsProvider) => {
+  if (provider.value === next || busy.value) return;
+  stop();
+  clearCachedAudio();
+  provider.value = next;
+  exportFormat.value = resolveExportFormat(exportFormat.value);
+  errorMessage.value = '';
+  voicePanelOpen.value = false;
+
+  const isDefaultEdgeText = text.value.trim() === EDGE_DEFAULT_TEXT;
+  const isDefaultSambertText = text.value.trim() === SAMBERT_DEFAULT_TEXT;
+  if (next === 'sambert' && (isDefaultEdgeText || !text.value.trim())) {
+    text.value = SAMBERT_DEFAULT_TEXT;
+  } else if (next === 'edge' && (isDefaultSambertText || !text.value.trim())) {
+    text.value = EDGE_DEFAULT_TEXT;
+  }
+
+  await loadVoices();
 };
 
 watch(filteredVoices, list => {
@@ -703,12 +871,40 @@ watch(filteredVoices, list => {
   }
 });
 
+watch(localeOptions, opts => {
+  if (!opts.some(o => o.value === localeFilter.value)) {
+    localeFilter.value = 'zh';
+  }
+});
+
 watch(volume, val => {
   applyVolume(val);
 });
 
-watch([text, rate, volume, selectedVoice, localeFilter, exportFormat], () => {
-  persistPrefs();
+watch(
+  [
+    provider,
+    text,
+    rate,
+    volume,
+    selectedVoice,
+    localeFilter,
+    exportFormat,
+    dashscopeApiKey,
+  ],
+  () => {
+    persistPrefs();
+  },
+);
+
+watch(hasSambertKey, hasKey => {
+  if (
+    provider.value === 'sambert' &&
+    hasKey &&
+    /请填写百炼 API Key/.test(statusTip.value)
+  ) {
+    statusTip.value = '';
+  }
 });
 
 const revokeUrl = () => {
@@ -739,7 +935,10 @@ const buildFileName = () => {
   const voiceKey =
     selectedVoice.value.replace(/[^a-zA-Z0-9_-]/g, '') || 'voice';
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const ext = getEdgeExportFormat(exportFormat.value).ext;
+  const ext =
+    provider.value === 'sambert'
+      ? getSambertExportFormat(exportFormat.value).ext
+      : getEdgeExportFormat(exportFormat.value).ext;
   return `tts-${voiceKey}-${rate.value.toFixed(1)}x-${stamp}.${ext}`;
 };
 
@@ -792,32 +991,57 @@ const readFetchErrorMessage = async (e: any, fallback: string) => {
   return fallback;
 };
 
-const synthesize = async (
-  content: string,
-  format: EdgeExportFormat = 'mp3',
-) => {
+const synthesize = async (content: string, format: TtsExportFormat = 'mp3') => {
   const locale = selectedMeta.value?.Locale || 'zh-CN';
-  const formatConfig = getEdgeExportFormat(format);
   try {
-    const blob = await $fetch<Blob>('/api/edge-tts/speak', {
-      method: 'POST',
-      body: {
-        text: content,
-        voice: selectedVoice.value,
-        rate: rate.value,
-        locale,
-        format: formatConfig.value,
-      },
-      responseType: 'blob',
-    });
+    let blob: Blob;
+    let resolvedFormat: TtsExportFormat;
+
+    if (provider.value === 'sambert') {
+      const apiKey = dashscopeApiKey.value.trim();
+      if (!apiKey) {
+        throw new Error('请填写阿里云百炼 API Key');
+      }
+      const formatConfig = getSambertExportFormat(format);
+      resolvedFormat = formatConfig.value;
+      // 音量与 Edge 一致，由页面 GainNode 控制；接口固定默认音量
+      blob = await $fetch<Blob>('/api/sambert-tts/speak', {
+        method: 'POST',
+        body: {
+          text: content,
+          voice: selectedVoice.value,
+          rate: rate.value,
+          volume: 50,
+          format: formatConfig.value,
+          apiKey,
+        },
+        responseType: 'blob',
+      });
+    } else {
+      const formatConfig = getEdgeExportFormat(format);
+      resolvedFormat = formatConfig.value;
+      blob = await $fetch<Blob>('/api/edge-tts/speak', {
+        method: 'POST',
+        body: {
+          text: content,
+          voice: selectedVoice.value,
+          rate: rate.value,
+          locale,
+          format: formatConfig.value,
+        },
+        responseType: 'blob',
+      });
+    }
+
     lastAudioBlob.value = blob;
     lastAudioMeta.value = {
+      provider: provider.value,
       text: content,
       voice: selectedVoice.value,
       rate: rate.value,
-      format: formatConfig.value,
+      format: resolvedFormat,
     };
-    return { blob, locale, format: formatConfig };
+    return { blob, locale, format: resolvedFormat };
   } catch (e: any) {
     const msg = await readFetchErrorMessage(e, '合成失败，请检查网络后重试');
     throw new Error(msg);
@@ -879,7 +1103,7 @@ const speakText = async (content: string) => {
   statusTip.value = '正在合成语音…';
 
   try {
-    const { blob, locale } = await synthesize(trimmed, 'mp3');
+    const { blob } = await synthesize(trimmed, 'mp3');
     if (aborting) return;
 
     revokeUrl();
@@ -892,14 +1116,8 @@ const speakText = async (content: string) => {
     await resumeAudioCtx();
     applyVolume();
     await el.play();
-    statusTip.value = `正在播放 · ${friendlyVoiceLabel(
-      selectedMeta.value || {
-        ShortName: selectedVoice.value,
-        FriendlyName: selectedVoice.value,
-        Gender: '',
-        Locale: locale,
-      },
-    )}`;
+    const meta = selectedMeta.value;
+    statusTip.value = `正在播放 · ${meta ? voiceTitle(meta) : selectedVoice.value}`;
   } catch (e: any) {
     if (!aborting) {
       errorMessage.value = e?.message || '合成失败，请检查网络后重试';
@@ -916,10 +1134,11 @@ const download = async () => {
   if (!trimmed || !selectedVoice.value || busy.value) return;
 
   errorMessage.value = '';
-  const fmt = getEdgeExportFormat(exportFormat.value).value;
+  const fmt = resolveExportFormat(exportFormat.value);
 
   const cached =
     lastAudioBlob.value &&
+    lastAudioMeta.value?.provider === provider.value &&
     lastAudioMeta.value?.text === trimmed &&
     lastAudioMeta.value?.voice === selectedVoice.value &&
     lastAudioMeta.value?.rate === rate.value &&
@@ -952,14 +1171,36 @@ const download = async () => {
   }
 };
 
-const loadVoices = async () => {
+const loadSambertVoices = async () => {
+  statusTip.value = '正在加载 Sambert 音色…';
+  try {
+    const data = await $fetch<{ voices: SambertVoice[] }>(
+      '/api/sambert-tts/voices',
+    );
+    if (data?.voices?.length) {
+      voices.value = sortSambertVoices(data.voices);
+      ensureVoiceSelection(voices.value);
+      statusTip.value = hasSambertKey.value ? '' : '请填写百炼 API Key 后开始合成';
+      return;
+    }
+  } catch (e: any) {
+    console.warn('Sambert voices API failed, using fallback', e);
+  }
+
+  voices.value = sortSambertVoices(SAMBERT_VOICES);
+  ensureVoiceSelection(voices.value);
+  statusTip.value = hasSambertKey.value
+    ? '已使用内置 Sambert 音色列表'
+    : '已加载音色；请填写百炼 API Key 后开始合成';
+};
+
+const loadEdgeVoices = async () => {
   statusTip.value = '正在加载 Edge 音色列表…';
   try {
     const data = await $fetch<{ voices: EdgeVoice[] }>('/api/edge-tts/voices');
     if (data?.voices?.length) {
       voices.value = sortEdgeVoices(data.voices);
       ensureVoiceSelection(voices.value);
-      // 全库 300+，界面按语言筛选展示；加载完成后不再常驻提示，避免与「14 个」混淆
       statusTip.value = '';
       return;
     }
@@ -969,7 +1210,15 @@ const loadVoices = async () => {
 
   voices.value = getFallbackZhVoices();
   ensureVoiceSelection(voices.value);
-  statusTip.value = `音色列表拉取失败，已使用内置中文音色（含晓晓）`;
+  statusTip.value = '音色列表拉取失败，已使用内置中文音色（含晓晓）';
+};
+
+const loadVoices = async () => {
+  if (provider.value === 'sambert') {
+    await loadSambertVoices();
+    return;
+  }
+  await loadEdgeVoices();
 };
 
 const onWaveResize = () => {
@@ -1023,7 +1272,8 @@ onUnmounted(() => {
   height: 3rem;
 }
 
-.tts-textarea {
+.tts-textarea,
+.tts-input {
   border-radius: 0.75rem;
   border: 1px solid var(--app-border-strong);
   background: color-mix(in oklab, var(--color-base-100) 88%, transparent);
@@ -1033,13 +1283,19 @@ onUnmounted(() => {
   transition: border-color 0.15s ease;
 }
 
-.tts-textarea:focus {
+.tts-input {
+  padding: 0.55rem 0.85rem;
+}
+
+.tts-textarea:focus,
+.tts-input:focus {
   border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
   box-shadow: 0 0 0 3px
     color-mix(in oklab, var(--color-primary) 22%, transparent);
 }
 
-.tts-textarea:disabled {
+.tts-textarea:disabled,
+.tts-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
