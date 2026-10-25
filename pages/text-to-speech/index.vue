@@ -9,6 +9,8 @@
       </p>
     </header>
 
+
+
     <section class="overflow-hidden rounded-2xl tool-panel">
       <div class="space-y-4 p-4 sm:p-5">
         <!-- 全局提示 -->
@@ -361,6 +363,29 @@
     <p class="mt-5 text-center text-[11px] text-base-content/40 sm:text-xs">
       {{ footerTip }}
     </p>
+
+    <!-- 第三方链接 -->
+    <div class="mt-6 rounded-xl border border-app bg-base-200/30 p-4 sm:p-5">
+      <p class="mb-3 text-sm font-medium text-base-content/70">第三方链接</p>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <a
+          href="https://acgn.ttson.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
+        >
+          ACGN TTS 在线语音合成
+        </a>
+        <a
+          href="https://tts.wangwangit.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
+        >
+          TTS 在线语音合成
+        </a>
+      </div>
+    </div>
 
     <!-- 音色选择弹窗 -->
     <dialog
