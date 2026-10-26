@@ -74,4 +74,18 @@ export default defineNuxtConfig({
     '/image-to-icon': { redirect: '/image-convert' },
     '/image-to-icon/**': { redirect: '/image-convert' },
   },
+
+  nitro: {
+    // Edge TTS 的 Sec-MS-GEC v2 令牌依赖 BigInt 字面量与 64 位运算，
+    // Nitro 默认的 es2019 目标会降级失败，显式提升到 Node 20。
+    esbuild: {
+      options: {
+        target: 'node20',
+      },
+    },
+    /** 令牌生成是纯计算，无需打包 Python 等外部资源 */
+    externals: {
+      inline: [],
+    },
+  },
 });

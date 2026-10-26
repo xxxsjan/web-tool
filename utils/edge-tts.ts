@@ -246,7 +246,7 @@ export async function buildSynthWsUrl(connectionId: string) {
   return `${EDGE_TTS_WSS_BASE}?${q.toString()}`;
 }
 
-/** 服务端专用：使用 Python 生成的 v2 token 构建合成 WebSocket URL */
+/** 服务端专用：使用 v2 token 构建合成 WebSocket URL */
 export function buildSynthWsUrlV2(connectionId: string, secMsGec: string) {
   const q = new URLSearchParams({
     TrustedClientToken: EDGE_TTS_TOKEN,
