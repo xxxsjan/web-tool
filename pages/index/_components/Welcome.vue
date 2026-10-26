@@ -29,7 +29,6 @@
 
     <p class="enter-hint">
       <span class="enter-hint__text">点击进入</span>
-      <span class="enter-hint__arrow" aria-hidden="true">↓</span>
     </p>
   </div>
 </template>
