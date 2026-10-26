@@ -31,6 +31,9 @@ export function splitToolTitle(title: string) {
 
 const extraItems: ToolNavItem[] = [];
 
+/** 这些工具在独立窗口中打开，不进入站内布局 */
+const standalonePaths = new Set<string>(['/whiteboard']);
+
 export function useToolNav() {
   const router = useRouter();
 
@@ -68,8 +71,8 @@ export function useToolNav() {
   async function goTool(path: string) {
     try {
       const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-      if (normalizedPath.includes('.html')) {
-        window.open(normalizedPath);
+      if (normalizedPath.includes('.html') || standalonePaths.has(normalizedPath)) {
+        window.open(normalizedPath, '_blank', 'noopener');
       } else {
         await router.push(normalizedPath);
       }
