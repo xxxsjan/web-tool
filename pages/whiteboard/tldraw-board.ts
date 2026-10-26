@@ -29,33 +29,34 @@ const EMPTY_HINT = '画布上还没有内容';
 const INVALID_FILE_HINT = '不是有效的 .tldr 草稿文件';
 
 /**
- * 遍历 store snapshot，把所有 image/video asset record 的 props.src
- * 修正为合法值。
+ * 在原始 JSON 层面清洗 asset 记录，必须在 parseTldrawJsonFile 之前做：
  *
- * tldraw 的 image asset schema 要求 `props.src: T.srcUrl.nullable()`，
- * 也就是必须是 string（含空串）或 null，不能是 undefined。
- * 但某些旧文件 / 跨工具导出的文件里，asset 的 src 可能就是 undefined，
- * 导致 `loadSnapshot` 内部 Store.put 直接 ValidationError 崩掉整个 transact。
- * 这里在落库前做一次兜底清洗。
+ * 1. 刚 JSON.parse 出来的对象可自由修改；而 parse 之后 getStoreSnapshot()
+ *    返回的记录在开发模式下会被 devFreeze 深冻结，根本写不进去；
+ * 2. image asset 的 schema 要求 `props.src: T.srcUrl.nullable()`（string 或
+ *    null），某些旧文件 / 跨工具导出的文件里 src 干脆缺失（JSON 序列化会
+ *    丢掉 undefined），缺省会在 parse 内部建临时 store 校验时直接抛
+ *    ValidationError: Expected string, got undefined。
  */
-function sanitizeSnapshotAssets(
-  snapshot: { store: Record<string, Record<string, unknown>> },
-): void {
-  for (const record of Object.values(snapshot.store)) {
-    if (record.typeName !== 'asset') continue;
-    const props = (record as { props?: Record<string, unknown> }).props;
-    if (!props || typeof props !== 'object') continue;
-
-    const src = props.src;
-    if (src === undefined || (src !== null && typeof src !== 'string')) {
-      props.src = null;
-    }
-
-    // image asset 额外必填 mimeType: T.string.nullable()，undefined 也会崩
-    if (record.type === 'image' && !('mimeType' in props)) {
-      props.mimeType = null;
-    }
+function sanitizeRawAssets(data: unknown): void {
+  if (!data || typeof data !== 'object') return;
+  if (Array.isArray(data)) {
+    for (const item of data) sanitizeRawAssets(item);
+    return;
   }
+  const record = data as Record<string, unknown>;
+  if (record.typeName === 'asset') {
+    const props = record.props;
+    if (props && typeof props === 'object') {
+      const p = props as Record<string, unknown>;
+      // srcUrl.nullable()：string 或 null 才合法，其余一律归一为 null
+      if (p.src !== null && typeof p.src !== 'string') p.src = null;
+      // mimeType: T.string.nullable()，同样不能是 undefined
+      if (p.mimeType !== null && typeof p.mimeType !== 'string') p.mimeType = null;
+    }
+    return;
+  }
+  for (const value of Object.values(record)) sanitizeRawAssets(value);
 }
 
 /** 把文件里的 dataURL 图片重新转成资源，避免后续渲染与导出失败 */
@@ -73,9 +74,15 @@ async function restoreAssets(editor: Editor) {
   await Promise.allSettled(
     assets.map(async (asset) => {
       try {
-        const blob = await (await fetch(asset.props.src)).blob();
+        const blob = await (await fetch(asset.props.src as string)).blob();
         const file = new File([blob], asset.props.name, { type: asset.props.mimeType });
-        const { src } = await editor.getAssetForExternalContent({ type: 'file', file });
+        // 注意：返回的是完整 asset record，src 在 props 里而不是顶层。
+        // 之前直接 const { src } = ... 解构拿到 undefined，
+        // updateAssets 时 Store.put 校验直接炸了整个画板
+        const newAsset = await editor.getAssetForExternalContent({ type: 'file', file });
+        const src = newAsset?.props?.src;
+        // 拿不到合法 src 就保留 data: 源，图片依然能渲染和导出
+        if (typeof src !== 'string' || !src) return;
         editor.updateAssets([{ ...asset, props: { ...asset.props, src } }]);
       } catch (error) {
         console.error('恢复图片资源失败', error);
@@ -139,8 +146,19 @@ export function mountBoard(container: HTMLElement): BoardHandle {
       if (!editor) return false;
 
       const raw = await file.text();
+      // 先在原始 JSON 层面兜底清洗 asset 记录（此刻对象还没被冻结），
+      // 否则缺 src 的图片资源在 parse / loadSnapshot 校验时会直接崩
+      let json = raw;
+      try {
+        const data: unknown = JSON.parse(raw);
+        sanitizeRawAssets(data);
+        json = JSON.stringify(data);
+      } catch {
+        // 不是合法 JSON，交给 parseTldrawJsonFile 统一报“不是有效草稿”
+      }
+
       const parsed = parseTldrawJsonFile({
-        json: raw,
+        json,
         schema: editor.store.schema,
       });
 
@@ -169,9 +187,6 @@ export function mountBoard(container: HTMLElement): BoardHandle {
       }
 
       const snapshot = parsed.value.getStoreSnapshot();
-      // 兜底：某些跨版本 / 跨工具文件里 asset.props.src 会是 undefined，
-      // 在 transact 里 Store.put 直接 ValidationError 崩掉，这里提前修正
-      sanitizeSnapshotAssets(snapshot);
 
       transact(() => {
         editor!.store.clear();
