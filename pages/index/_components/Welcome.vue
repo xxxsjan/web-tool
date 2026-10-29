@@ -30,6 +30,10 @@
     <p class="enter-hint">
       <span class="enter-hint__text">点击进入</span>
     </p>
+
+    <p v-if="deployedLabel" class="deploy-meta" title="本次构建写入的部署时间">
+      部署于 {{ deployedLabel }}
+    </p>
   </div>
 </template>
 
@@ -44,6 +48,17 @@ const countdownTime = reactive({
   minutes: now.getMinutes(),
   seconds: now.getSeconds(),
 });
+
+const runtimeConfig = useRuntimeConfig();
+const deployedLabel = computed(() => {
+  const raw = String(runtimeConfig.public.deployedAt || '');
+  if (!raw) return '';
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return raw;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+});
+
 onMounted(() => {
   setInterval(() => {
     const now = new Date();
@@ -147,6 +162,16 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.72);
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
   animation: enter-fade 2.4s ease-in-out infinite;
+}
+
+.deploy-meta {
+  /* 紧贴「点击进入」，抵消 welcome-clock 较大的纵向间距 */
+  margin: calc(-1 * clamp(1.6rem, 3.2vw, 2.5rem)) 0 0;
+  font-size: clamp(0.68rem, 1vw, 0.78rem);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.38);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 
 .enter-hint__arrow {

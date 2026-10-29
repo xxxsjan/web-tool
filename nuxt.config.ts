@@ -11,6 +11,13 @@ export default defineNuxtConfig({
     dashscopeWorkspaceId: process.env.DASHSCOPE_WORKSPACE_ID || '',
     /** GPT-SoVITS api_v2 默认地址（仅本机） */
     gptsovitsBaseUrl: process.env.GPTSOVITS_BASE_URL || 'http://127.0.0.1:9880',
+    public: {
+      /**
+       * 构建/部署时间（ISO）。构建时写入；也可被 NUXT_PUBLIC_DEPLOYED_AT 覆盖。
+       * 用于首页展示「最后部署时间」，方便确认校园部署是否生效。
+       */
+      deployedAt: process.env.NUXT_PUBLIC_DEPLOYED_AT || new Date().toISOString(),
+    },
   },
   css: [
     '~/assets/css/main.css',
