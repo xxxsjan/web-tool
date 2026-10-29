@@ -1,14 +1,50 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import {
+  AlignMenuItems,
   buildFromV1Document,
+  DefaultActionsMenu,
+  DefaultQuickActions,
+  DefaultQuickActionsContent,
+  DistributeMenuItems,
+  EditLinkMenuItem,
   Editor,
+  GroupOrUngroupMenuItem,
   parseTldrawJsonFile,
+  ReorderMenuItems,
+  RotateCWMenuItem,
   serializeTldrawJsonBlob,
-  transact,
+  StackMenuItems,
   Tldraw,
+  transact,
+  ZoomOrRotateMenuItem,
 } from 'tldraw';
 import 'tldraw/tldraw.css';
+
+/** 对齐按钮常驻在快捷操作栏，不再藏在「操作」下拉里 */
+function CustomQuickActions() {
+  return createElement(
+    DefaultQuickActions,
+    null,
+    createElement(DefaultQuickActionsContent),
+    createElement(AlignMenuItems),
+  );
+}
+
+/** 「操作」保留均分 / 层级 / 旋转 / 编组等，去掉已常驻的对齐 */
+function CustomActionsMenu() {
+  return createElement(
+    DefaultActionsMenu,
+    null,
+    createElement(DistributeMenuItems),
+    createElement(StackMenuItems),
+    createElement(ReorderMenuItems),
+    createElement(ZoomOrRotateMenuItem),
+    createElement(RotateCWMenuItem),
+    createElement(EditLinkMenuItem),
+    createElement(GroupOrUngroupMenuItem),
+  );
+}
 
 export type BoardApi = {
   getSvg: () => Promise<string | undefined>;
@@ -93,13 +129,28 @@ async function restoreAssets(editor: Editor) {
   );
 }
 
+export type MountBoardOptions = {
+  /** IndexedDB 持久化加载完成、编辑器可用时回调 */
+  onReady?: () => void;
+};
+
 /**
  * 在指定 DOM 容器中挂载 tldraw（React 组件）。
  * 用 createElement 代替 JSX，避免污染 Nuxt 的 Vue tsconfig。
+ *
+ * 注意：不要把 React root 直接建在会被 Vue patch 的空节点上。
+ * 这里再插一层纯 DOM 子节点，配合页面上 host 的 v-once，避免 Vue 重渲染清掉画布。
  */
-export function mountBoard(container: HTMLElement): BoardHandle {
+export function mountBoard(container: HTMLElement, options: MountBoardOptions = {}): BoardHandle {
   let editor: Editor | null = null;
-  const root: Root = createRoot(container);
+
+  const mountEl = document.createElement('div');
+  mountEl.style.width = '100%';
+  mountEl.style.height = '100%';
+  mountEl.style.position = 'relative';
+  container.replaceChildren(mountEl);
+
+  const root: Root = createRoot(mountEl);
 
   root.render(
     createElement(Tldraw, {
@@ -108,8 +159,13 @@ export function mountBoard(container: HTMLElement): BoardHandle {
       locale: 'zh-cn',
       // 键盘快捷键（含 Delete / Backspace 删除）依赖容器自动获得焦点
       autoFocus: true,
+      components: {
+        QuickActions: CustomQuickActions,
+        ActionsMenu: CustomActionsMenu,
+      },
       onMount: (instance: Editor) => {
         editor = instance;
+        options.onReady?.();
       },
     }),
   );
@@ -205,6 +261,9 @@ export function mountBoard(container: HTMLElement): BoardHandle {
 
   return {
     api,
-    destroy: () => root.unmount(),
+    destroy: () => {
+      root.unmount();
+      mountEl.remove();
+    },
   };
 }

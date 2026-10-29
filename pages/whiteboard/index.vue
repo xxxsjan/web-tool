@@ -16,6 +16,8 @@ const boardApi = shallowRef<BoardApi | null>(null);
 const showHelp = ref(false);
 const boardReady = ref(false);
 let handle: BoardHandle | null = null;
+/** await 动态 import 期间若已离开页面，禁止再挂载 */
+let mountCancelled = false;
 
 // 本页固定亮色主题，不跟随站点主题；顶层声明让 SSR/CSR 同源输出，避免 hydration mismatch
 useHead({ htmlAttrs: { 'data-theme': 'light', class: '' } });
@@ -25,14 +27,21 @@ onMounted(async () => {
   document.documentElement.style.colorScheme = 'light';
 
   if (!host.value) return;
+
   // tldraw 是 React 组件，仅在客户端动态加载
   const { mountBoard } = await import('./tldraw-board');
-  handle = mountBoard(host.value);
+  if (mountCancelled || !host.value) return;
+
+  handle = mountBoard(host.value, {
+    onReady: () => {
+      if (!mountCancelled) boardReady.value = true;
+    },
+  });
   boardApi.value = handle.api;
-  boardReady.value = true;
 });
 
 onBeforeUnmount(() => {
+  mountCancelled = true;
   handle?.destroy();
   handle = null;
   boardApi.value = null;
@@ -130,8 +139,12 @@ function saveBlob(blob: Blob, filename: string) {
     </header>
 
     <main class="relative min-h-0 flex-1">
-      <!-- React 画板挂载点，需明确高度 -->
-      <div ref="host" class="h-full w-full" />
+      <!--
+        v-once：禁止 Vue 后续 patch 这个空节点。
+        否则 boardReady / showHelp 等状态更新时，Vue 会把 React 挂进去的 DOM 清掉，
+        表现为「先闪出上次内容，约一两秒后画布变白」。
+      -->
+      <div ref="host" v-once class="h-full w-full" />
       <div v-if="!boardReady"
         class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
         画板加载中…
