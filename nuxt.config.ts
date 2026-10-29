@@ -27,6 +27,7 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
+      title: 'Tool',
       htmlAttrs: {
         'data-theme': 'dark',
         class: 'dark',
