@@ -6,7 +6,9 @@
       <h1 class="mb-0.5 text-lg font-bold text-base-content sm:mb-1 sm:text-3xl">
         文本编辑
       </h1>
-     
+      <p class="text-xs text-base-content/45 sm:text-sm">
+        可直接输入，或打开 TXT / HTML 文件载入内容
+      </p>
     </header>
 
     <section
@@ -127,7 +129,7 @@
           <Codemirror
             v-model="content"
             class="cm-host"
-            placeholder="在此粘贴或输入文本…"
+            placeholder="在此粘贴或输入文本，也可点「打开文件」载入 TXT / HTML…"
             :autofocus="true"
             :indent-with-tab="true"
             :tab-size="2"
@@ -144,11 +146,28 @@
       <div
         class="flex flex-col gap-2 tool-panel-foot px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2.5"
       >
-        <div class="font-mono text-[11px] text-base-content/50 sm:text-xs">
+        <div class="min-w-0 font-mono text-[11px] text-base-content/50 sm:text-xs">
+          <span v-if="loadedFileName" class="mr-1.5 inline-block max-w-[12rem] truncate align-bottom text-base-content/70" :title="loadedFileName">
+            {{ loadedFileName }}
+          </span>
           {{ lineCount }} 行 · {{ charCount }} 字
           <template v-if="selectionLength"> · 已选 {{ selectionLength }}</template>
         </div>
-        <div class="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-1.5">
+        <div class="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:gap-1.5 sm:grid-cols-none">
+          <input
+            ref="fileInputRef"
+            type="file"
+            class="hidden"
+            accept=".txt,.html,.htm,text/plain,text/html"
+            @change="onFileSelected"
+          />
+          <button
+            type="button"
+            class="btn btn-ghost border border-app-strong btn-mobile sm:btn-xs"
+            @click="openFilePicker"
+          >
+            打开文件
+          </button>
           <button
             type="button"
             class="btn btn-ghost border border-app-strong btn-mobile sm:btn-xs"
@@ -230,6 +249,8 @@ const selectionLength = ref(0);
 const regexError = ref('');
 
 const findInputRef = ref<HTMLInputElement | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const loadedFileName = ref('');
 const viewRef = shallowRef<EditorView | null>(null);
 
 const charCount = computed(() => content.value.length);
@@ -515,8 +536,51 @@ function onReplaceAll() {
   lastAction.value = `已全部替换 ${count} 处`;
 }
 
+function openFilePicker() {
+  fileInputRef.value?.click();
+}
+
+function isAllowedTextFile(file: File) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.txt') || name.endsWith('.html') || name.endsWith('.htm')) {
+    return true;
+  }
+  const type = (file.type || '').toLowerCase();
+  return type === 'text/plain' || type === 'text/html' || type === 'application/xhtml+xml';
+}
+
+async function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+
+  if (!isAllowedTextFile(file)) {
+    regexError.value = '仅支持 TXT 或 HTML 文件';
+    lastAction.value = '';
+    return;
+  }
+
+  try {
+    const text = await file.text();
+    content.value = text;
+    loadedFileName.value = file.name;
+    regexError.value = '';
+    lastAction.value = `已载入 ${file.name}`;
+    currentMatchIndex.value = -1;
+    selectionLength.value = 0;
+    await nextTick();
+    applySearchQuery();
+    viewRef.value?.focus();
+  } catch {
+    regexError.value = '读取文件失败，请重试';
+    lastAction.value = '';
+  }
+}
+
 function clearContent() {
   content.value = '';
+  loadedFileName.value = '';
   currentMatchIndex.value = -1;
   matchCount.value = 0;
   lastAction.value = '已清空';

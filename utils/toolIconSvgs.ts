@@ -61,7 +61,7 @@ const svgs: Record<string, string> = {
   <path d="M18.8 5.2l.7 1.5 1.6.2-1.2 1.1.4 1.5-1.5-.7-1.5.7.4-1.5-1.2-1.1 1.6-.2.7-1.5z" fill="#FBBF24"/>
 </svg>`,
 
-  /* 无限画板 */
+  /* excalidraw */
   'paint-brush': `
 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M4.5 18.5c2.2-.2 3.8-1 4.8-2.4" stroke="#F97316" stroke-width="1.6" stroke-linecap="round"/>

@@ -58,22 +58,20 @@
               :class="group.group === groupedTools[groupedTools.length - 1]?.group ? 'left-auto right-0' : ''"
             >
               <div
-                class="rounded-xl border border-app bg-base-100/95 p-1.5 shadow-xl backdrop-blur-sm"
+                class="nav-submenu rounded-xl border border-app bg-base-100/95 p-1.5 shadow-xl backdrop-blur-sm"
               >
                 <button
                   v-for="item in group.list"
                   :key="item.path"
                   type="button"
-                  class="btn btn-ghost btn-md h-10 w-full justify-start gap-2.5 px-2.5 text-base font-normal"
-                  :class="{
-                    'btn-active bg-base-200': route.path === item.path,
-                  }"
+                  class="nav-submenu__item"
+                  :class="{ 'nav-submenu__item--active': route.path === item.path }"
                   @click="onSelectTool(item.path)"
                 >
-                  <span class="inline-flex w-6 shrink-0 items-center justify-center text-base">
-                    <ToolIcon :name="item.icon" />
+                  <span class="nav-submenu__icon">
+                    <ToolIcon :name="item.icon" :size="20" />
                   </span>
-                  <span class="truncate">{{ item.label }}</span>
+                  <span class="nav-submenu__label">{{ item.label }}</span>
                 </button>
               </div>
             </div>
@@ -235,3 +233,56 @@ onMounted(() => {
   finger.value = '用户 ' + getFingerprint();
 });
 </script>
+
+<style scoped>
+.nav-submenu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.625rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: var(--color-base-content);
+  font-size: 0.9375rem;
+  font-weight: 450;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.nav-submenu__item:hover {
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
+.nav-submenu__item--active {
+  background: var(--color-base-200);
+}
+
+.nav-submenu__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.nav-submenu__icon :deep(.tool-icon) {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+.nav-submenu__label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.25;
+}
+</style>
