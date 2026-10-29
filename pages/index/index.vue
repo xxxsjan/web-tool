@@ -15,6 +15,9 @@ const toHome = () => {
   stop && stop();
   router.push('/home');
 };
+definePageMeta({
+  title: 'tool'
+})
 </script>
 
 <style lang="scss"></style>

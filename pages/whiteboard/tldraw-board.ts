@@ -85,7 +85,9 @@ async function restoreAssets(editor: Editor) {
         if (typeof src !== 'string' || !src) return;
         editor.updateAssets([{ ...asset, props: { ...asset.props, src } }]);
       } catch (error) {
-        console.error('恢复图片资源失败', error);
+        // 转存依赖本地 IndexedDB 资源库；个别环境（如跨标签页重置、连接被回收）会报
+        // "db is closed"。此时保留 data: 源即可，图片渲染与导出不受影响，故只警告不报错。
+        console.warn('图片资源转存失败，已保留内嵌数据源', error);
       }
     }),
   );

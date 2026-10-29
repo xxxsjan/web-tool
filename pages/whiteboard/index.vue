@@ -17,9 +17,10 @@ const showHelp = ref(false);
 const boardReady = ref(false);
 let handle: BoardHandle | null = null;
 
+// 本页固定亮色主题，不跟随站点主题；顶层声明让 SSR/CSR 同源输出，避免 hydration mismatch
+useHead({ htmlAttrs: { 'data-theme': 'light', class: '' } });
+
 onMounted(async () => {
-  // 本页固定亮色主题，不跟随站点主题
-  useHead({ htmlAttrs: { 'data-theme': 'light', class: '' } });
   document.documentElement.classList.remove('dark');
   document.documentElement.style.colorScheme = 'light';
 

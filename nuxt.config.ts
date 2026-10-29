@@ -9,6 +9,8 @@ export default defineNuxtConfig({
     dashscopeApiKey: process.env.DASHSCOPE_API_KEY || '',
     /** 可选：业务空间 ID，设置后走专属域名 */
     dashscopeWorkspaceId: process.env.DASHSCOPE_WORKSPACE_ID || '',
+    /** GPT-SoVITS api_v2 默认地址（仅本机） */
+    gptsovitsBaseUrl: process.env.GPTSOVITS_BASE_URL || 'http://127.0.0.1:9880',
   },
   css: [
     '~/assets/css/main.css',
