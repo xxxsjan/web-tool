@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="flex flex-col items-center justify-center h-full">
     <ReplayVoice />
   </div>
@@ -7,7 +7,7 @@
 <script setup>
 definePageMeta({
   title: '录音测试',
-  icon: 'Microphone',
+  icon: 'mic',
   group: '媒体类',
 });
 

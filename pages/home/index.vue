@@ -24,7 +24,7 @@
             @click="goTool(item.path)"
           >
             <span class="tool-tile__icon" aria-hidden="true">
-              <ToolIcon :name="item.icon" class="tool-tile__svg" />
+              <ToolIcon :name="item.icon" :size="'2.75rem'" class="tool-tile__svg" />
             </span>
             <span class="tool-tile__label">{{ item.label }}</span>
           </button>
@@ -181,17 +181,18 @@ const { toolList, groupedTools, goTool } = useToolNav();
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 3.35rem;
+  height: 3.35rem;
   border-radius: 0.95rem;
-  color: color-mix(in oklab, var(--color-primary) 78%, var(--color-base-content));
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-200));
-  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  background: color-mix(in oklab, var(--color-base-100) 70%, white);
+  border: 1px solid var(--app-border-muted);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-base-content) 4%, transparent) inset;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tool-tile__svg {
-  font-size: 1.55rem;
+  width: 2.75rem !important;
+  height: 2.75rem !important;
 }
 
 @media (min-width: 768px) {
@@ -201,13 +202,15 @@ const { toolList, groupedTools, goTool } = useToolNav();
   }
 
   .tool-tile__svg {
-    font-size: 1.75rem;
+    width: 3rem !important;
+    height: 3rem !important;
   }
 }
 
 .tool-tile:hover .tool-tile__icon {
-  transform: scale(1.07);
-  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-base-200));
+  transform: scale(1.08);
+  background: color-mix(in oklab, var(--color-base-100) 55%, white);
+  box-shadow: 0 8px 18px -12px rgb(0 0 0 / 0.45);
 }
 
 .tool-tile__label {

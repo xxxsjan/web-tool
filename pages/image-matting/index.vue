@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="image-matting mx-auto w-full max-w-6xl px-3 pb-12 sm:px-4">
     <header class="mb-5 text-center sm:mb-6">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
@@ -216,7 +216,7 @@
 definePageMeta({
   tool: true,
   title: '在线抠图',
-  icon: 'Scissor',
+  icon: 'design-ideas',
   group: '媒体类',
   ssr: false,
 });

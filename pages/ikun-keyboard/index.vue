@@ -1,10 +1,10 @@
-<script setup>
+﻿<script setup>
 import gsap from 'gsap';
 
 definePageMeta({
   tool: true,
   title: 'IKUN键盘',
-  icon: 'Chicken',
+  icon: 'animal-paw-print',
   group: '娱乐类',
   layout: false,
 });

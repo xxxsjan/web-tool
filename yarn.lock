@@ -509,6 +509,13 @@
     "@iconify/types" "^2.0.0"
     import-meta-resolve "^4.2.0"
 
+"@iconify/vue@^5.0.4":
+  version "5.0.4"
+  resolved "https://registry.npmjs.org/@iconify/vue/-/vue-5.0.4.tgz"
+  integrity sha512-9yP5PjOv5G9vStHfyPtQ69Ay1CSNAC3AZTRDJ4LX3UMX7nEH0GO8OKhc3qhcrXp1KS2GnlLufGbFCwD+U4Fi5A==
+  dependencies:
+    "@iconify/types" "^2.0.0"
+
 "@imgly/background-removal@^1.7.0":
   version "1.7.0"
   resolved "https://registry.npmjs.org/@imgly/background-removal/-/background-removal-1.7.0.tgz"
@@ -7333,7 +7340,7 @@ vue-router@^4, vue-router@^4.5.0, vue-router@^4.5.1:
   dependencies:
     "@vue/devtools-api" "^6.6.4"
 
-"vue@^2.7.0 || ^3.2.25", "vue@^2.7.0 || ^3.5.11", vue@^3, vue@^3.0.0, "vue@^3.0.0-0 || ^2.6.0", vue@^3.2.0, vue@^3.2.25, vue@^3.3.4, vue@^3.5.0, vue@^3.5.13, vue@^3.5.21, vue@>=3.5.18, vue@3.5.21, vue@3.x:
+"vue@^2.7.0 || ^3.2.25", "vue@^2.7.0 || ^3.5.11", vue@^3, vue@^3.0.0, "vue@^3.0.0-0 || ^2.6.0", vue@^3.2.0, vue@^3.2.25, vue@^3.3.4, vue@^3.5.0, vue@^3.5.13, vue@^3.5.21, vue@>=3.0.0, vue@>=3.5.18, vue@3.5.21, vue@3.x:
   version "3.5.21"
   resolved "https://registry.npmmirror.com/vue/-/vue-3.5.21.tgz"
   integrity sha512-xxf9rum9KtOdwdRkiApWL+9hZEMWE90FHh8yS1+KJAiWYh+iGWV1FquPjoO9VUHQ+VIhsCXNNyZ5Sf4++RVZBA==

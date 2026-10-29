@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mx-auto w-full max-w-3xl px-3 pb-12 sm:px-4">
     <header class="mb-5 text-center sm:mb-6">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
@@ -61,7 +61,7 @@
 definePageMeta({
   tool: true,
   title: '图片转换工具',
-  icon: 'Switch',
+  icon: 'arrow-sync',
   group: '媒体类',
 });
 

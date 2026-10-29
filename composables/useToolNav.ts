@@ -5,7 +5,7 @@ export type ToolNavItem = {
   path: string;
   title: string;
   group: string;
-  /** Element Plus Icons 组件名，如 Scissor / Headset */
+  /** 自绘彩色 SVG 键名，见 utils/toolIconSvgs.ts */
   icon: string;
   label: string;
 };
@@ -39,7 +39,7 @@ export function useToolNav() {
       .map(route => {
         const rawTitle = String(route.meta.title || route.name || route.path);
         const label = cleanToolTitle(rawTitle);
-        const icon = String(route.meta.icon || 'Tools');
+        const icon = String(route.meta.icon || 'toolbox');
         return {
           path: route.path,
           title: label,

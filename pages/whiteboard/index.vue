@@ -1,8 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: 'excalidraw',
-  icon: 'EditPen',
+  title: '无限画板',
+  icon: 'paint-brush',
   group: '工具',
   // 独立页面，不套用默认布局
   layout: false,

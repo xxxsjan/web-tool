@@ -1,7 +1,7 @@
-<script setup>
+﻿<script setup>
 definePageMeta({
   title: 'vscode代码片段生成',
-  icon: 'Document',
+  icon: 'code',
   group: '工具',
 });
 

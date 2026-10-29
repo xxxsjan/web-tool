@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="github-image-host mx-auto w-full max-w-5xl px-3 pb-12 sm:px-4">
     <header class="mb-4 text-center sm:mb-5">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-2xl">
@@ -582,7 +582,7 @@
 definePageMeta({
   tool: true,
   title: 'Git图床',
-  icon: 'PictureFilled',
+  icon: 'cloud',
   group: '工具',
 });
 

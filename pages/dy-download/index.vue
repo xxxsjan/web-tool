@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mx-auto w-full max-w-3xl px-3 pb-12 sm:px-4">
     <header class="mb-5 text-center sm:mb-6">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
@@ -222,7 +222,7 @@ import { saveAs } from 'file-saver';
 definePageMeta({
   tool: true,
   title: '抖音无水印下载',
-  icon: 'VideoCamera',
+  icon: 'tiktok',
   group: '抖音类',
 });
 

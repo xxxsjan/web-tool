@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mx-auto px-4 py-8 max-w-2xl">
     <h1 class="text-2xl font-bold mb-6 text-center">抖音长链提取</h1>
 
@@ -38,7 +38,7 @@
 definePageMeta({
   tool: true,
   title: '抖音转链',
-  icon: 'Link',
+  icon: 'tiktok',
   group: '抖音类',
 });
 

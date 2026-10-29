@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="page mx-auto flex w-full max-w-5xl flex-col px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-12"
   >
@@ -211,7 +211,7 @@ import {
 definePageMeta({
   tool: true,
   title: '文本编辑',
-  icon: 'Edit',
+  icon: 'notebook',
   group: '工具',
   ssr: false,
 });

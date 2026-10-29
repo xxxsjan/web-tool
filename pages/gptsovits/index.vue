@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mx-auto w-full max-w-6xl px-3 pb-44 sm:px-4 sm:pb-48">
     <header class="mb-5 text-center sm:mb-6">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
@@ -558,7 +558,7 @@
 definePageMeta({
   tool: true,
   title: 'GPT-SoVITS 调试',
-  icon: 'MagicStick',
+  icon: 'bot-sparkle',
   group: '媒体类',
   ssr: false,
 });

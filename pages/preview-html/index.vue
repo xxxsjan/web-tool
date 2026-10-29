@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-3 pb-8 sm:px-4 sm:pb-10">
     <header class="pt-1 text-center sm:pt-2">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
@@ -126,7 +126,7 @@
 definePageMeta({
   tool: true,
   title: '在线预览html代码',
-  icon: 'Monitor',
+  icon: 'code-block',
   group: '工具',
 });
 

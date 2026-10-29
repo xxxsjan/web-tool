@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mx-auto w-full max-w-6xl px-1 sm:px-2">
     <header class="mb-5 text-center sm:mb-6">
       <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
@@ -322,7 +322,7 @@
 definePageMeta({
   tool: true,
   title: '图片去黑边',
-  icon: 'Crop',
+  icon: 'content-view',
   group: '媒体类',
 });
 </script>
