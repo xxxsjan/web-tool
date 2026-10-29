@@ -8,20 +8,16 @@ definePageMeta({
 });
 
 import { ElMessage } from 'element-plus';
-import type { BoardApi, BoardHandle } from './tldraw-board';
+import type { BoardApi, BoardHandle } from './excalidraw-board';
 
 const host = ref<HTMLDivElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const boardApi = shallowRef<BoardApi | null>(null);
 const showHelp = ref(false);
 const boardReady = ref(false);
-const licenseBlocked = ref(false);
 let handle: BoardHandle | null = null;
 /** await 动态 import 期间若已离开页面，禁止再挂载 */
 let mountCancelled = false;
-
-const runtimeConfig = useRuntimeConfig();
-const tldrawLicenseKey = String(runtimeConfig.public.tldrawLicenseKey || '');
 
 // 本页固定亮色主题，不跟随站点主题；顶层声明让 SSR/CSR 同源输出，避免 hydration mismatch
 useHead({ htmlAttrs: { 'data-theme': 'light', class: '' } });
@@ -32,20 +28,13 @@ onMounted(async () => {
 
   if (!host.value) return;
 
-  // tldraw 是 React 组件，仅在客户端动态加载
-  const { mountBoard } = await import('./tldraw-board');
+  // Excalidraw 是 React 组件，仅在客户端动态加载
+  const { mountBoard } = await import('./excalidraw-board');
   if (mountCancelled || !host.value) return;
 
   handle = mountBoard(host.value, {
-    licenseKey: tldrawLicenseKey || undefined,
     onReady: () => {
       if (!mountCancelled) boardReady.value = true;
-    },
-    onLicenseBlocked: () => {
-      if (!mountCancelled) {
-        licenseBlocked.value = true;
-        boardReady.value = true;
-      }
     },
   });
   boardApi.value = handle.api;
@@ -82,7 +71,7 @@ async function exportDraft() {
   try {
     const blob = await boardApi.value?.getDraftFile();
     if (!blob) return;
-    saveBlob(blob, `whiteboard-${new Date().toISOString().slice(0, 10)}.tldr`);
+    saveBlob(blob, `whiteboard-${new Date().toISOString().slice(0, 10)}.excalidraw`);
   } catch (error) {
     ElMessage.warning((error as Error).message);
   }
@@ -138,8 +127,13 @@ function saveBlob(blob: Blob, filename: string) {
         <button type="button" class="btn btn-ghost btn-sm border border-zinc-300" @click="pickDraft">
           导入草稿
         </button>
-        <input ref="fileInput" type="file" accept=".tldr,application/vnd.tldraw+json" class="hidden"
-          @change="onDraftPicked" />
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".excalidraw,application/vnd.excalidraw+json,application/json"
+          class="hidden"
+          @change="onDraftPicked"
+        />
         <button type="button" class="btn btn-ghost btn-sm" @click="boardApi?.resetZoom()">
           适应画布
         </button>
@@ -152,35 +146,26 @@ function saveBlob(blob: Blob, filename: string) {
     <main class="relative min-h-0 flex-1">
       <!--
         v-once：禁止 Vue 后续 patch 这个空节点。
-        否则 boardReady / showHelp 等状态更新时，Vue 会把 React 挂进去的 DOM 清掉，
-        表现为「先闪出上次内容，约一两秒后画布变白」。
+        否则 boardReady / showHelp 等状态更新时，Vue 会把 React 挂进去的 DOM 清掉。
       -->
       <div ref="host" v-once class="h-full w-full" />
-      <div v-if="!boardReady"
-        class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
+      <div
+        v-if="!boardReady"
+        class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-400"
+      >
         画板加载中…
       </div>
-      <div v-if="licenseBlocked"
-        class="absolute inset-0 z-[1100] flex items-center justify-center bg-white/95 p-6 text-center">
-        <div class="max-w-md space-y-2">
-          <p class="text-base font-medium text-zinc-800">画板需要 tldraw 生产许可证</p>
-          <p class="text-sm leading-relaxed text-zinc-500">
-            线上域名未配置有效
-            <code class="rounded bg-zinc-100 px-1">licenseKey</code>
-            时，tldraw 会先显示约 5 秒再卸载编辑器，看起来像白屏。本地
-            localhost 开发不受影响。请向
-            <a class="text-violet-600 underline" href="https://tldraw.dev" target="_blank" rel="noopener">tldraw</a>
-            获取许可证，并设置环境变量
-            <code class="rounded bg-zinc-100 px-1">NUXT_PUBLIC_TLDRAW_LICENSE_KEY</code>
-            后重新部署。
-          </p>
-        </div>
-      </div>
 
-      <!-- 上移避开 tldraw 底部工具条，z-index 超过 tldraw UI 图层 -->
-      <div v-if="showHelp" class="pointer-events-none absolute inset-x-0 bottom-20 z-[1200] flex justify-center p-3">
-        <div class="pointer-events-auto rounded-xl border border-zinc-200 bg-white/95 px-4 py-2 text-xs text-zinc-600 shadow-lg backdrop-blur">
-          快捷键：V 选择 · D 画笔 · E 橡皮 · A 箭头 · R 矩形 · O 椭圆 · T 文本 · N 便签 · 空格拖动 · 滚轮缩放
+      <!-- 上移避开底部工具条 -->
+      <div
+        v-if="showHelp"
+        class="pointer-events-none absolute inset-x-0 bottom-20 z-[1200] flex justify-center p-3"
+      >
+        <div
+          class="pointer-events-auto rounded-xl border border-zinc-200 bg-white/95 px-4 py-2 text-xs text-zinc-600 shadow-lg backdrop-blur"
+        >
+          快捷键：1 选择 · 2 矩形 · 3 菱形 · 4 椭圆 · 5 箭头 · 6 线条 · 7 画笔 · 8 文本 · 9 图片 · 0 橡皮 ·
+          Ctrl+Z 撤销 · 空格拖动 · 滚轮缩放
         </div>
       </div>
     </main>
