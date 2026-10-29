@@ -1,49 +1,229 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import {
-  AlignMenuItems,
   buildFromV1Document,
   DefaultActionsMenu,
   DefaultQuickActions,
-  DefaultQuickActionsContent,
-  DistributeMenuItems,
-  EditLinkMenuItem,
   Editor,
-  GroupOrUngroupMenuItem,
   parseTldrawJsonFile,
-  ReorderMenuItems,
-  RotateCWMenuItem,
   serializeTldrawJsonBlob,
-  StackMenuItems,
   Tldraw,
+  TldrawUiButtonIcon,
+  TldrawUiToolbarButton,
+  TldrawUiTooltip,
   transact,
-  ZoomOrRotateMenuItem,
+  unwrapLabel,
+  useActions,
+  useCanRedo,
+  useCanUndo,
+  useEditor,
+  useTranslation,
+  useUnlockedSelectedShapesCount,
+  useValue,
 } from 'tldraw';
 import 'tldraw/tldraw.css';
 
-/** 对齐按钮常驻在快捷操作栏，不再藏在「操作」下拉里 */
+const ALIGN_ACTION_IDS = [
+  'align-left',
+  'align-center-horizontal',
+  'align-right',
+  'stretch-horizontal',
+  'align-top',
+  'align-center-vertical',
+  'align-bottom',
+  'stretch-vertical',
+] as const;
+
+const DISTRIBUTE_ACTION_IDS = ['distribute-horizontal', 'distribute-vertical'] as const;
+const STACK_ACTION_IDS = ['stack-horizontal', 'stack-vertical'] as const;
+const REORDER_ACTION_IDS = [
+  'send-to-back',
+  'send-backward',
+  'bring-forward',
+  'bring-to-front',
+] as const;
+
+type TipSource = 'quick-actions' | 'actions-menu';
+
+/**
+ * 禁用的原生 button 不会触发 mouseenter，tldraw 内置 tooltip 因而失效。
+ * 外包一层 span 承接悬停，保证未选中图形时也能看到「这是干什么的」。
+ */
+function TipActionButton({
+  actionId,
+  disabled,
+  source = 'quick-actions',
+}: {
+  actionId: string;
+  disabled: boolean;
+  source?: TipSource;
+}) {
+  const actions = useActions();
+  const msg = useTranslation();
+  const action = actions[actionId];
+  if (!action) return null;
+
+  const labelKey = unwrapLabel(action.label, 'small-icons');
+  const labelStr = labelKey ? msg(labelKey as never) : actionId;
+
+  const button = createElement(
+    TldrawUiToolbarButton,
+    {
+      type: 'icon',
+      disabled,
+      // 空 tooltip 跳过组件内部再包一层，避免双重提示
+      tooltip: '',
+      'aria-label': labelStr,
+      onClick: () => {
+        void action.onSelect(source);
+      },
+    } as never,
+    createElement(TldrawUiButtonIcon, { icon: action.icon as never, small: true }),
+  );
+
+  return createElement(TldrawUiTooltip, {
+    content: labelStr,
+    sideOffset: 8,
+    delayDuration: 200,
+    showOnMobile: true,
+    children: createElement(
+      'span',
+      { style: { display: 'inline-flex' }, 'aria-label': labelStr },
+      button,
+    ),
+  } as never);
+}
+
+function useIsInSelectState() {
+  const editor = useEditor();
+  return useValue('isInSelectState', () => editor.isIn('select'), [editor]);
+}
+
+function UndoRedoGroup() {
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
+  return createElement(
+    'span',
+    { style: { display: 'contents' } },
+    createElement(TipActionButton, { actionId: 'undo', disabled: !canUndo }),
+    createElement(TipActionButton, { actionId: 'redo', disabled: !canRedo }),
+  );
+}
+
+function DeleteDuplicateGroup() {
+  const oneSelected = useUnlockedSelectedShapesCount(1);
+  const isInSelectState = useIsInSelectState();
+  const enabled = Boolean(oneSelected) && isInSelectState;
+  return createElement(
+    'span',
+    { style: { display: 'contents' } },
+    createElement(TipActionButton, { actionId: 'delete', disabled: !enabled }),
+    createElement(TipActionButton, { actionId: 'duplicate', disabled: !enabled }),
+  );
+}
+
+function AlignGroup() {
+  const twoSelected = useUnlockedSelectedShapesCount(2);
+  const isInSelectState = useIsInSelectState();
+  const enabled = Boolean(twoSelected) && isInSelectState;
+  return createElement(
+    'span',
+    { style: { display: 'contents' } },
+    ...ALIGN_ACTION_IDS.map((actionId) =>
+      createElement(TipActionButton, { key: actionId, actionId, disabled: !enabled }),
+    ),
+  );
+}
+
+/** 对齐常驻快捷栏；禁用态也可悬停出中文说明 */
 function CustomQuickActions() {
   return createElement(
     DefaultQuickActions,
     null,
-    createElement(DefaultQuickActionsContent),
-    createElement(AlignMenuItems),
+    createElement(UndoRedoGroup),
+    createElement(DeleteDuplicateGroup),
+    createElement(AlignGroup),
   );
 }
 
-/** 「操作」保留均分 / 层级 / 旋转 / 编组等，去掉已常驻的对齐 */
-function CustomActionsMenu() {
-  return createElement(
-    DefaultActionsMenu,
-    null,
-    createElement(DistributeMenuItems),
-    createElement(StackMenuItems),
-    createElement(ReorderMenuItems),
-    createElement(ZoomOrRotateMenuItem),
-    createElement(RotateCWMenuItem),
-    createElement(EditLinkMenuItem),
-    createElement(GroupOrUngroupMenuItem),
+/** 「操作」下拉里的图标：同样用 TipActionButton，未选中时也能看到用途 */
+function ActionsMenuItems() {
+  const editor = useEditor();
+  const isInSelectState = useIsInSelectState();
+  const oneSelected = Boolean(useUnlockedSelectedShapesCount(1)) && isInSelectState;
+  const twoSelected = Boolean(useUnlockedSelectedShapesCount(2)) && isInSelectState;
+  const threeSelected = Boolean(useUnlockedSelectedShapesCount(3)) && isInSelectState;
+
+  const hasGroup = useValue(
+    'has-group-selected',
+    () => editor.getSelectedShapes().some((s) => s.type === 'group'),
+    [editor],
   );
+  const hasLink = useValue(
+    'has-link-selected',
+    () =>
+      editor.getSelectedShapes().some((s) => {
+        const props = s.props as { url?: string | null };
+        return typeof props?.url === 'string' && props.url.length > 0;
+      }),
+    [editor],
+  );
+
+  const tip = { source: 'actions-menu' as const };
+
+  return createElement(
+    'span',
+    { style: { display: 'contents' } },
+    ...DISTRIBUTE_ACTION_IDS.map((actionId) =>
+      createElement(TipActionButton, {
+        key: actionId,
+        actionId,
+        disabled: !threeSelected,
+        ...tip,
+      }),
+    ),
+    ...STACK_ACTION_IDS.map((actionId) =>
+      createElement(TipActionButton, {
+        key: actionId,
+        actionId,
+        disabled: !threeSelected,
+        ...tip,
+      }),
+    ),
+    ...REORDER_ACTION_IDS.map((actionId) =>
+      createElement(TipActionButton, {
+        key: actionId,
+        actionId,
+        disabled: !oneSelected,
+        ...tip,
+      }),
+    ),
+    createElement(TipActionButton, {
+      actionId: 'rotate-ccw',
+      disabled: !oneSelected,
+      ...tip,
+    }),
+    createElement(TipActionButton, {
+      actionId: 'rotate-cw',
+      disabled: !oneSelected,
+      ...tip,
+    }),
+    createElement(TipActionButton, {
+      actionId: 'edit-link',
+      disabled: !hasLink || !isInSelectState,
+      ...tip,
+    }),
+    createElement(TipActionButton, {
+      actionId: hasGroup ? 'ungroup' : 'group',
+      disabled: hasGroup ? !isInSelectState : !twoSelected,
+      ...tip,
+    }),
+  );
+}
+
+/** 「操作」下拉：沿用官方外壳，「操作」触发钮自带 title；内层图标走 TipActionButton */
+function CustomActionsMenu() {
+  return createElement(DefaultActionsMenu, null, createElement(ActionsMenuItems));
 }
 
 export type BoardApi = {
@@ -152,6 +332,16 @@ export function mountBoard(container: HTMLElement, options: MountBoardOptions = 
 
   const root: Root = createRoot(mountEl);
 
+  // 提高 portaled tooltip 层级，避免被本页顶栏盖住
+  const tipStyle = document.createElement('style');
+  tipStyle.setAttribute('data-whiteboard-tooltip', '');
+  tipStyle.textContent = `
+    [data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
+      z-index: 10000 !important;
+    }
+  `;
+  document.head.appendChild(tipStyle);
+
   root.render(
     createElement(Tldraw, {
       persistenceKey: 'web-tool-whiteboard',
@@ -159,6 +349,8 @@ export function mountBoard(container: HTMLElement, options: MountBoardOptions = 
       locale: 'zh-cn',
       // 键盘快捷键（含 Delete / Backspace 删除）依赖容器自动获得焦点
       autoFocus: true,
+      // 默认 700ms 偏慢，快捷栏悬停说明更快出现
+      options: { tooltipDelayMs: 200 },
       components: {
         QuickActions: CustomQuickActions,
         ActionsMenu: CustomActionsMenu,
@@ -264,6 +456,7 @@ export function mountBoard(container: HTMLElement, options: MountBoardOptions = 
     destroy: () => {
       root.unmount();
       mountEl.remove();
+      tipStyle.remove();
     },
   };
 }
