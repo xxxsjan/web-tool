@@ -15,9 +15,13 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const boardApi = shallowRef<BoardApi | null>(null);
 const showHelp = ref(false);
 const boardReady = ref(false);
+const licenseBlocked = ref(false);
 let handle: BoardHandle | null = null;
 /** await 动态 import 期间若已离开页面，禁止再挂载 */
 let mountCancelled = false;
+
+const runtimeConfig = useRuntimeConfig();
+const tldrawLicenseKey = String(runtimeConfig.public.tldrawLicenseKey || '');
 
 // 本页固定亮色主题，不跟随站点主题；顶层声明让 SSR/CSR 同源输出，避免 hydration mismatch
 useHead({ htmlAttrs: { 'data-theme': 'light', class: '' } });
@@ -33,8 +37,15 @@ onMounted(async () => {
   if (mountCancelled || !host.value) return;
 
   handle = mountBoard(host.value, {
+    licenseKey: tldrawLicenseKey || undefined,
     onReady: () => {
       if (!mountCancelled) boardReady.value = true;
+    },
+    onLicenseBlocked: () => {
+      if (!mountCancelled) {
+        licenseBlocked.value = true;
+        boardReady.value = true;
+      }
     },
   });
   boardApi.value = handle.api;
@@ -148,6 +159,22 @@ function saveBlob(blob: Blob, filename: string) {
       <div v-if="!boardReady"
         class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
         画板加载中…
+      </div>
+      <div v-if="licenseBlocked"
+        class="absolute inset-0 z-[1100] flex items-center justify-center bg-white/95 p-6 text-center">
+        <div class="max-w-md space-y-2">
+          <p class="text-base font-medium text-zinc-800">画板需要 tldraw 生产许可证</p>
+          <p class="text-sm leading-relaxed text-zinc-500">
+            线上域名未配置有效
+            <code class="rounded bg-zinc-100 px-1">licenseKey</code>
+            时，tldraw 会先显示约 5 秒再卸载编辑器，看起来像白屏。本地
+            localhost 开发不受影响。请向
+            <a class="text-violet-600 underline" href="https://tldraw.dev" target="_blank" rel="noopener">tldraw</a>
+            获取许可证，并设置环境变量
+            <code class="rounded bg-zinc-100 px-1">NUXT_PUBLIC_TLDRAW_LICENSE_KEY</code>
+            后重新部署。
+          </p>
+        </div>
       </div>
 
       <!-- 上移避开 tldraw 底部工具条，z-index 超过 tldraw UI 图层 -->

@@ -312,6 +312,14 @@ async function restoreAssets(editor: Editor) {
 export type MountBoardOptions = {
   /** IndexedDB 持久化加载完成、编辑器可用时回调 */
   onReady?: () => void;
+  /**
+   * tldraw 商业许可证。生产域名（非 localhost）缺少有效 key 时，
+   * 编辑器会先正常显示约 5 秒，随后被官方 LicenseProvider 卸成白屏。
+   * @see https://tldraw.dev
+   */
+  licenseKey?: string;
+  /** 生产环境因无许可证被卸掉编辑器时回调 */
+  onLicenseBlocked?: () => void;
 };
 
 /**
@@ -342,11 +350,29 @@ export function mountBoard(container: HTMLElement, options: MountBoardOptions = 
   `;
   document.head.appendChild(tipStyle);
 
+  // 生产环境无许可证时，tldraw 约 5s 后会只剩 data-testid="tl-license-expired"
+  let licenseObserver: MutationObserver | null = null;
+  let licenseBlocked = false;
+  const watchLicenseGate = () => {
+    if (!options.onLicenseBlocked) return;
+    licenseObserver = new MutationObserver(() => {
+      if (licenseBlocked) return;
+      if (mountEl.querySelector('[data-testid="tl-license-expired"]')) {
+        licenseBlocked = true;
+        licenseObserver?.disconnect();
+        options.onLicenseBlocked?.();
+      }
+    });
+    licenseObserver.observe(mountEl, { childList: true, subtree: true });
+  };
+  watchLicenseGate();
+
   root.render(
     createElement(Tldraw, {
       persistenceKey: 'web-tool-whiteboard',
       colorScheme: 'light',
       locale: 'zh-cn',
+      ...(options.licenseKey ? { licenseKey: options.licenseKey } : {}),
       // 键盘快捷键（含 Delete / Backspace 删除）依赖容器自动获得焦点
       autoFocus: true,
       // 默认 700ms 偏慢，快捷栏悬停说明更快出现
@@ -454,6 +480,7 @@ export function mountBoard(container: HTMLElement, options: MountBoardOptions = 
   return {
     api,
     destroy: () => {
+      licenseObserver?.disconnect();
       root.unmount();
       mountEl.remove();
       tipStyle.remove();

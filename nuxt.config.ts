@@ -11,6 +11,13 @@ export default defineNuxtConfig({
     dashscopeWorkspaceId: process.env.DASHSCOPE_WORKSPACE_ID || '',
     /** GPT-SoVITS api_v2 默认地址（仅本机） */
     gptsovitsBaseUrl: process.env.GPTSOVITS_BASE_URL || 'http://127.0.0.1:9880',
+    public: {
+      /**
+       * tldraw 生产许可证。部署到非 localhost 时必须配置，否则约 5 秒后画布被官方卸成白屏。
+       * 环境变量：NUXT_PUBLIC_TLDRAW_LICENSE_KEY
+       */
+      tldrawLicenseKey: process.env.NUXT_PUBLIC_TLDRAW_LICENSE_KEY || '',
+    },
   },
   css: [
     '~/assets/css/main.css',
