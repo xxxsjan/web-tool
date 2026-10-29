@@ -3,7 +3,8 @@ import gsap from 'gsap';
 
 definePageMeta({
   tool: true,
-  title: '🐔IKUN键盘',
+  title: 'IKUN键盘',
+  icon: 'Chicken',
   group: '娱乐类',
   layout: false,
 });

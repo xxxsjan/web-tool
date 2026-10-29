@@ -210,7 +210,8 @@ import {
 
 definePageMeta({
   tool: true,
-  title: '📝文本编辑',
+  title: '文本编辑',
+  icon: 'Edit',
   group: '工具',
   ssr: false,
 });

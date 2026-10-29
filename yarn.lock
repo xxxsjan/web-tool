@@ -3136,11 +3136,6 @@ dagre-d3-es@7.0.14:
     d3 "^7.9.0"
     lodash-es "^4.17.21"
 
-daisyui@^5.0.2:
-  version "5.1.10"
-  resolved "https://registry.npmmirror.com/daisyui/-/daisyui-5.1.10.tgz"
-  integrity sha512-p1J/HME2WmaSiy6u2alIbeP3gd5PNVft3+6Bdll0BRSm/UdI4084+pD01LxFug/5wGexNewWqbcEL6nB2n2o+Q==
-
 dayjs@^1.11.13, dayjs@^1.11.21:
   version "1.11.23"
   resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.11.23.tgz"

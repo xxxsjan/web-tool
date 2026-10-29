@@ -117,7 +117,7 @@ onMounted(() => {
 .clock-value {
   font-size: clamp(3.25rem, 12vw, 9rem);
   font-weight: 700;
-  /* daisyui countdown 依赖 line-height: 1em + 子元素 height: 1em，写 0.88 会裁掉字形上下部分 */
+  /* countdown 依赖 line-height: 1em + 子元素 height: 1em，写 0.88 会裁掉字形上下部分 */
   line-height: 1;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;

@@ -74,7 +74,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '🎨svg预览',
+  title: 'svg预览',
+  icon: 'Grid',
   group: '工具',
 });
 

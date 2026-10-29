@@ -252,7 +252,8 @@
 <script setup>
 definePageMeta({
   tool: true,
-  title: '🎤视频转音频',
+  title: '视频转音频',
+  icon: 'Headset',
   group: '媒体类',
 });
 

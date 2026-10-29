@@ -321,7 +321,8 @@
 <script setup>
 definePageMeta({
   tool: true,
-  title: '🎨图片去黑边',
+  title: '图片去黑边',
+  icon: 'Crop',
   group: '媒体类',
 });
 </script>

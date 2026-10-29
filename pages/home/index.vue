@@ -23,7 +23,9 @@
             :title="item.label"
             @click="goTool(item.path)"
           >
-            <span class="tool-tile__icon" aria-hidden="true">{{ item.icon }}</span>
+            <span class="tool-tile__icon" aria-hidden="true">
+              <ToolIcon :name="item.icon" class="tool-tile__svg" />
+            </span>
             <span class="tool-tile__label">{{ item.label }}</span>
           </button>
         </div>
@@ -182,18 +184,24 @@ const { toolList, groupedTools, goTool } = useToolNav();
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 0.95rem;
-  font-size: 1.65rem;
-  line-height: 1;
-  background: color-mix(in oklab, var(--color-base-200) 88%, transparent);
-  border: 1px solid var(--app-border-muted);
-  transition: transform 0.2s ease, background 0.2s ease;
+  color: color-mix(in oklab, var(--color-primary) 78%, var(--color-base-content));
+  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-200));
+  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.tool-tile__svg {
+  font-size: 1.55rem;
 }
 
 @media (min-width: 768px) {
   .tool-tile__icon {
     width: 3.6rem;
     height: 3.6rem;
-    font-size: 1.85rem;
+  }
+
+  .tool-tile__svg {
+    font-size: 1.75rem;
   }
 }
 

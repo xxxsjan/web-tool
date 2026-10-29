@@ -557,7 +557,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '🧪GPT-SoVITS 调试',
+  title: 'GPT-SoVITS 调试',
+  icon: 'MagicStick',
   group: '媒体类',
   ssr: false,
 });

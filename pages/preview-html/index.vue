@@ -125,7 +125,8 @@
 <script lang="ts" setup>
 definePageMeta({
   tool: true,
-  title: '📷在线预览html代码',
+  title: '在线预览html代码',
+  icon: 'Monitor',
   group: '工具',
 });
 

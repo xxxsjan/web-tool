@@ -215,7 +215,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '✂️在线抠图',
+  title: '在线抠图',
+  icon: 'Scissor',
   group: '媒体类',
   ssr: false,
 });

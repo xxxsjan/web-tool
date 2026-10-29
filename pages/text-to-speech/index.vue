@@ -586,7 +586,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '🔊文本转语音',
+  title: '文本转语音',
+  icon: 'Microphone',
   group: '媒体类',
   ssr: false,
 });

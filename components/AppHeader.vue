@@ -70,8 +70,8 @@
                   }"
                   @click="onSelectTool(item.path)"
                 >
-                  <span class="w-6 shrink-0 text-center text-lg leading-none">
-                    {{ item.icon }}
+                  <span class="inline-flex w-6 shrink-0 items-center justify-center text-base">
+                    <ToolIcon :name="item.icon" />
                   </span>
                   <span class="truncate">{{ item.label }}</span>
                 </button>

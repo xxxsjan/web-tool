@@ -60,7 +60,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '🎨图片转换工具',
+  title: '图片转换工具',
+  icon: 'Switch',
   group: '媒体类',
 });
 

@@ -5,28 +5,23 @@ export type ToolNavItem = {
   path: string;
   title: string;
   group: string;
+  /** Element Plus Icons 组件名，如 Scissor / Headset */
   icon: string;
   label: string;
 };
 
-/** 标题形如 🎨图片去黑边：前缀 emoji + 文案 */
-export function splitToolTitle(title: string) {
-  const text = title || '';
-  const match = text.match(
-    /^(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)/u,
+/** 去掉历史遗留的标题前缀 emoji，便于过渡 */
+function cleanToolTitle(title: string) {
+  const text = (title || '').trim();
+  if (!text) return '未命名工具';
+  return (
+    text
+      .replace(
+        /^(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)+/u,
+        '',
+      )
+      .trim() || text
   );
-  if (match?.[1]) {
-    return {
-      icon: match[1],
-      label: text.slice(match[1].length).trim() || text,
-    };
-  }
-  const chars = Array.from(text);
-  if (!chars.length) return { icon: '🛠️', label: '未命名工具' };
-  return {
-    icon: chars[0],
-    label: chars.slice(1).join('').trim() || text,
-  };
 }
 
 const extraItems: ToolNavItem[] = [];
@@ -42,11 +37,12 @@ export function useToolNav() {
       .getRoutes()
       .filter(route => route.meta?.tool && route.path && route.path !== '/')
       .map(route => {
-        const title = String(route.meta.title || route.name || route.path);
-        const { icon, label } = splitToolTitle(title);
+        const rawTitle = String(route.meta.title || route.name || route.path);
+        const label = cleanToolTitle(rawTitle);
+        const icon = String(route.meta.icon || 'Tools');
         return {
           path: route.path,
-          title,
+          title: label,
           group: String(route.meta.group || '工具'),
           icon,
           label,

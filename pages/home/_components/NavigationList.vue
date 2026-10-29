@@ -17,9 +17,9 @@
         >
           <div class="p-6 flex items-center">
             <div
-              class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+              class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 text-lg"
             >
-              {{ item.icon }}
+              <ToolIcon :name="item.icon" />
             </div>
             <h2
               class="text-lg text-gray-700 dark:text-gray-200 font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 truncate"

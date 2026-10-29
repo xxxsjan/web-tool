@@ -37,7 +37,8 @@
 <script setup>
 definePageMeta({
   tool: true,
-  title: '🎨抖音转链',
+  title: '抖音转链',
+  icon: 'Link',
   group: '抖音类',
 });
 

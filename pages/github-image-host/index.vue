@@ -581,7 +581,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '🖼️Git图床',
+  title: 'Git图床',
+  icon: 'PictureFilled',
   group: '工具',
 });
 

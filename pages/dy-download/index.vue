@@ -221,7 +221,8 @@ import { saveAs } from 'file-saver';
 
 definePageMeta({
   tool: true,
-  title: '🎬抖音无水印下载',
+  title: '抖音无水印下载',
+  icon: 'VideoCamera',
   group: '抖音类',
 });
 

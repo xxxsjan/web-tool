@@ -305,7 +305,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '🎨抖音emoji',
+  title: '抖音emoji',
+  icon: 'Orange',
   group: '抖音类',
 });
 

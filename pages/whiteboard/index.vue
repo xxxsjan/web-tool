@@ -1,7 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
   tool: true,
-  title: '✏️无限画板',
+  title: 'excalidraw',
+  icon: 'EditPen',
   group: '工具',
   // 独立页面，不套用默认布局
   layout: false,
@@ -109,7 +110,7 @@ function saveBlob(blob: Blob, filename: string) {
   <div class="flex h-screen w-full flex-col overflow-hidden bg-white text-zinc-900">
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 px-4 py-2.5">
       <div class="flex min-w-0 items-baseline gap-3">
-        <h1 class="text-base font-semibold">无限画板</h1>
+        <h1 class="text-base font-semibold">excalidraw</h1>
         <p class="hidden truncate text-xs text-zinc-500 sm:block">
           支持绘图、便签、图片、箭头，内容自动保存在本地
         </p>

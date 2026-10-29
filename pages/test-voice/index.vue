@@ -6,7 +6,8 @@
 
 <script setup>
 definePageMeta({
-  title: '🎤录音测试',
+  title: '录音测试',
+  icon: 'Microphone',
   group: '媒体类',
 });
 
