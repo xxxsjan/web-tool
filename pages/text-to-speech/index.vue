@@ -437,55 +437,17 @@
 
     <!-- 第三方链接 -->
     <div class="mt-6 rounded-xl border border-app bg-base-200/30 p-4 sm:p-5">
-      <p class="mb-3 text-sm font-medium text-base-content/70">第三方链接</p>
+      <p class="mb-3 text-sm font-medium text-base-content/70">第三方tts快速跳转</p>
       <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <a
-          href="https://acgn.ttson.cn/"
+          v-for="item in thirdPartyLinks"
+          :key="item.href"
+          :href="item.href"
           target="_blank"
           rel="noopener noreferrer"
           class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
         >
-          ACGN TTS 在线语音合成
-        </a>
-        <a
-          href="https://tts.wangwangit.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
-        >
-          TTS 在线语音合成
-        </a>
-        <a
-          href="https://breezeblue.ai/zh/voice-library/dafeiyu-clever-girl-voice-vu3nxkd5578wc"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
-        >
-          Breeze Blue · 大肥鱼（机灵版）
-        </a>
-        <a
-          href="https://breezeblue.ai/zh/voice-library/dafeiyu-dreamy-girl-voice-v8yud7hz7c9q2"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
-        >
-          Breeze Blue · 大肥鱼（迷糊版）
-        </a>
-        <a
-          href="https://fish.audio"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
-        >
-          Fish Audio 官网
-        </a>
-        <a
-          href="https://docs.fish.audio/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
-        >
-          Fish Audio 开发文档
+          {{ item.label }}
         </a>
       </div>
     </div>
@@ -997,6 +959,14 @@ const localeOptions: { value: (typeof LOCALE_VALUES)[number]; label: string }[] 
     { value: 'ko', label: '韩语' },
     { value: 'all', label: '全部' },
   ];
+
+/** 页底第三方跳转 */
+const thirdPartyLinks: { href: string; label: string }[] = [
+  { href: 'https://acgn.ttson.cn/', label: 'ACGN TTS 在线语音合成' },
+  { href: 'https://tts.wangwangit.com', label: 'TTS 在线语音合成' },
+  { href: 'https://breezeblue.ai', label: 'Breeze Blue 官网' },
+  { href: 'https://fish.audio', label: 'Fish Audio 官网' },
+];
 
 const EDGE_DEFAULT_VOICE = 'zh-CN-XiaoxiaoNeural';
 const EDGE_DEFAULT_TEXT =
