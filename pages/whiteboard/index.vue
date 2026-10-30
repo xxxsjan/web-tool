@@ -112,7 +112,7 @@ function saveBlob(blob: Blob, filename: string) {
       <div class="flex min-w-0 items-baseline gap-3">
         <h1 class="text-base font-semibold">Excalidraw（画板）</h1>
         <p class="hidden truncate text-xs text-zinc-500 sm:block">
-          支持绘图、便签、图片、箭头，内容自动保存在本地
+          画布与个人素材库均保存在本机浏览器
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -166,7 +166,7 @@ function saveBlob(blob: Blob, filename: string) {
           class="pointer-events-auto rounded-xl border border-zinc-200 bg-white/95 px-4 py-2 text-xs text-zinc-600 shadow-lg backdrop-blur"
         >
           快捷键：1 选择 · 2 矩形 · 3 菱形 · 4 椭圆 · 5 箭头 · 6 线条 · 7 画笔 · 8 文本 · 9 图片 · 0 橡皮 ·
-          Ctrl+Z 撤销 · 空格拖动 · 滚轮缩放
+          Ctrl+Z 撤销 · 空格拖动 · 滚轮缩放 · 素材库删法：点选素材后点「⋯」→ 移除
         </div>
       </div>
     </main>

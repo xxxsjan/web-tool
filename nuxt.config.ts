@@ -1,4 +1,8 @@
 // import tailwindcss from "@tailwindcss/vite";
+import {
+  excalidrawExportFonts,
+  excalidrawExportFontsEsbuild,
+} from './vite-plugins/excalidraw-export-fonts';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -48,6 +52,7 @@ export default defineNuxtConfig({
 
   vite: {
     // plugins: [tailwindcss()],
+    plugins: [excalidrawExportFonts()],
     css: {
       preprocessorMaxWorkers: true, // Enable CSS preprocessing in Vite
       preprocessorOptions: {
@@ -67,6 +72,9 @@ export default defineNuxtConfig({
         'react',
         'react-dom/client',
       ],
+      esbuildOptions: {
+        plugins: [excalidrawExportFontsEsbuild()],
+      },
     },
     assetsInclude: ['**/*.onnx', '**/*.wasm'],
   },
