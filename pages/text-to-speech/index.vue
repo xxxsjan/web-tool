@@ -89,9 +89,23 @@
                 >
                   朗读文本
                 </label>
-                <span class="font-mono text-[11px] text-base-content/40">
-                  {{ text.length }} 字
-                </span>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-[11px] text-base-content/40">
+                    {{ text.length }} 字
+                  </span>
+                  <button
+                    type="button"
+                    class="tts-chip h-7 px-3 text-xs"
+                    :class="
+                      canAddDraft ? 'tts-chip--ghost' : 'tts-chip--ghost opacity-55'
+                    "
+                    :disabled="!canAddDraft"
+                    title="将当前文本存为草稿并清空输入框"
+                    @click="addDraft"
+                  >
+                    添加草稿
+                  </button>
+                </div>
               </div>
               <textarea
                 id="tts-text"
@@ -101,6 +115,56 @@
                 placeholder="在此输入要朗读的文本…"
                 :disabled="busy"
               ></textarea>
+
+              <!-- 草稿列表 -->
+              <div v-if="drafts.length" class="mt-3 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-xs font-medium text-base-content/60">
+                    草稿
+                    <span class="ml-1 font-mono text-base-content/40">
+                      {{ drafts.length }}
+                    </span>
+                  </p>
+                  <button
+                    type="button"
+                    class="text-[11px] text-base-content/40 transition hover:text-error"
+                    @click="clearDrafts"
+                  >
+                    清空全部
+                  </button>
+                </div>
+                <ul class="tts-draft-list">
+                  <li
+                    v-for="draft in drafts"
+                    :key="draft.id"
+                    class="tts-draft-item"
+                  >
+                    <button
+                      type="button"
+                      class="tts-draft-item__body"
+                      :title="'应用草稿：' + draftPreview(draft.text)"
+                      :disabled="busy"
+                      @click="applyDraft(draft)"
+                    >
+                      <span class="tts-draft-item__text">
+                        {{ draftPreview(draft.text) }}
+                      </span>
+                      <span class="tts-draft-item__meta">
+                        {{ draft.text.length }} 字 · {{ formatDraftTime(draft.createdAt) }}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      class="tts-draft-item__remove"
+                      aria-label="删除草稿"
+                      title="删除草稿"
+                      @click="removeDraft(draft.id)"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <!-- 音色入口 -->
@@ -619,9 +683,16 @@ type TtsProvider = 'edge' | 'sambert';
 type TtsVoice = EdgeVoice | SambertVoice;
 type TtsExportFormat = EdgeExportFormat | SambertExportFormat;
 
+type TextDraft = {
+  id: string;
+  text: string;
+  createdAt: number;
+};
+
 const STORAGE_KEY = 'web-tool-text-to-speech';
 const PROVIDER_VALUES = ['edge', 'sambert'] as const;
 const LOCALE_VALUES = ['zh', 'en', 'ja', 'ko', 'all'] as const;
+const MAX_DRAFTS = 30;
 
 const providerOptions: { value: TtsProvider; label: string }[] = [
   { value: 'edge', label: 'Edge' },
@@ -645,6 +716,7 @@ const SAMBERT_DEFAULT_TEXT =
 
 const provider = ref<TtsProvider>('edge');
 const text = ref(EDGE_DEFAULT_TEXT);
+const drafts = ref<TextDraft[]>([]);
 const rate = ref(1.5);
 const volume = ref(100);
 const exportFormat = ref<TtsExportFormat>('wav');
@@ -710,6 +782,7 @@ const loadPrefs = () => {
       selectedVoice?: string;
       exportFormat?: string;
       dashscopeApiKey?: string;
+      drafts?: unknown;
     };
 
     if (
@@ -733,6 +806,23 @@ const loadPrefs = () => {
     if (typeof parsed.dashscopeApiKey === 'string') {
       dashscopeApiKey.value = parsed.dashscopeApiKey.trim();
     }
+    if (Array.isArray(parsed.drafts)) {
+      drafts.value = parsed.drafts
+        .filter(
+          (d): d is TextDraft =>
+            !!d &&
+            typeof d === 'object' &&
+            typeof (d as TextDraft).id === 'string' &&
+            typeof (d as TextDraft).text === 'string' &&
+            typeof (d as TextDraft).createdAt === 'number',
+        )
+        .map(d => ({
+          id: d.id,
+          text: d.text,
+          createdAt: d.createdAt,
+        }))
+        .slice(0, MAX_DRAFTS);
+    }
   } catch {
     /* ignore */
   }
@@ -751,6 +841,7 @@ const persistPrefs = () => {
         selectedVoice: selectedVoice.value,
         exportFormat: exportFormat.value,
         dashscopeApiKey: dashscopeApiKey.value.trim(),
+        drafts: drafts.value,
       }),
     );
   } catch {
@@ -1308,11 +1399,61 @@ watch(
     selectedVoice,
     exportFormat,
     dashscopeApiKey,
+    drafts,
   ],
   () => {
     persistPrefs();
   },
+  { deep: true },
 );
+
+const canAddDraft = computed(() => !!text.value.trim() && !busy.value);
+
+const createDraftId = () =>
+  `draft-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+const draftPreview = (content: string, max = 72) => {
+  const oneLine = content.replace(/\s+/g, ' ').trim();
+  if (oneLine.length <= max) return oneLine;
+  return `${oneLine.slice(0, max)}…`;
+};
+
+const formatDraftTime = (ts: number) => {
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/** 将当前输入存入草稿列表，并清空输入框 */
+const addDraft = () => {
+  const trimmed = text.value.trim();
+  if (!trimmed || busy.value) return;
+
+  drafts.value = [
+    {
+      id: createDraftId(),
+      text: trimmed,
+      createdAt: Date.now(),
+    },
+    ...drafts.value,
+  ].slice(0, MAX_DRAFTS);
+
+  text.value = '';
+};
+
+const applyDraft = (draft: TextDraft) => {
+  if (!draft?.text || busy.value) return;
+  text.value = draft.text;
+};
+
+const removeDraft = (id: string) => {
+  drafts.value = drafts.value.filter(d => d.id !== id);
+};
+
+const clearDrafts = () => {
+  drafts.value = [];
+};
 
 watch(hasSambertKey, hasKey => {
   if (
@@ -1996,6 +2137,82 @@ onUnmounted(() => {
 .tts-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ---------- 草稿列表 ---------- */
+
+.tts-draft-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.tts-draft-item {
+  display: flex;
+  align-items: stretch;
+  gap: 0.15rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--app-border);
+  background: color-mix(in oklab, var(--color-base-100) 70%, transparent);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.tts-draft-item:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 40%, transparent);
+}
+
+.tts-draft-item__body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.tts-draft-item__body:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+}
+
+.tts-draft-item__body:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.tts-draft-item__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: var(--color-base-content);
+}
+
+.tts-draft-item__meta {
+  font-size: 0.66rem;
+  color: color-mix(in oklab, var(--color-base-content) 42%, transparent);
+}
+
+.tts-draft-item__remove {
+  display: inline-flex;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  font-size: 0.75rem;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.tts-draft-item__remove:hover {
+  background: color-mix(in oklab, var(--color-error) 12%, transparent);
+  color: var(--color-error);
 }
 
 .tts-badge {
