@@ -92,6 +92,38 @@
               >
                 当前引擎需要 API Key，点击此处配置
               </button>
+              <div
+                v-if="provider === 'fishaudio'"
+                class="mt-2.5 flex flex-wrap items-center gap-2"
+              >
+                <button
+                  type="button"
+                  class="tts-chip h-7 px-3 text-xs tts-chip--ghost"
+                  :disabled="busy || fishConnectivityBusy"
+                  title="检测本机到 Fish Audio API 的 DNS / TCP / HTTPS"
+                  @click="checkFishConnectivity"
+                >
+                  <span
+                    v-if="fishConnectivityBusy"
+                    class="tts-spinner tts-spinner--xs mr-1"
+                    aria-hidden="true"
+                  ></span>
+                  {{ fishConnectivityBusy ? '检测中…' : '检测连通性' }}
+                </button>
+                <span
+                  v-if="fishConnectivityTip"
+                  class="text-[11px] leading-snug"
+                  :class="
+                    fishConnectivityOk === true
+                      ? 'text-success'
+                      : fishConnectivityOk === false
+                        ? 'text-warning'
+                        : 'text-base-content/45'
+                  "
+                >
+                  {{ fishConnectivityTip }}
+                </span>
+              </div>
             </div>
 
             <!-- 文本 -->
@@ -510,6 +542,16 @@
                   </p>
                 </div>
                 <div class="flex shrink-0 items-center gap-1.5">
+                  <button
+                    v-if="item.id === 'fishaudio'"
+                    type="button"
+                    class="tts-chip h-7 px-2.5 text-[11px] tts-chip--ghost"
+                    :disabled="busy || fishConnectivityBusy"
+                    title="检测本机到 Fish Audio API 的连通性"
+                    @click="checkFishConnectivity"
+                  >
+                    {{ fishConnectivityBusy ? '检测中…' : '检测连通性' }}
+                  </button>
                   <a
                     :href="item.getKeyUrl"
                     target="_blank"
@@ -996,6 +1038,9 @@ const errorMessage = ref('');
 const dashscopeApiKey = ref('');
 const breezeApiKey = ref('');
 const fishApiKey = ref('');
+const fishConnectivityBusy = ref(false);
+const fishConnectivityOk = ref<boolean | null>(null);
+const fishConnectivityTip = ref('');
 const audioEl = ref<HTMLAudioElement | null>(null);
 const waveCanvas = ref<HTMLCanvasElement | null>(null);
 const lastAudioBlob = ref<Blob | null>(null);
@@ -1838,6 +1883,10 @@ const switchProvider = async (next: TtsProvider) => {
   provider.value = next;
   exportFormat.value = resolveExportFormat(exportFormat.value);
   errorMessage.value = '';
+  if (next !== 'fishaudio') {
+    fishConnectivityTip.value = '';
+    fishConnectivityOk.value = null;
+  }
   closeVoiceDialog();
 
   const trimmed = text.value.trim();
@@ -1980,6 +2029,44 @@ watch(hasFishKey, hasKey => {
     statusTip.value = '';
   }
 });
+
+type FishConnectivityResponse = {
+  ok: boolean;
+  message: string;
+  dns?: { ok: boolean; ms: number; addresses?: string[]; error?: string };
+  tcp?: { ok: boolean; ms: number; address?: string; error?: string };
+  https?: { ok: boolean; ms: number; status?: number; error?: string };
+};
+
+const checkFishConnectivity = async () => {
+  if (fishConnectivityBusy.value) return;
+  fishConnectivityBusy.value = true;
+  fishConnectivityOk.value = null;
+  fishConnectivityTip.value = '正在检测 DNS / TCP / HTTPS…';
+  errorMessage.value = '';
+  try {
+    const data = await $fetch<FishConnectivityResponse>(
+      '/api/fish-audio-tts/connectivity',
+    );
+    fishConnectivityOk.value = !!data?.ok;
+    fishConnectivityTip.value = data?.message || (data?.ok ? '可达' : '不可达');
+    if (data?.ok) {
+      statusTip.value = data.message;
+      errorMessage.value = '';
+    } else {
+      statusTip.value = '';
+      errorMessage.value = data?.message || 'Fish Audio 不可达';
+    }
+  } catch (e: any) {
+    fishConnectivityOk.value = false;
+    const msg = e?.data?.message || e?.message || '连通性检测失败';
+    fishConnectivityTip.value = msg;
+    errorMessage.value = msg;
+    statusTip.value = '';
+  } finally {
+    fishConnectivityBusy.value = false;
+  }
+};
 
 const revokeUrl = () => {
   if (objectUrl) {
