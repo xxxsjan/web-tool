@@ -95,6 +95,21 @@
                   </span>
                   <button
                     type="button"
+                    class="tts-chip h-7 px-3 text-xs tts-chip--ghost"
+                    :disabled="busy"
+                    title="查看本地草稿"
+                    @click="openDraftDialog"
+                  >
+                    本地草稿
+                    <span
+                      v-if="drafts.length"
+                      class="ml-1 font-mono text-[10px] opacity-70"
+                    >
+                      {{ drafts.length }}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
                     class="tts-chip h-7 px-3 text-xs"
                     :class="
                       canAddDraft ? 'tts-chip--ghost' : 'tts-chip--ghost opacity-55'
@@ -115,56 +130,6 @@
                 placeholder="在此输入要朗读的文本…"
                 :disabled="busy"
               ></textarea>
-
-              <!-- 草稿列表 -->
-              <div v-if="drafts.length" class="mt-3 space-y-2">
-                <div class="flex items-center justify-between gap-2">
-                  <p class="text-xs font-medium text-base-content/60">
-                    草稿
-                    <span class="ml-1 font-mono text-base-content/40">
-                      {{ drafts.length }}
-                    </span>
-                  </p>
-                  <button
-                    type="button"
-                    class="text-[11px] text-base-content/40 transition hover:text-error"
-                    @click="clearDrafts"
-                  >
-                    清空全部
-                  </button>
-                </div>
-                <ul class="tts-draft-list">
-                  <li
-                    v-for="draft in drafts"
-                    :key="draft.id"
-                    class="tts-draft-item"
-                  >
-                    <button
-                      type="button"
-                      class="tts-draft-item__body"
-                      :title="'应用草稿：' + draftPreview(draft.text)"
-                      :disabled="busy"
-                      @click="applyDraft(draft)"
-                    >
-                      <span class="tts-draft-item__text">
-                        {{ draftPreview(draft.text) }}
-                      </span>
-                      <span class="tts-draft-item__meta">
-                        {{ draft.text.length }} 字 · {{ formatDraftTime(draft.createdAt) }}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      class="tts-draft-item__remove"
-                      aria-label="删除草稿"
-                      title="删除草稿"
-                      @click="removeDraft(draft.id)"
-                    >
-                      ✕
-                    </button>
-                  </li>
-                </ul>
-              </div>
             </div>
 
             <!-- 音色入口 -->
@@ -451,6 +416,89 @@
       </div>
     </div>
 
+    <!-- 本地草稿弹窗 -->
+    <dialog
+      ref="draftDialogRef"
+      class="modal"
+      aria-labelledby="tts-draft-dialog-title"
+      @click.self="closeDraftDialog"
+    >
+      <div class="modal-box tts-draft-modal">
+        <div class="tts-dialog-head">
+          <div class="min-w-0">
+            <h3 id="tts-draft-dialog-title" class="text-lg font-bold text-base-content">
+              本地草稿
+            </h3>
+            <p class="mt-0.5 text-xs text-base-content/50">
+              {{ drafts.length }} 条 · 点击条目应用到输入框
+            </p>
+          </div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <button
+              v-if="drafts.length"
+              type="button"
+              class="rounded-lg px-2.5 py-1 text-[11px] text-base-content/45 transition hover:bg-error/10 hover:text-error"
+              @click="clearDrafts"
+            >
+              清空全部
+            </button>
+            <button
+              type="button"
+              class="tts-icon-btn"
+              aria-label="关闭草稿列表"
+              @click="closeDraftDialog"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div class="tts-dialog-body">
+          <ul v-if="drafts.length" class="tts-draft-list">
+            <li
+              v-for="draft in drafts"
+              :key="draft.id"
+              class="tts-draft-item"
+            >
+              <button
+                type="button"
+                class="tts-draft-item__body"
+                :title="'应用草稿：' + draftPreview(draft.text)"
+                :disabled="busy"
+                @click="applyDraft(draft)"
+              >
+                <span class="tts-draft-item__text">
+                  {{ draftPreview(draft.text, 120) }}
+                </span>
+                <span class="tts-draft-item__meta">
+                  {{ draft.text.length }} 字 · {{ formatDraftTime(draft.createdAt) }}
+                </span>
+              </button>
+              <button
+                type="button"
+                class="tts-draft-item__remove"
+                aria-label="删除草稿"
+                title="删除草稿"
+                @click="removeDraft(draft.id)"
+              >
+                ✕
+              </button>
+            </li>
+          </ul>
+          <p
+            v-else
+            class="py-12 text-center text-sm text-base-content/50"
+          >
+            暂无草稿，可先在输入框写好文本后点「添加草稿」
+          </p>
+        </div>
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button type="submit">关闭</button>
+      </form>
+    </dialog>
+
     <!-- 音色选择弹窗 -->
     <dialog
       ref="voiceDialogRef"
@@ -723,6 +771,7 @@ const exportFormat = ref<TtsExportFormat>('wav');
 const voices = ref<TtsVoice[]>(getFallbackZhVoices());
 const selectedVoice = ref(EDGE_DEFAULT_VOICE);
 const voiceDialogRef = ref<HTMLDialogElement | null>(null);
+const draftDialogRef = ref<HTMLDialogElement | null>(null);
 const busy = ref(false);
 const previewingVoice = ref<string | null>(null);
 const previewBusy = ref(false);
@@ -1425,6 +1474,14 @@ const formatDraftTime = (ts: number) => {
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const openDraftDialog = () => {
+  draftDialogRef.value?.showModal();
+};
+
+const closeDraftDialog = () => {
+  draftDialogRef.value?.close();
+};
+
 /** 将当前输入存入草稿列表，并清空输入框 */
 const addDraft = () => {
   const trimmed = text.value.trim();
@@ -1445,6 +1502,7 @@ const addDraft = () => {
 const applyDraft = (draft: TextDraft) => {
   if (!draft?.text || busy.value) return;
   text.value = draft.text;
+  closeDraftDialog();
 };
 
 const removeDraft = (id: string) => {
@@ -2139,14 +2197,23 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
-/* ---------- 草稿列表 ---------- */
+/* ---------- 草稿弹窗 ---------- */
+
+.tts-draft-modal {
+  display: flex;
+  max-width: 32rem;
+  max-height: 78vh;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border-strong);
+  border-radius: 1rem;
+}
 
 .tts-draft-list {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  max-height: 14rem;
-  overflow-y: auto;
 }
 
 .tts-draft-item {
@@ -2185,11 +2252,13 @@ onUnmounted(() => {
 }
 
 .tts-draft-item__text {
+  display: -webkit-box;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 0.8rem;
   color: var(--color-base-content);
+  white-space: normal;
 }
 
 .tts-draft-item__meta {
