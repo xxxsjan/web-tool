@@ -13,6 +13,15 @@ export default defineNuxtConfig({
     dashscopeApiKey: process.env.DASHSCOPE_API_KEY || '',
     /** 可选：业务空间 ID，设置后走专属域名 */
     dashscopeWorkspaceId: process.env.DASHSCOPE_WORKSPACE_ID || '',
+    /** Breeze Blue API Key，仅服务端可读；页面也可临时填写 */
+    breezeApiKey: process.env.BREEZE_API_KEY || '',
+    /** Fish Audio API Key，仅服务端可读；页面也可临时填写 */
+    fishApiKey: process.env.FISH_API_KEY || '',
+    /**
+     * 可选：Fish Audio API 根地址（默认 https://api.fish.audio）。
+     * 国内直连超时时可填可访问的反向代理地址。
+     */
+    fishApiBase: process.env.FISH_API_BASE || '',
     /** GPT-SoVITS api_v2 默认地址（仅本机） */
     gptsovitsBaseUrl: process.env.GPTSOVITS_BASE_URL || 'http://127.0.0.1:9880',
     public: {

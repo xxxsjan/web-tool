@@ -5,7 +5,7 @@
         文本转语音
       </h1>
       <p class="text-xs text-base-content/50 sm:text-sm">
-        Edge 神经音色 · 阿里云百炼 Sambert
+        Edge · 百炼 Sambert · Breeze Blue · Fish Audio
       </p>
     </header>
 
@@ -36,9 +36,35 @@
             <div class="rounded-xl border border-app bg-base-200/30 p-3.5">
               <div class="mb-2.5 flex items-center justify-between gap-2">
                 <p class="text-sm font-medium text-base-content/70">合成引擎</p>
-                <span class="text-[11px] text-base-content/40">
-                  {{ provider === 'sambert' ? '需 API Key' : '在线合成' }}
-                </span>
+                <div class="flex shrink-0 items-center gap-1.5">
+                  <a
+                    v-if="currentProviderGetKeyUrl"
+                    :href="currentProviderGetKeyUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tts-chip h-7 px-3 text-xs tts-chip--ghost no-underline"
+                    title="前往官网获取 API Key"
+                  >
+                    获取 Key
+                  </a>
+                  <button
+                    type="button"
+                    class="tts-chip h-7 px-3 text-xs"
+                    :class="
+                      currentProviderNeedsKey && !currentProviderHasKey
+                        ? 'tts-chip--ghost text-warning'
+                        : 'tts-chip--ghost'
+                    "
+                    :disabled="busy"
+                    title="配置各平台 API Key"
+                    @click="openKeyDialog"
+                  >
+                    API Key
+                    <span class="ml-1 font-mono text-[10px] opacity-70">
+                      {{ configuredKeyCount }}/{{ keyPlatforms.length }}
+                    </span>
+                  </button>
+                </div>
               </div>
               <div class="flex flex-wrap gap-2">
                 <button
@@ -57,27 +83,15 @@
                   {{ item.label }}
                 </button>
               </div>
-              <div v-if="provider === 'sambert'" class="mt-3 space-y-1.5">
-                <label
-                  for="tts-dashscope-key"
-                  class="text-xs font-medium text-base-content/60"
-                >
-                  百炼 API Key
-                </label>
-                <input
-                  id="tts-dashscope-key"
-                  v-model="dashscopeApiKey"
-                  type="password"
-                  class="tts-input w-full text-sm"
-                  placeholder="sk-…"
-                  autocomplete="off"
-                  spellcheck="false"
-                  :disabled="busy"
-                />
-                <p class="text-[11px] text-base-content/40">
-                  仅保存在本机浏览器，合成时经服务端转发
-                </p>
-              </div>
+              <button
+                v-if="currentProviderNeedsKey && !currentProviderHasKey"
+                type="button"
+                class="mt-2.5 text-left text-[11px] text-warning underline-offset-2 hover:underline"
+                :disabled="busy"
+                @click="openKeyDialog"
+              >
+                当前引擎需要 API Key，点击此处配置
+              </button>
             </div>
 
             <!-- 文本 -->
@@ -172,11 +186,7 @@
                     {{ selectedVoiceLabel }}
                   </span>
                   <span class="block text-[11px] text-base-content/45">
-                    {{
-                      provider === 'sambert'
-                        ? '阿里云百炼 Sambert'
-                        : 'Microsoft Edge 神经音色'
-                    }}
+                    {{ providerEngineLabel }}
                   </span>
                 </span>
                 <span class="shrink-0 text-xs font-medium text-primary">更换</span>
@@ -413,8 +423,169 @@
         >
           TTS 在线语音合成
         </a>
+        <a
+          href="https://breezeblue.ai/zh/voice-library/dafeiyu-clever-girl-voice-vu3nxkd5578wc"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
+        >
+          Breeze Blue · 大肥鱼（机灵版）
+        </a>
+        <a
+          href="https://breezeblue.ai/zh/voice-library/dafeiyu-dreamy-girl-voice-v8yud7hz7c9q2"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
+        >
+          Breeze Blue · 大肥鱼（迷糊版）
+        </a>
+        <a
+          href="https://fish.audio"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
+        >
+          Fish Audio 官网
+        </a>
+        <a
+          href="https://docs.fish.audio/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block rounded-lg border border-app-strong bg-base-200/20 px-3 py-2.5 text-sm text-left transition hover:bg-base-200/40"
+        >
+          Fish Audio 开发文档
+        </a>
       </div>
     </div>
+
+    <!-- API Key 配置弹窗 -->
+    <dialog
+      ref="keyDialogRef"
+      class="modal"
+      aria-labelledby="tts-key-dialog-title"
+      @click.self="closeKeyDialog"
+      @close="onKeyDialogClosed"
+    >
+      <div class="modal-box tts-key-modal">
+        <div class="tts-dialog-head">
+          <div class="min-w-0">
+            <h3 id="tts-key-dialog-title" class="text-lg font-bold text-base-content">
+              API Key 配置
+            </h3>
+            <p class="mt-0.5 text-xs text-base-content/50">
+              已配置 {{ configuredKeyCount }} / {{ keyPlatforms.length }} 个平台 · 仅保存在本机浏览器
+            </p>
+          </div>
+          <button
+            type="button"
+            class="tts-icon-btn"
+            aria-label="关闭 API Key 配置"
+            @click="closeKeyDialog"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="tts-dialog-body">
+          <ul class="tts-key-list">
+            <li
+              v-for="item in keyPlatforms"
+              :key="item.id"
+              class="tts-key-card"
+              :class="{ 'tts-key-card--active': item.id === activeKeyPlatformId }"
+            >
+              <div class="tts-key-card__head">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-base-content">
+                    {{ item.label }}
+                    <span
+                      v-if="item.id === activeKeyPlatformId"
+                      class="ml-1.5 text-[10px] font-normal text-primary"
+                    >
+                      当前引擎
+                    </span>
+                  </p>
+                  <p class="mt-0.5 text-[11px] text-base-content/45">
+                    {{ item.hint }}
+                  </p>
+                </div>
+                <div class="flex shrink-0 items-center gap-1.5">
+                  <a
+                    :href="item.getKeyUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tts-chip h-7 px-2.5 text-[11px] tts-chip--ghost no-underline"
+                    :title="`前往 ${item.label} 官网获取 Key`"
+                  >
+                    获取 Key
+                  </a>
+                  <span
+                    class="tts-key-card__status"
+                    :class="
+                      hasPlatformKey(item.id)
+                        ? 'tts-key-card__status--ok'
+                        : 'tts-key-card__status--empty'
+                    "
+                  >
+                    {{ hasPlatformKey(item.id) ? '已配置' : '未配置' }}
+                  </span>
+                </div>
+              </div>
+              <label :for="item.inputId" class="sr-only">
+                {{ item.label }} API Key
+              </label>
+              <div class="tts-key-card__row">
+                <input
+                  :id="item.inputId"
+                  :value="getPlatformKey(item.id)"
+                  :type="keyVisibility[item.id] ? 'text' : 'password'"
+                  class="tts-input min-w-0 flex-1 text-sm"
+                  :placeholder="item.placeholder"
+                  autocomplete="off"
+                  spellcheck="false"
+                  :disabled="busy"
+                  @input="onPlatformKeyInput(item.id, $event)"
+                />
+                <button
+                  type="button"
+                  class="tts-chip h-9 px-3 text-xs tts-chip--ghost"
+                  :disabled="busy"
+                  :title="keyVisibility[item.id] ? '隐藏密钥' : '显示密钥'"
+                  @click="toggleKeyVisibility(item.id)"
+                >
+                  {{ keyVisibility[item.id] ? '隐藏' : '显示' }}
+                </button>
+                <button
+                  type="button"
+                  class="tts-chip h-9 px-3 text-xs tts-chip--ghost"
+                  :disabled="busy || !hasPlatformKey(item.id)"
+                  title="清空该平台密钥"
+                  @click="clearPlatformKey(item.id)"
+                >
+                  清空
+                </button>
+              </div>
+            </li>
+          </ul>
+          <p class="mt-3 text-[11px] leading-relaxed text-base-content/40">
+            密钥合成时经本站服务端转发，不会上传到其它第三方；换设备需重新填写。
+          </p>
+          <div class="mt-4 flex justify-end">
+            <button
+              type="button"
+              class="tts-chip h-9 px-5 tts-chip--active"
+              @click="closeKeyDialog"
+            >
+              完成
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button type="submit">关闭</button>
+      </form>
+    </dialog>
 
     <!-- 本地草稿弹窗 -->
     <dialog
@@ -704,7 +875,7 @@ definePageMeta({
   ssr: false,
 });
 
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import {
   EDGE_EXPORT_FORMATS,
   friendlyVoiceLabel,
@@ -726,10 +897,37 @@ import {
   type SambertExportFormat,
   type SambertVoice,
 } from '~/utils/sambert-tts';
+import {
+  BREEZEBLUE_DEFAULT_VOICE,
+  BREEZEBLUE_EXPORT_FORMATS,
+  BREEZEBLUE_VOICES,
+  friendlyBreezeBlueVoiceLabel,
+  getBreezeBlueExportFormat,
+  shortBreezeBlueVoiceName,
+  sortBreezeBlueVoices,
+  type BreezeBlueExportFormat,
+  type BreezeBlueVoice,
+} from '~/utils/breezeblue-tts';
+import {
+  FISH_AUDIO_DEFAULT_VOICE,
+  FISH_AUDIO_EXPORT_FORMATS,
+  FISH_AUDIO_VOICES,
+  friendlyFishAudioVoiceLabel,
+  getFishAudioExportFormat,
+  isFishAudioVoiceId,
+  shortFishAudioVoiceName,
+  sortFishAudioVoices,
+  type FishAudioExportFormat,
+  type FishAudioVoice,
+} from '~/utils/fish-audio-tts';
 
-type TtsProvider = 'edge' | 'sambert';
-type TtsVoice = EdgeVoice | SambertVoice;
-type TtsExportFormat = EdgeExportFormat | SambertExportFormat;
+type TtsProvider = 'edge' | 'sambert' | 'breezeblue' | 'fishaudio';
+type TtsVoice = EdgeVoice | SambertVoice | BreezeBlueVoice | FishAudioVoice;
+type TtsExportFormat =
+  | EdgeExportFormat
+  | SambertExportFormat
+  | BreezeBlueExportFormat
+  | FishAudioExportFormat;
 
 type TextDraft = {
   id: string;
@@ -738,13 +936,15 @@ type TextDraft = {
 };
 
 const STORAGE_KEY = 'web-tool-text-to-speech';
-const PROVIDER_VALUES = ['edge', 'sambert'] as const;
+const PROVIDER_VALUES = ['edge', 'sambert', 'breezeblue', 'fishaudio'] as const;
 const LOCALE_VALUES = ['zh', 'en', 'ja', 'ko', 'all'] as const;
 const MAX_DRAFTS = 30;
 
 const providerOptions: { value: TtsProvider; label: string }[] = [
   { value: 'edge', label: 'Edge' },
   { value: 'sambert', label: '百炼 Sambert' },
+  { value: 'breezeblue', label: 'Breeze Blue' },
+  { value: 'fishaudio', label: 'Fish Audio' },
 ];
 
 const localeOptions: { value: (typeof LOCALE_VALUES)[number]; label: string }[] =
@@ -761,6 +961,10 @@ const EDGE_DEFAULT_TEXT =
   '本网页直接调用 Microsoft Edge 在线神经语音合成，默认音色为晓晓，支持调节语速并下载音频。';
 const SAMBERT_DEFAULT_TEXT =
   '本网页调用阿里云百炼 Sambert 语音合成，默认音色为知佳，支持调节语速并下载音频。';
+const BREEZEBLUE_DEFAULT_TEXT =
+  '本网页调用 Breeze Blue 语音合成，默认音色为大肥鱼（机灵版），支持调节语速并下载音频。';
+const FISH_AUDIO_DEFAULT_TEXT =
+  '本网页调用 Fish Audio 语音合成，默认音色为曼波，使用免费模型 s2.1-pro-free，支持调节语速并下载音频。';
 
 const provider = ref<TtsProvider>('edge');
 const text = ref(EDGE_DEFAULT_TEXT);
@@ -772,6 +976,7 @@ const voices = ref<TtsVoice[]>(getFallbackZhVoices());
 const selectedVoice = ref(EDGE_DEFAULT_VOICE);
 const voiceDialogRef = ref<HTMLDialogElement | null>(null);
 const draftDialogRef = ref<HTMLDialogElement | null>(null);
+const keyDialogRef = ref<HTMLDialogElement | null>(null);
 const busy = ref(false);
 const previewingVoice = ref<string | null>(null);
 const previewBusy = ref(false);
@@ -789,6 +994,8 @@ const paused = ref(false);
 const statusTip = ref('');
 const errorMessage = ref('');
 const dashscopeApiKey = ref('');
+const breezeApiKey = ref('');
+const fishApiKey = ref('');
 const audioEl = ref<HTMLAudioElement | null>(null);
 const waveCanvas = ref<HTMLCanvasElement | null>(null);
 const lastAudioBlob = ref<Blob | null>(null);
@@ -815,6 +1022,12 @@ const resolveExportFormat = (value?: string | null): TtsExportFormat => {
   if (provider.value === 'sambert') {
     return getSambertExportFormat(value).value;
   }
+  if (provider.value === 'breezeblue') {
+    return getBreezeBlueExportFormat(value).value;
+  }
+  if (provider.value === 'fishaudio') {
+    return getFishAudioExportFormat(value).value;
+  }
   return getEdgeExportFormat(value).value;
 };
 
@@ -831,6 +1044,8 @@ const loadPrefs = () => {
       selectedVoice?: string;
       exportFormat?: string;
       dashscopeApiKey?: string;
+      breezeApiKey?: string;
+      fishApiKey?: string;
       drafts?: unknown;
     };
 
@@ -854,6 +1069,12 @@ const loadPrefs = () => {
     }
     if (typeof parsed.dashscopeApiKey === 'string') {
       dashscopeApiKey.value = parsed.dashscopeApiKey.trim();
+    }
+    if (typeof parsed.breezeApiKey === 'string') {
+      breezeApiKey.value = parsed.breezeApiKey.trim();
+    }
+    if (typeof parsed.fishApiKey === 'string') {
+      fishApiKey.value = parsed.fishApiKey.trim();
     }
     if (Array.isArray(parsed.drafts)) {
       drafts.value = parsed.drafts
@@ -890,6 +1111,8 @@ const persistPrefs = () => {
         selectedVoice: selectedVoice.value,
         exportFormat: exportFormat.value,
         dashscopeApiKey: dashscopeApiKey.value.trim(),
+        breezeApiKey: breezeApiKey.value.trim(),
+        fishApiKey: fishApiKey.value.trim(),
         drafts: drafts.value,
       }),
     );
@@ -905,6 +1128,18 @@ const ensureVoiceSelection = (list: TtsVoice[]) => {
   if (provider.value === 'sambert') {
     const preferred =
       valid.find(v => v.ShortName === SAMBERT_DEFAULT_VOICE) || valid[0];
+    selectedVoice.value = preferred.ShortName;
+    return;
+  }
+  if (provider.value === 'breezeblue') {
+    const preferred =
+      valid.find(v => v.ShortName === BREEZEBLUE_DEFAULT_VOICE) || valid[0];
+    selectedVoice.value = preferred.ShortName;
+    return;
+  }
+  if (provider.value === 'fishaudio') {
+    const preferred =
+      valid.find(v => v.ShortName === FISH_AUDIO_DEFAULT_VOICE) || valid[0];
     selectedVoice.value = preferred.ShortName;
     return;
   }
@@ -1068,17 +1303,171 @@ const resumeAudioCtx = async () => {
   }
 };
 
-const exportFormatOptions = computed(() =>
-  provider.value === 'sambert' ? SAMBERT_EXPORT_FORMATS : EDGE_EXPORT_FORMATS,
-);
+const exportFormatOptions = computed(() => {
+  if (provider.value === 'sambert') return SAMBERT_EXPORT_FORMATS;
+  if (provider.value === 'breezeblue') return BREEZEBLUE_EXPORT_FORMATS;
+  if (provider.value === 'fishaudio') return FISH_AUDIO_EXPORT_FORMATS;
+  return EDGE_EXPORT_FORMATS;
+});
 
-const footerTip = computed(() =>
-  provider.value === 'sambert'
-    ? '使用阿里云百炼 Sambert，请填写 API Key · 导出支持 MP3 / WAV / OGG'
-    : '使用 Edge 在线 TTS，需联网 · 导出支持 MP3 / WAV / OGG',
-);
+const footerTip = computed(() => {
+  if (provider.value === 'sambert') {
+    return '使用阿里云百炼 Sambert，请填写 API Key · 导出支持 MP3 / WAV / OGG';
+  }
+  if (provider.value === 'breezeblue') {
+    return '使用 Breeze Blue，请填写 API Key · 默认大肥鱼音色 · 导出支持 MP3 / WAV / OGG';
+  }
+  if (provider.value === 'fishaudio') {
+    return '使用 Fish Audio · 免费模型 s2.1-pro-free 延迟较高属正常 · 导出支持 MP3 / WAV / OGG';
+  }
+  return '使用 Edge 在线 TTS，需联网 · 导出支持 MP3 / WAV / OGG';
+});
+
+const providerEngineLabel = computed(() => {
+  if (provider.value === 'sambert') return '阿里云百炼 Sambert';
+  if (provider.value === 'breezeblue') return 'Breeze Blue';
+  if (provider.value === 'fishaudio') return 'Fish Audio';
+  return 'Microsoft Edge 神经音色';
+});
 
 const hasSambertKey = computed(() => !!dashscopeApiKey.value.trim());
+const hasBreezeKey = computed(() => !!breezeApiKey.value.trim());
+const hasFishKey = computed(() => !!fishApiKey.value.trim());
+
+type KeyPlatformId = 'sambert' | 'breezeblue' | 'fishaudio';
+
+const keyPlatforms: {
+  id: KeyPlatformId;
+  label: string;
+  hint: string;
+  placeholder: string;
+  inputId: string;
+  getKeyUrl: string;
+}[] = [
+  {
+    id: 'sambert',
+    label: '阿里云百炼 Sambert',
+    hint: 'DashScope / 百炼控制台获取 · 形如 sk-…',
+    placeholder: 'sk-…',
+    inputId: 'tts-dashscope-key',
+    getKeyUrl:
+      'https://bailian.console.aliyun.com/?tab=model#/api-key',
+  },
+  {
+    id: 'breezeblue',
+    label: 'Breeze Blue',
+    hint: '开发者平台 API Keys · 单次合成约 1000 字上限',
+    placeholder: 'brz_…',
+    inputId: 'tts-breeze-key',
+    getKeyUrl: 'https://breezeblue.ai',
+  },
+  {
+    id: 'fishaudio',
+    label: 'Fish Audio',
+    hint: '官网 Get Started 一键创建 · 免费档 model: s2.1-pro-free',
+    placeholder: 'API Key',
+    inputId: 'tts-fish-key',
+    getKeyUrl: 'https://fish.audio',
+  },
+];
+
+const keyVisibility = reactive<Record<KeyPlatformId, boolean>>({
+  sambert: false,
+  breezeblue: false,
+  fishaudio: false,
+});
+
+const getPlatformKey = (id: KeyPlatformId) => {
+  if (id === 'sambert') return dashscopeApiKey.value;
+  if (id === 'breezeblue') return breezeApiKey.value;
+  return fishApiKey.value;
+};
+
+const setPlatformKey = (id: KeyPlatformId, value: string) => {
+  if (id === 'sambert') dashscopeApiKey.value = value;
+  else if (id === 'breezeblue') breezeApiKey.value = value;
+  else fishApiKey.value = value;
+};
+
+const hasPlatformKey = (id: KeyPlatformId) => !!getPlatformKey(id).trim();
+
+const clearPlatformKey = (id: KeyPlatformId) => {
+  setPlatformKey(id, '');
+};
+
+const toggleKeyVisibility = (id: KeyPlatformId) => {
+  keyVisibility[id] = !keyVisibility[id];
+};
+
+const onPlatformKeyInput = (id: KeyPlatformId, event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  setPlatformKey(id, target?.value ?? '');
+};
+
+const configuredKeyCount = computed(
+  () => keyPlatforms.filter(p => hasPlatformKey(p.id)).length,
+);
+
+const currentProviderNeedsKey = computed(
+  () =>
+    provider.value === 'sambert' ||
+    provider.value === 'breezeblue' ||
+    provider.value === 'fishaudio',
+);
+
+const currentProviderHasKey = computed(() => {
+  if (provider.value === 'sambert') return hasSambertKey.value;
+  if (provider.value === 'breezeblue') return hasBreezeKey.value;
+  if (provider.value === 'fishaudio') return hasFishKey.value;
+  return true;
+});
+
+const activeKeyPlatformId = computed<KeyPlatformId | null>(() => {
+  if (
+    provider.value === 'sambert' ||
+    provider.value === 'breezeblue' ||
+    provider.value === 'fishaudio'
+  ) {
+    return provider.value;
+  }
+  return null;
+});
+
+const currentProviderGetKeyUrl = computed(() => {
+  const id = activeKeyPlatformId.value;
+  if (!id) return '';
+  return keyPlatforms.find(p => p.id === id)?.getKeyUrl || '';
+});
+
+const resetKeyVisibility = () => {
+  keyVisibility.sambert = false;
+  keyVisibility.breezeblue = false;
+  keyVisibility.fishaudio = false;
+};
+
+const onKeyDialogClosed = () => {
+  resetKeyVisibility();
+};
+
+const openKeyDialog = () => {
+  keyDialogRef.value?.showModal();
+  const focusId =
+    activeKeyPlatformId.value ||
+    keyPlatforms.find(p => !hasPlatformKey(p.id))?.id ||
+    keyPlatforms[0]?.id;
+  if (!focusId) return;
+  requestAnimationFrame(() => {
+    const el = document.getElementById(
+      keyPlatforms.find(p => p.id === focusId)?.inputId || '',
+    ) as HTMLInputElement | null;
+    el?.focus();
+  });
+};
+
+const closeKeyDialog = () => {
+  resetKeyVisibility();
+  keyDialogRef.value?.close();
+};
 
 const filteredVoices = computed(() => {
   const list = voices.value.filter(
@@ -1096,7 +1485,7 @@ const filteredVoices = computed(() => {
       v.ShortName,
       v.FriendlyName,
       v.Locale,
-      'Style' in v ? (v as SambertVoice).Style : '',
+      'Style' in v ? String((v as SambertVoice | BreezeBlueVoice).Style) : '',
     ]
       .join(' ')
       .toLowerCase();
@@ -1106,6 +1495,12 @@ const filteredVoices = computed(() => {
 
   if (provider.value === 'sambert') {
     return sortSambertVoices(matched as SambertVoice[]);
+  }
+  if (provider.value === 'breezeblue') {
+    return sortBreezeBlueVoices(matched as BreezeBlueVoice[]);
+  }
+  if (provider.value === 'fishaudio') {
+    return sortFishAudioVoices(matched as FishAudioVoice[]);
   }
   return sortEdgeVoices(matched as EdgeVoice[]);
 });
@@ -1123,7 +1518,7 @@ type VoiceLangGroup = {
   genders: VoiceGenderGroup[];
 };
 
-const GENDER_ORDER: string[] = ['Male', 'Female'];
+const GENDER_ORDER: string[] = ['Male', 'Female', 'Neutral'];
 
 const LANG_ORDER: string[] = [
   'zh-CN',
@@ -1149,6 +1544,7 @@ const LANG_ORDER: string[] = [
 const genderLabel = (gender: string) => {
   if (gender === 'Male') return '男声';
   if (gender === 'Female') return '女声';
+  if (gender === 'Neutral') return '中性';
   return gender;
 };
 
@@ -1235,12 +1631,16 @@ const voiceGroups = computed<VoiceLangGroup[]>(() => {
 const canSpeak = computed(() => {
   if (!text.value.trim() || !selectedVoice.value || busy.value) return false;
   if (provider.value === 'sambert' && !hasSambertKey.value) return false;
+  if (provider.value === 'breezeblue' && !hasBreezeKey.value) return false;
+  if (provider.value === 'fishaudio' && !hasFishKey.value) return false;
   return true;
 });
 
 const canDownload = computed(() => {
   if (!text.value.trim() || !selectedVoice.value || busy.value) return false;
   if (provider.value === 'sambert' && !hasSambertKey.value) return false;
+  if (provider.value === 'breezeblue' && !hasBreezeKey.value) return false;
+  if (provider.value === 'fishaudio' && !hasFishKey.value) return false;
   return true;
 });
 
@@ -1255,6 +1655,12 @@ const exportFormatLabel = computed(() => {
   if (provider.value === 'sambert') {
     return getSambertExportFormat(exportFormat.value).label;
   }
+  if (provider.value === 'breezeblue') {
+    return getBreezeBlueExportFormat(exportFormat.value).label;
+  }
+  if (provider.value === 'fishaudio') {
+    return getFishAudioExportFormat(exportFormat.value).label;
+  }
   return getEdgeExportFormat(exportFormat.value).label;
 });
 
@@ -1264,20 +1670,37 @@ const selectedMeta = computed(
     null,
 );
 
+const isBreezeBlueVoice = (v: TtsVoice): v is BreezeBlueVoice =>
+  typeof v.ShortName === 'string' && v.ShortName.startsWith('voc_');
+
+const isFishAudioVoice = (v: TtsVoice): v is FishAudioVoice =>
+  typeof v.ShortName === 'string' && isFishAudioVoiceId(v.ShortName);
+
 const isSambertVoice = (v: TtsVoice): v is SambertVoice =>
-  'Style' in v && typeof (v as SambertVoice).Style === 'string';
+  typeof v.ShortName === 'string' && v.ShortName.startsWith('sambert-');
 
-const voiceChipLabel = (v: TtsVoice) =>
-  isSambertVoice(v) ? shortSambertVoiceName(v) : shortVoiceName(v);
+const voiceChipLabel = (v: TtsVoice) => {
+  if (isFishAudioVoice(v)) return shortFishAudioVoiceName(v);
+  if (isBreezeBlueVoice(v)) return shortBreezeBlueVoiceName(v);
+  if (isSambertVoice(v)) return shortSambertVoiceName(v);
+  return shortVoiceName(v);
+};
 
-const voiceTitle = (v: TtsVoice) =>
-  isSambertVoice(v) ? friendlySambertVoiceLabel(v) : friendlyVoiceLabel(v);
+const voiceTitle = (v: TtsVoice) => {
+  if (isFishAudioVoice(v)) return friendlyFishAudioVoiceLabel(v);
+  if (isBreezeBlueVoice(v)) return friendlyBreezeBlueVoiceLabel(v);
+  if (isSambertVoice(v)) return friendlySambertVoiceLabel(v);
+  return friendlyVoiceLabel(v);
+};
 
 /**
  * 列表主名：只取人名/别名部分，去掉「· 女声 · 标准女声」这类冗余后缀。
  * Edge 别名形如「晓晓（女声，普通话）」→ 提取「晓晓」。
  */
 const voiceShortName = (v: TtsVoice) => {
+  // 大肥鱼 / Fish 名称完整保留
+  if (isBreezeBlueVoice(v) || isFishAudioVoice(v)) return v.FriendlyName;
+
   const raw = isSambertVoice(v)
     ? v.FriendlyName
     : shortVoiceName(v as EdgeVoice);
@@ -1288,7 +1711,9 @@ const voiceShortName = (v: TtsVoice) => {
 
 /** 副信息：风格 / 方言，作为小字标签（性别已单独成列，不重复） */
 const voiceMeta = (v: TtsVoice) => {
-  if (isSambertVoice(v)) return v.Style;
+  if (isFishAudioVoice(v) || isBreezeBlueVoice(v) || isSambertVoice(v)) {
+    return v.Style;
+  }
 
   const raw = shortVoiceName(v as EdgeVoice);
   const inner = /[（(]([^）)]+)[）)]/.exec(raw)?.[1];
@@ -1415,12 +1840,23 @@ const switchProvider = async (next: TtsProvider) => {
   errorMessage.value = '';
   closeVoiceDialog();
 
-  const isDefaultEdgeText = text.value.trim() === EDGE_DEFAULT_TEXT;
-  const isDefaultSambertText = text.value.trim() === SAMBERT_DEFAULT_TEXT;
-  if (next === 'sambert' && (isDefaultEdgeText || !text.value.trim())) {
-    text.value = SAMBERT_DEFAULT_TEXT;
-  } else if (next === 'edge' && (isDefaultSambertText || !text.value.trim())) {
-    text.value = EDGE_DEFAULT_TEXT;
+  const trimmed = text.value.trim();
+  const isDefaultEdgeText = trimmed === EDGE_DEFAULT_TEXT;
+  const isDefaultSambertText = trimmed === SAMBERT_DEFAULT_TEXT;
+  const isDefaultBreezeText = trimmed === BREEZEBLUE_DEFAULT_TEXT;
+  const isDefaultFishText = trimmed === FISH_AUDIO_DEFAULT_TEXT;
+  const isAnyDefault =
+    isDefaultEdgeText ||
+    isDefaultSambertText ||
+    isDefaultBreezeText ||
+    isDefaultFishText ||
+    !trimmed;
+
+  if (isAnyDefault) {
+    if (next === 'sambert') text.value = SAMBERT_DEFAULT_TEXT;
+    else if (next === 'breezeblue') text.value = BREEZEBLUE_DEFAULT_TEXT;
+    else if (next === 'fishaudio') text.value = FISH_AUDIO_DEFAULT_TEXT;
+    else text.value = EDGE_DEFAULT_TEXT;
   }
 
   await loadVoices();
@@ -1448,6 +1884,8 @@ watch(
     selectedVoice,
     exportFormat,
     dashscopeApiKey,
+    breezeApiKey,
+    fishApiKey,
     drafts,
   ],
   () => {
@@ -1517,7 +1955,27 @@ watch(hasSambertKey, hasKey => {
   if (
     provider.value === 'sambert' &&
     hasKey &&
-    /请填写百炼 API Key/.test(statusTip.value)
+    /API Key 配置中填写百炼/.test(statusTip.value)
+  ) {
+    statusTip.value = '';
+  }
+});
+
+watch(hasBreezeKey, hasKey => {
+  if (
+    provider.value === 'breezeblue' &&
+    hasKey &&
+    /API Key 配置中填写 Breeze Blue/.test(statusTip.value)
+  ) {
+    statusTip.value = '';
+  }
+});
+
+watch(hasFishKey, hasKey => {
+  if (
+    provider.value === 'fishaudio' &&
+    hasKey &&
+    /API Key 配置中填写 Fish Audio/.test(statusTip.value)
   ) {
     statusTip.value = '';
   }
@@ -1554,7 +2012,11 @@ const buildFileName = () => {
   const ext =
     provider.value === 'sambert'
       ? getSambertExportFormat(exportFormat.value).ext
-      : getEdgeExportFormat(exportFormat.value).ext;
+      : provider.value === 'breezeblue'
+        ? getBreezeBlueExportFormat(exportFormat.value).ext
+        : provider.value === 'fishaudio'
+          ? getFishAudioExportFormat(exportFormat.value).ext
+          : getEdgeExportFormat(exportFormat.value).ext;
   return `tts-${voiceKey}-${rate.value.toFixed(1)}x-${stamp}.${ext}`;
 };
 
@@ -1632,6 +2094,43 @@ const synthesize = async (
           voice: selectedVoice.value,
           rate: rate.value,
           volume: 50,
+          format: formatConfig.value,
+          apiKey,
+        },
+        responseType: 'blob',
+      });
+    } else if (provider.value === 'breezeblue') {
+      const apiKey = breezeApiKey.value.trim();
+      if (!apiKey) {
+        throw new Error('请填写 Breeze Blue API Key');
+      }
+      const formatConfig = getBreezeBlueExportFormat(format);
+      resolvedFormat = formatConfig.value;
+      blob = await $fetch<Blob>('/api/breezeblue-tts/speak', {
+        method: 'POST',
+        body: {
+          text: content,
+          voice: selectedVoice.value,
+          rate: rate.value,
+          format: formatConfig.value,
+          languageCode: 'zh',
+          apiKey,
+        },
+        responseType: 'blob',
+      });
+    } else if (provider.value === 'fishaudio') {
+      const apiKey = fishApiKey.value.trim();
+      if (!apiKey) {
+        throw new Error('请填写 Fish Audio API Key');
+      }
+      const formatConfig = getFishAudioExportFormat(format);
+      resolvedFormat = formatConfig.value;
+      blob = await $fetch<Blob>('/api/fish-audio-tts/speak', {
+        method: 'POST',
+        body: {
+          text: content,
+          voice: selectedVoice.value,
+          rate: rate.value,
           format: formatConfig.value,
           apiKey,
         },
@@ -1802,7 +2301,9 @@ const loadSambertVoices = async () => {
     if (data?.voices?.length) {
       voices.value = sortSambertVoices(data.voices);
       ensureVoiceSelection(voices.value);
-      statusTip.value = hasSambertKey.value ? '' : '请填写百炼 API Key 后开始合成';
+      statusTip.value = hasSambertKey.value
+        ? ''
+        : '请先在 API Key 配置中填写百炼密钥';
       return;
     }
   } catch (e: any) {
@@ -1813,7 +2314,57 @@ const loadSambertVoices = async () => {
   ensureVoiceSelection(voices.value);
   statusTip.value = hasSambertKey.value
     ? '已使用内置 Sambert 音色列表'
-    : '已加载音色；请填写百炼 API Key 后开始合成';
+    : '已加载音色；请先在 API Key 配置中填写百炼密钥';
+};
+
+const loadBreezeBlueVoices = async () => {
+  statusTip.value = '正在加载 Breeze Blue 音色…';
+  try {
+    const data = await $fetch<{ voices: BreezeBlueVoice[] }>(
+      '/api/breezeblue-tts/voices',
+    );
+    if (data?.voices?.length) {
+      voices.value = sortBreezeBlueVoices(data.voices);
+      ensureVoiceSelection(voices.value);
+      statusTip.value = hasBreezeKey.value
+        ? ''
+        : '请先在 API Key 配置中填写 Breeze Blue 密钥';
+      return;
+    }
+  } catch (e: any) {
+    console.warn('Breeze Blue voices API failed, using fallback', e);
+  }
+
+  voices.value = sortBreezeBlueVoices(BREEZEBLUE_VOICES);
+  ensureVoiceSelection(voices.value);
+  statusTip.value = hasBreezeKey.value
+    ? '已使用内置大肥鱼音色'
+    : '已加载大肥鱼音色；请先在 API Key 配置中填写 Breeze Blue 密钥';
+};
+
+const loadFishAudioVoices = async () => {
+  statusTip.value = '正在加载 Fish Audio 音色…';
+  try {
+    const data = await $fetch<{ voices: FishAudioVoice[] }>(
+      '/api/fish-audio-tts/voices',
+    );
+    if (data?.voices?.length) {
+      voices.value = sortFishAudioVoices(data.voices);
+      ensureVoiceSelection(voices.value);
+      statusTip.value = hasFishKey.value
+        ? ''
+        : '请先在 API Key 配置中填写 Fish Audio 密钥';
+      return;
+    }
+  } catch (e: any) {
+    console.warn('Fish Audio voices API failed, using fallback', e);
+  }
+
+  voices.value = sortFishAudioVoices(FISH_AUDIO_VOICES);
+  ensureVoiceSelection(voices.value);
+  statusTip.value = hasFishKey.value
+    ? '已使用内置 Fish Audio 示例音色'
+    : '已加载示例音色；请先在 API Key 配置中填写 Fish Audio 密钥';
 };
 
 const loadEdgeVoices = async () => {
@@ -1838,6 +2389,14 @@ const loadEdgeVoices = async () => {
 const loadVoices = async () => {
   if (provider.value === 'sambert') {
     await loadSambertVoices();
+    return;
+  }
+  if (provider.value === 'breezeblue') {
+    await loadBreezeBlueVoices();
+    return;
+  }
+  if (provider.value === 'fishaudio') {
+    await loadFishAudioVoices();
     return;
   }
   await loadEdgeVoices();
@@ -2195,6 +2754,74 @@ onUnmounted(() => {
 .tts-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ---------- API Key 弹窗 ---------- */
+
+.tts-key-modal {
+  display: flex;
+  max-width: 34rem;
+  max-height: 82vh;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border-strong);
+  border-radius: 1rem;
+}
+
+.tts-key-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tts-key-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--app-border);
+  background: color-mix(in oklab, var(--color-base-100) 72%, transparent);
+  padding: 0.85rem 0.9rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.tts-key-card--active {
+  border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 7%, var(--color-base-100));
+}
+
+.tts-key-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tts-key-card__status {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.66rem;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.tts-key-card__status--ok {
+  color: color-mix(in oklab, var(--color-success) 90%, var(--color-base-content));
+  background: color-mix(in oklab, var(--color-success) 14%, transparent);
+}
+
+.tts-key-card__status--empty {
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
+.tts-key-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* ---------- 草稿弹窗 ---------- */
