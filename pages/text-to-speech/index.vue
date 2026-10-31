@@ -1374,7 +1374,7 @@ const keyPlatforms: {
     hint: '开发者平台 API Keys · 单次合成约 1000 字上限',
     placeholder: 'brz_…',
     inputId: 'tts-breeze-key',
-    getKeyUrl: 'https://breezeblue.ai',
+    getKeyUrl: 'https://breezeblue.ai/zh?code=NUMBD2',
   },
   {
     id: 'fishaudio',
@@ -1382,7 +1382,7 @@ const keyPlatforms: {
     hint: '官网 Get Started 一键创建 · 免费档 model: s2.1-pro-free',
     placeholder: 'API Key',
     inputId: 'tts-fish-key',
-    getKeyUrl: 'https://fish.audio',
+    getKeyUrl: 'https://fish.audio/?aff=YZTX7GGWRHWIQ',
   },
 ];
 
