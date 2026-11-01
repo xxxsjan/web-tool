@@ -726,18 +726,6 @@
               spellcheck="false"
             />
           </div>
-          <div class="tts-dialog-langs">
-            <button
-              v-for="opt in localeOptions"
-              :key="opt.value"
-              type="button"
-              class="tts-lang-tab"
-              :class="{ 'tts-lang-tab--on': localeFilter === opt.value }"
-              @click="localeFilter = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
         </div>
 
         <div class="tts-dialog-body">
@@ -825,7 +813,7 @@
             v-else
             class="py-12 text-center text-sm text-base-content/50"
           >
-            没有匹配的音色，试试更换筛选条件
+            没有匹配的中文音色，试试更换搜索关键词
           </p>
         </div>
       </div>
@@ -941,7 +929,6 @@ type TextDraft = {
 
 const STORAGE_KEY = 'web-tool-text-to-speech';
 const PROVIDER_VALUES = ['edge', 'sambert', 'breezeblue', 'fishaudio'] as const;
-const LOCALE_VALUES = ['zh', 'en', 'ja', 'ko', 'all'] as const;
 const MAX_DRAFTS = 30;
 
 const providerOptions: { value: TtsProvider; label: string }[] = [
@@ -951,14 +938,12 @@ const providerOptions: { value: TtsProvider; label: string }[] = [
   { value: 'fishaudio', label: 'Fish Audio' },
 ];
 
-const localeOptions: { value: (typeof LOCALE_VALUES)[number]; label: string }[] =
-  [
-    { value: 'zh', label: '中文' },
-    { value: 'en', label: '英语' },
-    { value: 'ja', label: '日语' },
-    { value: 'ko', label: '韩语' },
-    { value: 'all', label: '全部' },
-  ];
+/** 仅保留中文音色（含普通话 / 方言 / 台港） */
+const onlyZhVoices = <T extends TtsVoice>(list: T[]): T[] =>
+  list.filter(
+    (v): v is T =>
+      !!v && !!v.ShortName && !!v.Locale && v.Locale.toLowerCase().startsWith('zh'),
+  );
 
 /** 页底第三方跳转 */
 const thirdPartyLinks: { href: string; label: string }[] = [
@@ -994,8 +979,7 @@ const previewingVoice = ref<string | null>(null);
 const previewBusy = ref(false);
 /** 当前试听播放的 Audio 元素，用于切换时打断上一段 */
 const previewAudioEl = ref<HTMLAudioElement | null>(null);
-/** 弹窗内的语言筛选与关键词搜索 */
-const localeFilter = ref<(typeof LOCALE_VALUES)[number]>('all');
+/** 弹窗内关键词搜索 */
 const voiceQuery = ref('');
 
 const PREVIEW_TEXT =
@@ -1485,28 +1469,23 @@ const closeKeyDialog = () => {
 };
 
 const filteredVoices = computed(() => {
-  const list = voices.value.filter(
-    (v): v is TtsVoice => !!v && !!v.ShortName && !!v.Locale,
-  );
-
-  const lang = localeFilter.value;
+  const list = onlyZhVoices(voices.value);
   const keyword = voiceQuery.value.trim().toLowerCase();
 
-  const matched = list.filter(v => {
-    if (lang !== 'all' && !v.Locale.toLowerCase().startsWith(lang)) return false;
-    if (!keyword) return true;
+  const matched = !keyword
+    ? list
+    : list.filter(v => {
+        const haystack = [
+          v.ShortName,
+          v.FriendlyName,
+          v.Locale,
+          'Style' in v ? String((v as SambertVoice | BreezeBlueVoice).Style) : '',
+        ]
+          .join(' ')
+          .toLowerCase();
 
-    const haystack = [
-      v.ShortName,
-      v.FriendlyName,
-      v.Locale,
-      'Style' in v ? String((v as SambertVoice | BreezeBlueVoice).Style) : '',
-    ]
-      .join(' ')
-      .toLowerCase();
-
-    return haystack.includes(keyword);
-  });
+        return haystack.includes(keyword);
+      });
 
   if (provider.value === 'sambert') {
     return sortSambertVoices(matched as SambertVoice[]);
@@ -1537,23 +1516,11 @@ const GENDER_ORDER: string[] = ['Male', 'Female', 'Neutral'];
 
 const LANG_ORDER: string[] = [
   'zh-CN',
+  'zh-CN-liaoning',
+  'zh-CN-shaanxi',
+  'zh-TW',
+  'zh-HK',
   'zh',
-  'en-US',
-  'en',
-  'ja',
-  'ko',
-  'es-ES',
-  'es',
-  'it-IT',
-  'it',
-  'id-ID',
-  'id',
-  'fr-FR',
-  'fr',
-  'de-DE',
-  'de',
-  'th-TH',
-  'th',
 ];
 
 const genderLabel = (gender: string) => {
@@ -1564,16 +1531,12 @@ const genderLabel = (gender: string) => {
 };
 
 const localeLabel = (locale: string) => {
+  if (locale === 'zh-CN') return '普通话';
+  if (locale.startsWith('zh-CN-liaoning')) return '辽宁话';
+  if (locale.startsWith('zh-CN-shaanxi')) return '陕西话';
+  if (locale.startsWith('zh-TW')) return '台湾腔';
+  if (locale.startsWith('zh-HK')) return '粤语';
   if (locale.startsWith('zh')) return '中文';
-  if (locale.startsWith('en')) return '英语';
-  if (locale.startsWith('ja')) return '日语';
-  if (locale.startsWith('ko')) return '韩语';
-  if (locale.startsWith('es')) return '西班牙语';
-  if (locale.startsWith('it')) return '意大利语';
-  if (locale.startsWith('id')) return '印尼语';
-  if (locale.startsWith('fr')) return '法语';
-  if (locale.startsWith('de')) return '德语';
-  if (locale.startsWith('th')) return '泰语';
   return locale;
 };
 
@@ -2356,7 +2319,7 @@ const loadSambertVoices = async () => {
       '/api/sambert-tts/voices',
     );
     if (data?.voices?.length) {
-      voices.value = sortSambertVoices(data.voices);
+      voices.value = sortSambertVoices(onlyZhVoices(data.voices));
       ensureVoiceSelection(voices.value);
       statusTip.value = hasSambertKey.value
         ? ''
@@ -2367,7 +2330,7 @@ const loadSambertVoices = async () => {
     console.warn('Sambert voices API failed, using fallback', e);
   }
 
-  voices.value = sortSambertVoices(SAMBERT_VOICES);
+  voices.value = sortSambertVoices(onlyZhVoices(SAMBERT_VOICES));
   ensureVoiceSelection(voices.value);
   statusTip.value = hasSambertKey.value
     ? '已使用内置 Sambert 音色列表'
@@ -2381,7 +2344,7 @@ const loadBreezeBlueVoices = async () => {
       '/api/breezeblue-tts/voices',
     );
     if (data?.voices?.length) {
-      voices.value = sortBreezeBlueVoices(data.voices);
+      voices.value = sortBreezeBlueVoices(onlyZhVoices(data.voices));
       ensureVoiceSelection(voices.value);
       statusTip.value = hasBreezeKey.value
         ? ''
@@ -2392,7 +2355,7 @@ const loadBreezeBlueVoices = async () => {
     console.warn('Breeze Blue voices API failed, using fallback', e);
   }
 
-  voices.value = sortBreezeBlueVoices(BREEZEBLUE_VOICES);
+  voices.value = sortBreezeBlueVoices(onlyZhVoices(BREEZEBLUE_VOICES));
   ensureVoiceSelection(voices.value);
   statusTip.value = hasBreezeKey.value
     ? '已使用内置大肥鱼音色'
@@ -2406,7 +2369,7 @@ const loadFishAudioVoices = async () => {
       '/api/fish-audio-tts/voices',
     );
     if (data?.voices?.length) {
-      voices.value = sortFishAudioVoices(data.voices);
+      voices.value = sortFishAudioVoices(onlyZhVoices(data.voices));
       ensureVoiceSelection(voices.value);
       statusTip.value = hasFishKey.value
         ? ''
@@ -2417,7 +2380,7 @@ const loadFishAudioVoices = async () => {
     console.warn('Fish Audio voices API failed, using fallback', e);
   }
 
-  voices.value = sortFishAudioVoices(FISH_AUDIO_VOICES);
+  voices.value = sortFishAudioVoices(onlyZhVoices(FISH_AUDIO_VOICES));
   ensureVoiceSelection(voices.value);
   statusTip.value = hasFishKey.value
     ? '已使用内置 Fish Audio 示例音色'
@@ -2429,7 +2392,7 @@ const loadEdgeVoices = async () => {
   try {
     const data = await $fetch<{ voices: EdgeVoice[] }>('/api/edge-tts/voices');
     if (data?.voices?.length) {
-      voices.value = sortEdgeVoices(data.voices);
+      voices.value = sortEdgeVoices(onlyZhVoices(data.voices));
       ensureVoiceSelection(voices.value);
       statusTip.value = '';
       return;
@@ -2548,36 +2511,6 @@ onUnmounted(() => {
   width: 100%;
   padding-left: 2.1rem;
   font-size: 0.85rem;
-}
-
-.tts-dialog-langs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.tts-lang-tab {
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
-  padding: 0.25rem 0.7rem;
-  font-size: 0.78rem;
-  color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.tts-lang-tab:hover {
-  background: color-mix(in oklab, var(--color-base-content) 7%, transparent);
-  color: var(--color-base-content);
-}
-
-.tts-lang-tab--on {
-  border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
-  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
-  color: var(--color-primary);
-  font-weight: 500;
 }
 
 .tts-dialog-body {

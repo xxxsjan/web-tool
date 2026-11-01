@@ -1,53 +1,62 @@
 # Web Tool Box 网页工具箱
 
-![Nuxt](https://img.shields.io/badge/Nuxt-3.8.2-green)
-![Node](https://img.shields.io/badge/Node-18.17.1-blue)
+![Nuxt](https://img.shields.io/badge/Nuxt-3.16-green)
+![Node](https://img.shields.io/badge/Node-20+-blue)
 ![License](https://img.shields.io/badge/License-MIT-orange)
 
-🔧 开发者必备的多功能在线工具箱，整合高频使用的代码转换、图片处理工具链
+多功能在线工具箱，覆盖媒体处理、抖音辅助、文本编辑与开发常用能力。
 
 ## 功能特性
 
-### 代码转换工具
+### 工具
 
-- **VSCode 代码片段生成器**：自定义生成 VSCode 的用户代码片段
-- **CSS 转换器**：CSS style 字符串转 JavaScript 对象
-- **字符串转换器**：模板字符串转普通字符串
-- **模块转换器**：ESM 转 CommonJS
-- **Less 编译器**：Less 代码转 CSS
-- **Vue转JSX**：Vue 模板语法转 JSX 语法
-- **路径转换**：Windows 路径与 Unix 路径互转
-- **驼峰转换**：下划线命名与驼峰命名互转
+- **Excalidraw 画板**：基于 Excalidraw 的独立白板
+- **文本编辑**：Monaco 文本编辑器
+- **SVG 预览**：实时预览与校验 SVG
+- **在线预览 HTML**：粘贴 HTML/CSS 即时预览
+- **Git 图床**：GitHub / Gitee 图床上传与链接生成
+- **VSCode 代码片段生成**：自定义生成 VSCode snippets
 
-### 图片处理工具
+### 媒体类
 
-- **智能去边工具**：自动去除图片多余黑边
-- **图片转换工具**：图片转 ICO、AVIF 转 PNG、WebP 转 PNG/JPG/GIF、DOM 转 PNG
-- **图片链接解析**：提取文本中的图片链接并支持批量下载
-- **网页图片批量打开器**：按指定间隔批量打开图片链接
-- **SVG预览器**：实时预览和验证 SVG 代码
+- **文本转语音**：Edge / 百炼 Sambert / Breeze Blue / Fish Audio 多引擎 TTS
+- **GPT-SoVITS 调试**：对接本机 GPT-SoVITS api_v2
+- **视频转音频**：视频提取为 MP3 / WAV / AAC
+- **图片转换工具**：转 ICO、AVIF→PNG、WebP 转换、DOM→PNG
+- **在线抠图**：浏览器端 AI 抠图与橡皮擦修图
+- **图片去黑边**：智能裁切图片多余黑边
 
-### 开发辅助工具
+### 抖音类
 
-- **依赖包命令生成**：npm 依赖包转安装命令
-- **性能监控**：实时显示页面性能数据
-- **粒子效果**：页面粒子动画效果展示
+- **抖音无水印下载**：解析并下载无水印视频
+- **抖音转链**：分享文案解析为长短链与元信息
+- **抖音 emoji**：表情相关辅助工具
+
+### 娱乐类
+
+- **IKUN 键盘**：趣味音效键盘
 
 ## 技术栈
 
-- **核心框架**: Nuxt.js 3 (基于 Vue 3 的 SSR 框架)
-- **UI 组件**:
-  - DaisyUI (导航栏、卡片布局、主题切换)
-  - Element Plus (表单控件、对话框、通知组件)
-- **样式方案**: Tailwind CSS + PostCSS (原子化样式系统)
-- **图片处理**:
-  - dom-to-image (DOM转PNG/JPG)
-  - sharp (高性能图片处理)
-- **工具库**:
-  - JSZip (前端文件压缩)
-  - file-saver (浏览器文件保存)
-  - marked (Markdown解析)
-- **代码质量**: ESLint + Prettier (代码规范)
+- **核心框架**：Nuxt 3（Vue 3）+ Nitro（目标 Node 20）
+- **UI**：Element Plus + Tailwind CSS
+- **状态管理**：Pinia（含持久化）
+- **编辑器 / 画板**：Monaco Editor、Excalidraw
+- **媒体处理**：fluent-ffmpeg / ffmpeg-static、dom-to-image、@imgly/background-removal、onnxruntime-web
+- **其它**：JSZip、file-saver、axios、dayjs、gsap
+
+## 环境变量（可选）
+
+部分 TTS / 语音能力可在服务端配置（也可在对应页面临时填写）：
+
+| 变量 | 说明 |
+| --- | --- |
+| `DASHSCOPE_API_KEY` | 阿里云百炼 API Key |
+| `DASHSCOPE_WORKSPACE_ID` | 百炼业务空间 ID（可选） |
+| `BREEZE_API_KEY` | Breeze Blue API Key |
+| `FISH_API_KEY` | Fish Audio API Key |
+| `FISH_API_BASE` | Fish Audio API 根地址（可选，国内代理） |
+| `GPTSOVITS_BASE_URL` | GPT-SoVITS api_v2 地址（默认 `http://127.0.0.1:9880`） |
 
 ## 本地开发
 
@@ -55,13 +64,16 @@
 # 安装依赖
 npm install
 
-# 启动开发服务器
+# 启动开发服务器（默认端口 3030）
 npm run dev
 
 # 构建生产版本
 npm run build
 
+# 预览构建产物
+npm run preview
+```
 
 ## 许可证
 
-[MIT License](LICENSE)```
+[MIT License](LICENSE)
