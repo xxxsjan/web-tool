@@ -55,7 +55,7 @@
 | `DASHSCOPE_WORKSPACE_ID` | 百炼业务空间 ID（可选） |
 | `BREEZE_API_KEY` | Breeze Blue API Key |
 | `FISH_API_KEY` | Fish Audio API Key |
-| `FISH_API_BASE` | Fish Audio API 根地址（可选，国内代理） |
+| `FISH_API_BASE` | Fish Audio API 根地址（可选；默认 `https://api.fish.audio`，国内不通时可填代理） |
 | `GPTSOVITS_BASE_URL` | GPT-SoVITS api_v2 地址（默认 `http://127.0.0.1:9880`） |
 
 ## 本地开发

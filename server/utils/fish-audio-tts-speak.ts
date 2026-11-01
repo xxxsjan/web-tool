@@ -16,7 +16,7 @@ import {
 } from '~/utils/fish-audio-tts';
 import { convertMp3Buffer } from './convert-audio';
 
-// 部分网络下 api.fish.audio 的 IPv6 解析异常，合成请求优先走 IPv4
+// 部分网络下官方域名 IPv6 解析异常，合成请求优先走 IPv4
 try {
   setDefaultResultOrder('ipv4first');
 } catch {
@@ -95,14 +95,14 @@ function friendlyNetworkError(err: any) {
     code === 'UND_ERR_CONNECT_TIMEOUT' ||
     /Connect Timeout/i.test(msg)
   ) {
-    return '无法连接 api.fish.audio（连接超时）。当前网络可能访问不到 Fish Audio，请检查代理/VPN 后重试';
+    return '无法连接 Fish Audio API（连接超时）。当前网络可能访问不到服务，请检查代理/VPN，或配置 FISH_API_BASE 后重试';
   }
   if (
     code === 'ENOTFOUND' ||
     code === 'EAI_AGAIN' ||
     /getaddrinfo/i.test(msg)
   ) {
-    return '无法解析 api.fish.audio 域名，请检查 DNS 或网络';
+    return '无法解析 Fish Audio API 域名，请检查 DNS 或网络';
   }
   if (
     code === 'ECONNRESET' ||

@@ -93,35 +93,39 @@
                 当前引擎需要 API Key，点击此处配置
               </button>
               <div
-                v-if="provider === 'fishaudio'"
+                v-if="provider === 'fishaudio' || provider === 'breezeblue'"
                 class="mt-2.5 flex flex-wrap items-center gap-2"
               >
                 <button
                   type="button"
                   class="tts-chip h-7 px-3 text-xs tts-chip--ghost"
-                  :disabled="busy || fishConnectivityBusy"
-                  title="检测本机到 Fish Audio API 的 DNS / TCP / HTTPS"
-                  @click="checkFishConnectivity"
+                  :disabled="busy || connectivityBusy"
+                  :title="
+                    provider === 'breezeblue'
+                      ? '检测本机到 Breeze Blue API 的 DNS / TCP / HTTPS'
+                      : '检测本机到 Fish Audio API 的 DNS / TCP / HTTPS'
+                  "
+                  @click="checkCurrentConnectivity"
                 >
                   <span
-                    v-if="fishConnectivityBusy"
+                    v-if="connectivityBusy"
                     class="tts-spinner tts-spinner--xs mr-1"
                     aria-hidden="true"
                   ></span>
-                  {{ fishConnectivityBusy ? '检测中…' : '检测连通性' }}
+                  {{ connectivityBusy ? '检测中…' : '检测连通性' }}
                 </button>
                 <span
-                  v-if="fishConnectivityTip"
+                  v-if="connectivityTip"
                   class="text-[11px] leading-snug"
                   :class="
-                    fishConnectivityOk === true
+                    connectivityOk === true
                       ? 'text-success'
-                      : fishConnectivityOk === false
+                      : connectivityOk === false
                         ? 'text-warning'
                         : 'text-base-content/45'
                   "
                 >
-                  {{ fishConnectivityTip }}
+                  {{ connectivityTip }}
                 </span>
               </div>
             </div>
@@ -505,14 +509,20 @@
                 </div>
                 <div class="flex shrink-0 items-center gap-1.5">
                   <button
-                    v-if="item.id === 'fishaudio'"
+                    v-if="item.id === 'fishaudio' || item.id === 'breezeblue'"
                     type="button"
                     class="tts-chip h-7 px-2.5 text-[11px] tts-chip--ghost"
-                    :disabled="busy || fishConnectivityBusy"
-                    title="检测本机到 Fish Audio API 的连通性"
-                    @click="checkFishConnectivity"
+                    :disabled="busy || connectivityBusyFor(item.id)"
+                    :title="
+                      item.id === 'breezeblue'
+                        ? '检测本机到 Breeze Blue API 的连通性'
+                        : '检测本机到 Fish Audio API 的连通性'
+                    "
+                    @click="checkConnectivityFor(item.id)"
                   >
-                    {{ fishConnectivityBusy ? '检测中…' : '检测连通性' }}
+                    {{
+                      connectivityBusyFor(item.id) ? '检测中…' : '检测连通性'
+                    }}
                   </button>
                   <a
                     :href="item.getKeyUrl"
@@ -995,6 +1005,30 @@ const fishApiKey = ref('');
 const fishConnectivityBusy = ref(false);
 const fishConnectivityOk = ref<boolean | null>(null);
 const fishConnectivityTip = ref('');
+const breezeConnectivityBusy = ref(false);
+const breezeConnectivityOk = ref<boolean | null>(null);
+const breezeConnectivityTip = ref('');
+
+const connectivityBusy = computed(() =>
+  provider.value === 'breezeblue'
+    ? breezeConnectivityBusy.value
+    : fishConnectivityBusy.value,
+);
+const connectivityOk = computed(() =>
+  provider.value === 'breezeblue'
+    ? breezeConnectivityOk.value
+    : fishConnectivityOk.value,
+);
+const connectivityTip = computed(() =>
+  provider.value === 'breezeblue'
+    ? breezeConnectivityTip.value
+    : fishConnectivityTip.value,
+);
+
+const connectivityBusyFor = (id: KeyPlatformId | string) =>
+  id === 'breezeblue'
+    ? breezeConnectivityBusy.value
+    : fishConnectivityBusy.value;
 const audioEl = ref<HTMLAudioElement | null>(null);
 const waveCanvas = ref<HTMLCanvasElement | null>(null);
 const lastAudioBlob = ref<Blob | null>(null);
@@ -1920,6 +1954,10 @@ const switchProvider = async (next: TtsProvider) => {
     fishConnectivityTip.value = '';
     fishConnectivityOk.value = null;
   }
+  if (next !== 'breezeblue') {
+    breezeConnectivityTip.value = '';
+    breezeConnectivityOk.value = null;
+  }
   closeVoiceDialog();
 
   const trimmed = text.value.trim();
@@ -2063,7 +2101,7 @@ watch(hasFishKey, hasKey => {
   }
 });
 
-type FishConnectivityResponse = {
+type ProviderConnectivityResponse = {
   ok: boolean;
   message: string;
   dns?: { ok: boolean; ms: number; addresses?: string[]; error?: string };
@@ -2071,34 +2109,58 @@ type FishConnectivityResponse = {
   https?: { ok: boolean; ms: number; status?: number; error?: string };
 };
 
-const checkFishConnectivity = async () => {
-  if (fishConnectivityBusy.value) return;
-  fishConnectivityBusy.value = true;
-  fishConnectivityOk.value = null;
-  fishConnectivityTip.value = '正在检测 DNS / TCP / HTTPS…';
+const runConnectivityCheck = async (target: 'fishaudio' | 'breezeblue') => {
+  const busyRef =
+    target === 'breezeblue' ? breezeConnectivityBusy : fishConnectivityBusy;
+  const okRef =
+    target === 'breezeblue' ? breezeConnectivityOk : fishConnectivityOk;
+  const tipRef =
+    target === 'breezeblue' ? breezeConnectivityTip : fishConnectivityTip;
+  const endpoint =
+    target === 'breezeblue'
+      ? '/api/breezeblue-tts/connectivity'
+      : '/api/fish-audio-tts/connectivity';
+  const unreachable =
+    target === 'breezeblue' ? 'Breeze Blue 不可达' : 'Fish Audio 不可达';
+
+  if (busyRef.value) return;
+  busyRef.value = true;
+  okRef.value = null;
+  tipRef.value = '正在检测 DNS / TCP / HTTPS…';
   errorMessage.value = '';
   try {
-    const data = await $fetch<FishConnectivityResponse>(
-      '/api/fish-audio-tts/connectivity',
-    );
-    fishConnectivityOk.value = !!data?.ok;
-    fishConnectivityTip.value = data?.message || (data?.ok ? '可达' : '不可达');
+    const data = await $fetch<ProviderConnectivityResponse>(endpoint);
+    okRef.value = !!data?.ok;
+    tipRef.value = data?.message || (data?.ok ? '可达' : '不可达');
     if (data?.ok) {
       statusTip.value = data.message;
       errorMessage.value = '';
     } else {
       statusTip.value = '';
-      errorMessage.value = data?.message || 'Fish Audio 不可达';
+      errorMessage.value = data?.message || unreachable;
     }
   } catch (e: any) {
-    fishConnectivityOk.value = false;
+    okRef.value = false;
     const msg = e?.data?.message || e?.message || '连通性检测失败';
-    fishConnectivityTip.value = msg;
+    tipRef.value = msg;
     errorMessage.value = msg;
     statusTip.value = '';
   } finally {
-    fishConnectivityBusy.value = false;
+    busyRef.value = false;
   }
+};
+
+const checkFishConnectivity = () => runConnectivityCheck('fishaudio');
+const checkBreezeConnectivity = () => runConnectivityCheck('breezeblue');
+
+const checkCurrentConnectivity = () => {
+  if (provider.value === 'breezeblue') return checkBreezeConnectivity();
+  if (provider.value === 'fishaudio') return checkFishConnectivity();
+};
+
+const checkConnectivityFor = (id: KeyPlatformId | string) => {
+  if (id === 'breezeblue') return checkBreezeConnectivity();
+  if (id === 'fishaudio') return checkFishConnectivity();
 };
 
 const revokeUrl = () => {

@@ -23,6 +23,7 @@ export type FishAudioExportFormatConfig = {
   ext: string;
 };
 
+/** 官方 API；国内直连若 DNS 污染/超时，可用 FISH_API_BASE 覆盖为可访问代理 */
 export const FISH_AUDIO_API_BASE = 'https://api.fish.audio';
 
 /** 规范化 API 根地址，去掉末尾斜杠 */
