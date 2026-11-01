@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream';
 import {
   BREEZEBLUE_API_BASE,
   BREEZEBLUE_MAX_TEXT_LEN,
@@ -21,6 +22,28 @@ type BreezeErrorBody = {
   meta?: { retry_after_seconds?: number };
 };
 
+type BreezeStreamWireFormat = 'pcm' | 'mp3' | 'wav';
+
+type BreezeSpeakOptions = {
+  text: string;
+  voice: string;
+  rate?: number;
+  format?: BreezeBlueExportFormat | string;
+  /** 流式线路格式；朗读请用 pcm（官方默认，首包更快） */
+  streamFormat?: BreezeStreamWireFormat | string;
+  apiKey: string;
+  languageCode?: string;
+  timeoutMs?: number;
+};
+
+type BreezeStreamResult = {
+  stream: Readable;
+  mime: string;
+  ext: string;
+  format: string;
+  streamFormat: BreezeStreamWireFormat;
+};
+
 function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms));
 }
@@ -30,6 +53,29 @@ function resolveModelId(languageCode?: string) {
   // 文档：显式 en/zh 选 breeze-tts-2；其它或省略选 multilingual
   if (lang === 'zh' || lang === 'en') return 'breeze-tts-2';
   return 'breeze-tts-2-multilingual';
+}
+
+/** 流式接口 output_format：pcm / mp3 / wav（与非流式 wav_24000 不同） */
+function resolveStreamOutputFormat(
+  formatConfig: ReturnType<typeof getBreezeBlueExportFormat>,
+  prefer?: string,
+): BreezeStreamWireFormat {
+  const p = String(prefer || '').trim().toLowerCase();
+  if (p === 'pcm' || p === 'mp3' || p === 'wav') return p;
+  // 下载默认跟导出格式；朗读应显式传 pcm
+  return formatConfig.value === 'wav' ? 'wav' : 'mp3';
+}
+
+function streamMime(streamFormat: BreezeStreamWireFormat) {
+  if (streamFormat === 'wav') return 'audio/wav';
+  if (streamFormat === 'pcm') return 'application/octet-stream';
+  return 'audio/mpeg';
+}
+
+function streamExt(streamFormat: BreezeStreamWireFormat) {
+  if (streamFormat === 'wav') return 'wav';
+  if (streamFormat === 'pcm') return 'pcm';
+  return 'mp3';
 }
 
 function parseErrorBody(raw: string): BreezeErrorBody | null {
@@ -122,45 +168,18 @@ function retryDelayMs(attempt: number, response: Response, json: BreezeErrorBody
   return base + jitter;
 }
 
-/**
- * 服务端转发 Breeze Blue TTS，返回完整音频 Buffer。
- * 按官方错误文档对 429/5xx 做有限次重试。
- * @see https://docs.breezeblue.ai/reference/errors
- * @see https://docs.breezeblue.ai/guides/text-to-speech
- */
-export async function synthesizeBreezeBlueTtsServer(options: {
-  text: string;
-  voice: string;
-  rate?: number;
-  format?: BreezeBlueExportFormat | string;
-  apiKey: string;
-  languageCode?: string;
-  timeoutMs?: number;
-}): Promise<{ audio: Buffer; mime: string; ext: string; format: string }> {
-  const {
-    text,
-    voice,
-    rate = 1,
-    format = 'mp3',
-    apiKey,
-    languageCode = 'zh',
-    timeoutMs = 120000,
-  } = options;
+function assertBreezeSpeakOptions(options: BreezeSpeakOptions) {
+  const trimmed = String(options.text || '').trim();
+  const key = String(options.apiKey || '').trim();
+  const voiceId = String(options.voice || '').trim();
+  const formatConfig = getBreezeBlueExportFormat(options.format);
+  const languageCode = String(options.languageCode || 'zh').trim() || 'zh';
 
-  const trimmed = text.trim();
-  const key = apiKey.trim();
-  const voiceId = voice.trim();
-  const formatConfig = getBreezeBlueExportFormat(format);
-
-  if (!trimmed) {
-    throw new Error('文本为空');
-  }
+  if (!trimmed) throw new Error('文本为空');
   if (trimmed.length > BREEZEBLUE_MAX_TEXT_LEN) {
     throw new Error(`文本过长，最多 ${BREEZEBLUE_MAX_TEXT_LEN} 字`);
   }
-  if (!key) {
-    throw new Error('未配置 Breeze Blue API Key');
-  }
+  if (!key) throw new Error('未配置 Breeze Blue API Key');
   if (!isBreezeBlueVoiceId(voiceId)) {
     throw new Error(`不支持的 Breeze Blue 音色：${voiceId || '(空)'}`);
   }
@@ -168,9 +187,30 @@ export async function synthesizeBreezeBlueTtsServer(options: {
   // 内置表外的 voc_* 也允许（账号自有音色）；内置项仅作展示兜底
   void getBreezeBlueVoice(voiceId);
 
-  const speed = clampBreezeBlueSpeed(rate);
+  return { trimmed, key, voiceId, formatConfig, languageCode };
+}
+
+/**
+ * 打开 Breeze Blue 官方流式合成接口，成功时返回上游 Response（body 为音频流）。
+ * @see https://docs.breezeblue.ai/api-reference/text-to-speech/stream-text-to-speech
+ */
+async function openBreezeBlueStreamResponse(
+  options: BreezeSpeakOptions,
+): Promise<{
+  response: Response;
+  formatConfig: ReturnType<typeof getBreezeBlueExportFormat>;
+  streamFormat: BreezeStreamWireFormat;
+}> {
+  const { trimmed, key, voiceId, formatConfig, languageCode } =
+    assertBreezeSpeakOptions(options);
+  const timeoutMs = options.timeoutMs ?? 120000;
+  const speed = clampBreezeBlueSpeed(options.rate ?? 1);
   const modelId = resolveModelId(languageCode);
-  const url = `${BREEZEBLUE_API_BASE}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${encodeURIComponent(formatConfig.apiFormat)}`;
+  const streamFormat = resolveStreamOutputFormat(
+    formatConfig,
+    options.streamFormat,
+  );
+  const url = `${BREEZEBLUE_API_BASE}/text-to-speech/${encodeURIComponent(voiceId)}/stream?output_format=${encodeURIComponent(streamFormat)}`;
   const body = JSON.stringify({
     text: trimmed,
     model_id: modelId,
@@ -201,6 +241,7 @@ export async function synthesizeBreezeBlueTtsServer(options: {
         signal: controller.signal,
       });
     } catch (err: any) {
+      clearTimeout(timer);
       if (err?.name === 'AbortError') {
         lastError = 'Breeze Blue 合成超时，请稍后重试';
       } else {
@@ -211,25 +252,17 @@ export async function synthesizeBreezeBlueTtsServer(options: {
         continue;
       }
       throw new Error(lastError);
-    } finally {
-      clearTimeout(timer);
     }
 
+    // 成功后由调用方消费 body；此处不再 clearTimeout 以免长流被中断——
+    // 用 response 完成后的 finally 由消费侧管理。改为：成功则解除 abort 计时。
+    clearTimeout(timer);
+
     if (response.ok) {
-      const ab = await response.arrayBuffer();
-      let audio = Buffer.from(ab);
-      if (!audio.length) {
-        throw new Error('Breeze Blue 返回空音频');
+      if (!response.body) {
+        throw new Error('Breeze Blue 未返回音频流');
       }
-      if (formatConfig.value === 'ogg') {
-        audio = await convertMp3Buffer(audio, 'ogg');
-      }
-      return {
-        audio,
-        mime: formatConfig.mime,
-        ext: formatConfig.ext,
-        format: formatConfig.value,
-      };
+      return { response, formatConfig, streamFormat };
     }
 
     const raw = await response.text().catch(() => '');
@@ -256,4 +289,62 @@ export async function synthesizeBreezeBlueTtsServer(options: {
   }
 
   throw new Error(lastError);
+}
+
+function webStreamToNode(stream: ReadableStream<Uint8Array>): Readable {
+  return Readable.fromWeb(stream as import('node:stream/web').ReadableStream);
+}
+
+/**
+ * 流式转发：返回 Node Readable，供 sendStream 边收边写。
+ * ogg 需整段转码，请改用 synthesizeBreezeBlueTtsServer。
+ */
+export async function streamBreezeBlueTtsServer(
+  options: BreezeSpeakOptions,
+): Promise<BreezeStreamResult> {
+  const formatConfig = getBreezeBlueExportFormat(options.format);
+  const prefer = String(options.streamFormat || '').toLowerCase();
+  // ogg 导出仍需整段；但朗读 pcm 不受导出格式限制
+  if (formatConfig.value === 'ogg' && prefer !== 'pcm') {
+    throw new Error('OGG 需整段转码，请使用非流式合成');
+  }
+
+  const { response, streamFormat } = await openBreezeBlueStreamResponse(options);
+  const webBody = response.body;
+  if (!webBody) {
+    throw new Error('Breeze Blue 未返回音频流');
+  }
+
+  return {
+    stream: webStreamToNode(webBody),
+    mime: streamMime(streamFormat),
+    ext: streamExt(streamFormat),
+    format: streamFormat === 'pcm' ? 'wav' : formatConfig.value,
+    streamFormat,
+  };
+}
+
+/**
+ * 服务端转发 Breeze Blue TTS，返回完整音频 Buffer（下载 / ogg 转码 / 试听兜底）。
+ * 内部走官方 /stream 接口收齐后再返回。
+ */
+export async function synthesizeBreezeBlueTtsServer(
+  options: BreezeSpeakOptions,
+): Promise<{ audio: Buffer; mime: string; ext: string; format: string }> {
+  const formatConfig = getBreezeBlueExportFormat(options.format);
+  const { response } = await openBreezeBlueStreamResponse(options);
+  const ab = await response.arrayBuffer();
+  let audio = Buffer.from(ab);
+  if (!audio.length) {
+    throw new Error('Breeze Blue 返回空音频');
+  }
+  if (formatConfig.value === 'ogg') {
+    audio = await convertMp3Buffer(audio, 'ogg');
+  }
+  return {
+    audio,
+    mime: formatConfig.mime,
+    ext: formatConfig.ext,
+    format: formatConfig.value,
+  };
 }

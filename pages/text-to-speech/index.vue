@@ -177,7 +177,9 @@
                 :disabled="busy"
               ></textarea>
             </div>
+          </div>
 
+          <div class="space-y-4">
             <!-- 音色入口 -->
             <div>
               <div class="mb-2 flex items-center justify-between gap-2">
@@ -224,9 +226,7 @@
                 <span class="shrink-0 text-xs font-medium text-primary">更换</span>
               </button>
             </div>
-          </div>
 
-          <div class="space-y-4">
             <!-- 播放参数 -->
             <div class="rounded-xl border border-app bg-base-200/30 p-3.5">
               <p class="mb-3 text-sm font-medium text-base-content/70">播放参数</p>
@@ -1148,18 +1148,26 @@ const ensureVoiceSelection = (list: TtsVoice[]) => {
 
 let objectUrl = '';
 let aborting = false;
+/** 朗读 / 流式请求中断 */
+let speakAbort: AbortController | null = null;
 let audioCtx: AudioContext | null = null;
 let gainNode: GainNode | null = null;
 let analyserNode: AnalyserNode | null = null;
 let mediaSource: MediaElementAudioSourceNode | null = null;
 let waveRaf = 0;
 let freqData: Uint8Array | null = null;
+/** Breeze Blue PCM 流式播放状态（24kHz / s16le / mono） */
+const BREEZE_PCM_RATE = 24000;
+let pcmStreamActive = false;
+let pcmNextTime = 0;
+let pcmPending = new Uint8Array(0);
+let pcmSources: AudioBufferSourceNode[] = [];
+let pcmEndTimer = 0;
 
 const BAR_COUNT = 48;
 
-const ensureAudioGraph = () => {
-  const el = audioEl.value;
-  if (!el || typeof window === 'undefined') return;
+const ensureGainGraph = () => {
+  if (typeof window === 'undefined') return;
 
   const Ctx =
     window.AudioContext ||
@@ -1181,13 +1189,104 @@ const ensureAudioGraph = () => {
     analyserNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
   }
+};
+
+const ensureAudioGraph = () => {
+  const el = audioEl.value;
+  if (!el || typeof window === 'undefined') return;
+
+  ensureGainGraph();
   // createMediaElementSource 每个 audio 元素只能调用一次
-  if (!mediaSource) {
+  if (!mediaSource && audioCtx && analyserNode) {
     mediaSource = audioCtx.createMediaElementSource(el);
     mediaSource.connect(analyserNode);
     // 音量改由 GainNode 控制，元素本身固定满幅
     el.volume = 1;
   }
+};
+
+const stopPcmPlayback = () => {
+  if (pcmEndTimer) {
+    clearTimeout(pcmEndTimer);
+    pcmEndTimer = 0;
+  }
+  for (const src of pcmSources) {
+    try {
+      src.onended = null;
+      src.stop();
+    } catch {
+      /* ignore */
+    }
+    try {
+      src.disconnect();
+    } catch {
+      /* ignore */
+    }
+  }
+  pcmSources = [];
+  pcmNextTime = 0;
+  pcmPending = new Uint8Array(0);
+  pcmStreamActive = false;
+};
+
+const concatUint8 = (a: Uint8Array, b: Uint8Array) => {
+  if (!a.byteLength) return b;
+  if (!b.byteLength) return a;
+  const out = new Uint8Array(a.byteLength + b.byteLength);
+  out.set(a, 0);
+  out.set(b, a.byteLength);
+  return out;
+};
+
+/** 原始 s16le PCM → 可下载的 WAV Blob */
+const buildWavFromPcm = (pcm: Uint8Array, sampleRate = BREEZE_PCM_RATE) => {
+  const dataSize = pcm.byteLength;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  const writeStr = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  };
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  view.setUint32(40, dataSize, true);
+  new Uint8Array(buffer, 44).set(pcm);
+  return new Blob([buffer], { type: 'audio/wav' });
+};
+
+const schedulePcmChunk = (int16: Int16Array) => {
+  if (!int16.length) return;
+  ensureGainGraph();
+  if (!audioCtx || !analyserNode) return;
+
+  const f32 = new Float32Array(int16.length);
+  for (let i = 0; i < int16.length; i++) {
+    f32[i] = int16[i] / 32768;
+  }
+  const buf = audioCtx.createBuffer(1, f32.length, BREEZE_PCM_RATE);
+  buf.copyToChannel(f32, 0);
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(analyserNode);
+  const startAt = Math.max(audioCtx.currentTime + 0.03, pcmNextTime);
+  src.start(startAt);
+  pcmNextTime = startAt + buf.duration;
+  pcmSources.push(src);
+  src.onended = () => {
+    pcmSources = pcmSources.filter(s => s !== src);
+  };
 };
 
 const getWaveColor = () => {
@@ -1296,7 +1395,8 @@ const applyVolume = (pct = volume.value) => {
 };
 
 const resumeAudioCtx = async () => {
-  ensureAudioGraph();
+  if (audioEl.value) ensureAudioGraph();
+  else ensureGainGraph();
   if (audioCtx && audioCtx.state === 'suspended') {
     await audioCtx.resume();
   }
@@ -2011,6 +2111,13 @@ const revokeUrl = () => {
 /** 仅停止播放，保留已合成音频供下载 */
 const stop = () => {
   aborting = true;
+  try {
+    speakAbort?.abort();
+  } catch {
+    /* ignore */
+  }
+  speakAbort = null;
+  stopPcmPlayback();
   const el = audioEl.value;
   if (el) {
     el.pause();
@@ -2023,6 +2130,148 @@ const stop = () => {
   playing.value = false;
   paused.value = false;
   drawWaveFrame(false);
+};
+
+const readStreamErrorMessage = async (res: Response, fallback: string) => {
+  try {
+    const text = await res.text();
+    if (!text) return fallback;
+    try {
+      const json = JSON.parse(text) as { message?: string; statusMessage?: string };
+      return String(json.message || json.statusMessage || fallback);
+    } catch {
+      return text.slice(0, 240) || fallback;
+    }
+  } catch {
+    return fallback;
+  }
+};
+
+/**
+ * Breeze Blue 低延迟流式播放：官方默认 PCM（24kHz s16le），
+ * 用 Web Audio 排队播放，首包即可出声；收齐后封成 WAV 供下载缓存。
+ */
+const playBreezeBluePcmStream = async (
+  response: Response,
+  signal: AbortSignal,
+): Promise<Blob> => {
+  if (!response.body) throw new Error('未返回音频流');
+
+  stopPcmPlayback();
+  pcmStreamActive = true;
+  ensureGainGraph();
+  await resumeAudioCtx();
+  applyVolume();
+
+  const reader = response.body.getReader();
+  const pcmChunks: Uint8Array[] = [];
+  let started = false;
+
+  const feed = (bytes: Uint8Array) => {
+    if (!bytes.byteLength) return;
+    const copy = bytes.slice();
+    pcmChunks.push(copy);
+    const merged = concatUint8(pcmPending, copy);
+    const even = merged.byteLength - (merged.byteLength % 2);
+    if (even <= 0) {
+      pcmPending = merged;
+      return;
+    }
+    pcmPending = merged.slice(even);
+    // 拷到独立 buffer，保证 Int16Array 按偶数字节对齐
+    const aligned = merged.slice(0, even);
+    const int16 = new Int16Array(
+      aligned.buffer,
+      aligned.byteOffset,
+      aligned.byteLength / 2,
+    );
+    schedulePcmChunk(int16);
+
+    if (!started) {
+      started = true;
+      playing.value = true;
+      paused.value = false;
+      busy.value = false;
+      busyMode.value = '';
+      startWaveLoop();
+    }
+  };
+
+  try {
+    while (true) {
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value?.byteLength) feed(value);
+    }
+  } catch (e) {
+    try {
+      await reader.cancel();
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  }
+
+  if (pcmPending.byteLength) {
+    // 丢弃末尾半个采样，保持对齐
+    pcmPending = new Uint8Array(0);
+  }
+
+  const totalLen = pcmChunks.reduce((n, c) => n + c.byteLength, 0);
+  if (!totalLen) throw new Error('Breeze Blue 返回空音频');
+  const pcmAll = new Uint8Array(totalLen);
+  let offset = 0;
+  for (const c of pcmChunks) {
+    pcmAll.set(c, offset);
+    offset += c.byteLength;
+  }
+  // 保证偶数字节
+  const evenAll =
+    pcmAll.byteLength % 2 === 0
+      ? pcmAll
+      : pcmAll.slice(0, pcmAll.byteLength - 1);
+  const wavBlob = buildWavFromPcm(evenAll);
+
+  if (!started) {
+    // 极端情况：整段极短，补一次调度
+    const int16 = new Int16Array(
+      evenAll.buffer,
+      evenAll.byteOffset,
+      evenAll.byteLength / 2,
+    );
+    schedulePcmChunk(int16);
+    playing.value = true;
+    paused.value = false;
+    startWaveLoop();
+  }
+
+  // 等排程播完再清状态
+  if (audioCtx && pcmNextTime > audioCtx.currentTime) {
+    const waitMs = Math.ceil((pcmNextTime - audioCtx.currentTime) * 1000) + 40;
+    await new Promise<void>(resolve => {
+      if (pcmEndTimer) clearTimeout(pcmEndTimer);
+      pcmEndTimer = window.setTimeout(() => {
+        pcmEndTimer = 0;
+        resolve();
+      }, waitMs) as unknown as number;
+      const onAbort = () => {
+        if (pcmEndTimer) clearTimeout(pcmEndTimer);
+        pcmEndTimer = 0;
+        resolve();
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
+    });
+  }
+
+  if (!aborting && !signal.aborted) {
+    playing.value = false;
+    paused.value = false;
+    pcmStreamActive = false;
+    drawWaveFrame(false);
+  }
+
+  return wavBlob;
 };
 
 const buildFileName = () => {
@@ -2126,6 +2375,7 @@ const synthesize = async (
       }
       const formatConfig = getBreezeBlueExportFormat(format);
       resolvedFormat = formatConfig.value;
+      // 下载仍收齐完整文件；服务端 mp3/wav 走上游 /stream 代理
       blob = await $fetch<Blob>('/api/breezeblue-tts/speak', {
         method: 'POST',
         body: {
@@ -2135,6 +2385,7 @@ const synthesize = async (
           format: formatConfig.value,
           languageCode: 'zh',
           apiKey,
+          stream: formatConfig.value !== 'ogg',
         },
         responseType: 'blob',
       });
@@ -2206,12 +2457,28 @@ const onAudioEnded = () => {
   drawWaveFrame(false);
 };
 
-const pause = () => {
+const pause = async () => {
+  if (pcmStreamActive && audioCtx) {
+    try {
+      await audioCtx.suspend();
+      paused.value = true;
+      drawWaveFrame(false);
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
   audioEl.value?.pause();
 };
 const resume = async () => {
   try {
     await resumeAudioCtx();
+    if (pcmStreamActive && audioCtx) {
+      paused.value = false;
+      playing.value = true;
+      startWaveLoop();
+      return;
+    }
     await audioEl.value?.play();
   } catch {
     errorMessage.value = '播放失败，请重试';
@@ -2222,7 +2489,7 @@ const toggleSpeak = async () => {
   if (busy.value && busyMode.value === 'speak') return;
 
   if (playing.value && !paused.value) {
-    pause();
+    await pause();
     return;
   }
   if (paused.value) {
@@ -2241,9 +2508,59 @@ const speakText = async (content: string) => {
   busy.value = true;
   busyMode.value = 'speak';
   errorMessage.value = '';
-  statusTip.value = '正在合成语音…';
+
+  const meta = selectedMeta.value;
+  const voiceTip = meta ? voiceTitle(meta) : selectedVoice.value;
 
   try {
+    // Breeze Blue：官方 /stream + PCM，降低首包延迟
+    if (provider.value === 'breezeblue') {
+      const apiKey = breezeApiKey.value.trim();
+      if (!apiKey) throw new Error('请填写 Breeze Blue API Key');
+
+      statusTip.value = '正在流式合成…';
+      speakAbort = new AbortController();
+      const signal = speakAbort.signal;
+
+      const res = await fetch('/api/breezeblue-tts/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: trimmed,
+          voice: selectedVoice.value,
+          rate: rate.value,
+          format: 'wav',
+          languageCode: 'zh',
+          apiKey,
+          stream: true,
+          streamFormat: 'pcm',
+        }),
+        signal,
+      });
+
+      if (!res.ok) {
+        throw new Error(
+          await readStreamErrorMessage(res, 'Breeze Blue 流式合成失败'),
+        );
+      }
+
+      statusTip.value = `正在流式播放 · ${voiceTip}`;
+      const blob = await playBreezeBluePcmStream(res, signal);
+      if (aborting) return;
+
+      lastAudioBlob.value = blob;
+      lastAudioMeta.value = {
+        provider: 'breezeblue',
+        text: trimmed,
+        voice: selectedVoice.value,
+        rate: rate.value,
+        format: 'wav',
+      };
+      statusTip.value = '';
+      return;
+    }
+
+    statusTip.value = '正在合成语音…';
     const { blob } = await synthesize(trimmed, 'mp3');
     if (aborting) return;
 
@@ -2257,14 +2574,14 @@ const speakText = async (content: string) => {
     await resumeAudioCtx();
     applyVolume();
     await el.play();
-    const meta = selectedMeta.value;
-    statusTip.value = `正在播放 · ${meta ? voiceTitle(meta) : selectedVoice.value}`;
+    statusTip.value = `正在播放 · ${voiceTip}`;
   } catch (e: any) {
-    if (!aborting) {
+    if (!aborting && e?.name !== 'AbortError') {
       errorMessage.value = e?.message || '合成失败，请检查网络后重试';
       statusTip.value = '';
     }
   } finally {
+    speakAbort = null;
     busy.value = false;
     busyMode.value = '';
   }
