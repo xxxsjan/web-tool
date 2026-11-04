@@ -30,10 +30,10 @@
             @click="goTool(item.path)"
           >
             <span class="tool-tile__icon" aria-hidden="true">
-              <ToolIcon
+              <ToolOutlineIcon
                 :name="item.icon"
-                :size="'3.25rem'"
-                class="tool-tile__svg"
+                box="w-12 h-12"
+                size="h-6 w-6"
               />
             </span>
             <span class="tool-tile__label">{{ item.label }}</span>
@@ -251,19 +251,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  background: none;
-  border: none;
-  box-shadow: none;
   transition: transform 0.28s var(--ios-spring);
-}
-
-@media (min-width: 768px) {
-  .tool-tile__icon {
-    width: 3.6rem;
-    height: 3.6rem;
-  }
 }
 
 .tool-tile:hover .tool-tile__icon {
@@ -272,23 +260,6 @@ onUnmounted(() => {
 
 .tool-tile:active .tool-tile__icon {
   transform: scale(0.94);
-}
-
-.tool-tile__svg {
-  width: 3.25rem !important;
-  height: 3.25rem !important;
-}
-
-@media (min-width: 768px) {
-  .tool-tile__svg {
-    width: 3.6rem !important;
-    height: 3.6rem !important;
-  }
-}
-
-.tool-tile__svg :deep(svg) {
-  width: 100%;
-  height: 100%;
 }
 
 .tool-tile__label {
