@@ -27,9 +27,12 @@
       </div>
     </div>
 
-    <p class="enter-hint">
-      <span class="enter-hint__text">点击进入</span>
-    </p>
+    <ClientOnly>
+      <!-- LeiBox 立体按压按钮（见 components/leibox/README.md），点击事件冒泡至 Welcome 根节点触发进入 -->
+      <div class="enter-button">
+        <LeiboxTactilePushButton :options="{ height: 180 }" />
+      </div>
+    </ClientOnly>
 
     <p v-if="deployedLabel" class="deploy-meta" title="本次构建写入的部署时间">
       部署于 {{ deployedLabel }}
@@ -147,26 +150,14 @@ onMounted(() => {
   animation: colon-blink 2s ease-in-out infinite;
 }
 
-.enter-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.enter-hint__text {
-  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
-  letter-spacing: 0.45em;
-  text-indent: 0.45em;
-  color: rgba(255, 255, 255, 0.72);
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
-  animation: enter-fade 2.4s ease-in-out infinite;
+.enter-button {
+  /* CSS 变量可穿透 Shadow DOM，缩放 LeiBox 立体按钮的字号基准 */
+  --button-font-size: clamp(26px, 5vw, 44px);
+  line-height: 0;
 }
 
 .deploy-meta {
-  /* 紧贴「点击进入」，抵消 welcome-clock 较大的纵向间距 */
-  margin: calc(-1 * clamp(1.6rem, 3.2vw, 2.5rem)) 0 0;
+  margin: 0;
   font-size: clamp(0.68rem, 1vw, 0.78rem);
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.38);
@@ -188,30 +179,6 @@ onMounted(() => {
   }
 
   50% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes enter-fade {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes enter-float {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.35;
-  }
-
-  50% {
-    transform: translateY(6px);
     opacity: 0.8;
   }
 }

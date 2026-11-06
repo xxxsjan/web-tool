@@ -13,7 +13,11 @@
         ref="snakeRef"
         class="home-snake"
         :style="{ '--cols': String(cols) }"
+        @pointermove="onSnakePointerMove"
+        @pointerleave="onSnakePointerLeave"
       >
+        <!-- 柔光跟随层：技术取自 LeiBox gradient-cover-wall 的 soft-light 实现 -->
+        <span class="snake-glow" aria-hidden="true" />
         <div
           v-for="(row, rowIndex) in snakeRows"
           :key="rowIndex"
@@ -44,6 +48,21 @@
       <p v-else class="home-empty">
         暂无已注册工具
       </p>
+
+      <section class="home-lab">
+        <h2 class="home-lab__title">视觉实验</h2>
+        <p class="home-lab__sub">
+          点阵波纹与旋涡 · 来源
+          <a
+            href="https://leibox.pantoria.cn/docs/animations/dot-matrix-trio"
+            target="_blank"
+            rel="noopener noreferrer"
+          >LeiBox</a>（仅供学习使用，点击海报可暂停）
+        </p>
+        <ClientOnly>
+          <LeiboxDotMatrixTrio />
+        </ClientOnly>
+      </section>
     </div>
   </div>
 </template>
@@ -104,9 +123,82 @@ const bindSnakeObserver = (el: HTMLElement | null) => {
 
 watch(snakeRef, bindSnakeObserver, { flush: 'post', immediate: true });
 
+/* —— 柔光跟随（技术参考 LeiBox gradient-cover-wall，阻尼弹簧平滑光强） —— */
+const GLOW_OMEGA = Math.sqrt(70);
+const GLOW_DAMPING = 0.86;
+const GLOW_DECAY = GLOW_DAMPING * GLOW_OMEGA;
+const GLOW_FREQUENCY = GLOW_OMEGA * Math.sqrt(1 - GLOW_DAMPING * GLOW_DAMPING);
+
+const glow = { light: 0, vl: 0, tl: 0 };
+let glowFrame = 0;
+let glowLast = 0;
+
+const glowSpring = (value, velocity, target, dt) => {
+  const offset = value - target;
+  const fade = Math.exp(-GLOW_DECAY * dt);
+  const c = Math.cos(GLOW_FREQUENCY * dt);
+  const s = Math.sin(GLOW_FREQUENCY * dt);
+  return [
+    target + fade * (offset * c + ((velocity + GLOW_DECAY * offset) / GLOW_FREQUENCY) * s),
+    fade * (velocity * c - (GLOW_DECAY * velocity + GLOW_DECAY * GLOW_DECAY * offset) / GLOW_FREQUENCY * s),
+  ];
+};
+
+const glowPaint = () => {
+  const el = snakeRef.value;
+  if (!el) return;
+  el.style.setProperty('--shine', Math.max(0, Math.min(1, glow.light)).toFixed(4));
+};
+
+const glowTick = (now: number) => {
+  glowFrame = 0;
+  const dt = glowLast ? Math.min((now - glowLast) / 1000, 0.05) : 1 / 60;
+  glowLast = now;
+  const [light, vl] = glowSpring(glow.light, glow.vl, glow.tl, dt);
+  glow.light = light;
+  glow.vl = vl;
+  const settled = Math.abs(light - glow.tl) + Math.abs(vl) < 0.003;
+  if (settled) {
+    glow.light = glow.tl;
+    glow.vl = 0;
+    glowPaint();
+    glowLast = 0;
+    return;
+  }
+  glowPaint();
+  glowFrame = requestAnimationFrame(glowTick);
+};
+
+const glowWake = () => {
+  if (!glowFrame && typeof requestAnimationFrame === 'function') {
+    glowLast = 0;
+    glowFrame = requestAnimationFrame(glowTick);
+  }
+};
+
+const onSnakePointerMove = (event: PointerEvent) => {
+  const el = snakeRef.value;
+  if (!el || event.pointerType === 'touch') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const rect = el.getBoundingClientRect();
+  const px = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  const py = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+  el.style.setProperty('--glow-x', `${(px * 100).toFixed(2)}%`);
+  el.style.setProperty('--glow-y', `${(py * 100).toFixed(2)}%`);
+  glow.tl = 1;
+  glowWake();
+};
+
+const onSnakePointerLeave = () => {
+  glow.tl = 0;
+  glowWake();
+};
+
 onUnmounted(() => {
   resizeObserver?.disconnect();
   resizeObserver = null;
+  if (glowFrame) cancelAnimationFrame(glowFrame);
+  glowFrame = 0;
 });
 </script>
 
@@ -187,6 +279,10 @@ onUnmounted(() => {
 /* —— 蛇形连续排布 —— */
 .home-snake {
   --cols: 4;
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --shine: 0;
+  position: relative;
   border-radius: 1.35rem;
   border: 1px solid color-mix(in oklab, var(--color-base-content) 8%, transparent);
   background: color-mix(in oklab, var(--color-base-100) 72%, transparent);
@@ -196,6 +292,23 @@ onUnmounted(() => {
   backdrop-filter: saturate(180%) blur(22px);
   -webkit-backdrop-filter: saturate(180%) blur(22px);
   padding: 0.95rem 0.55rem 1.05rem;
+}
+
+/* 柔光跟随层（技术参考 LeiBox gradient-cover-wall 的 soft-light 实现） */
+.snake-glow {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  opacity: var(--shine);
+  background: radial-gradient(
+    circle at var(--glow-x) var(--glow-y),
+    rgb(255 255 255 / 0.25),
+    rgb(255 255 255 / 0.07) 22%,
+    transparent 52%
+  );
+  mix-blend-mode: soft-light;
 }
 
 @media (min-width: 640px) {
@@ -283,6 +396,39 @@ onUnmounted(() => {
     max-width: 6rem;
     font-size: 0.92rem;
   }
+}
+
+/* —— LeiBox 视觉实验展示区 —— */
+.home-lab {
+  margin-top: 1.5rem;
+  padding: 0.2rem 0.2rem 0;
+  animation: home-rise 0.55s var(--ios-ease) both;
+  animation-delay: 120ms;
+}
+
+.home-lab__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--color-base-content);
+}
+
+.home-lab__sub {
+  margin: 0.3rem 0 0.85rem;
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+}
+
+.home-lab__sub a {
+  color: color-mix(in oklab, var(--color-primary) 78%, var(--color-base-content));
+  text-underline-offset: 3px;
+}
+
+.home-lab :deep([data-motion-surface]) {
+  border-radius: 1.35rem;
+  overflow: hidden;
+  box-shadow: 0 12px 32px -20px rgb(0 0 0 / 0.35);
 }
 
 .home-empty {

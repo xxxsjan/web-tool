@@ -18,7 +18,9 @@
         class="flex-1 min-w-0 overflow-visible"
         aria-label="工具分组导航"
       >
-        <div class="flex flex-wrap items-center gap-0.5 py-1">
+        <div ref="navRowRef" class="nav-row relative flex flex-wrap items-center gap-0.5 py-1">
+          <!-- 滑动胶囊高亮（技术参考 LeiBox fluid-tooltip，gsap expo.out 补间） -->
+          <span ref="capsuleRef" class="nav-capsule" aria-hidden="true" />
           <div
             v-for="group in groupedTools"
             :key="group.group"
@@ -27,11 +29,11 @@
             @mouseleave="onGroupLeave"
           >
             <button
+              :ref="el => setGroupBtnRef(group.group, el)"
               type="button"
               class="btn btn-ghost btn-md h-11 gap-1.5 px-3.5 text-base font-medium"
               :class="{
-                'btn-active bg-base-200':
-                  isGroupActive(group) || openGroup === group.group,
+                'btn-active bg-base-200': isGroupActive(group),
               }"
             >
               {{ group.group }}
@@ -152,6 +154,7 @@
 
 <script setup>
 import { House, Moon, Sunny } from '@element-plus/icons-vue';
+import gsap from 'gsap';
 import { storeToRefs } from 'pinia';
 import { useThemeStore } from '~/stores/theme';
 import { useToolNav } from '~/composables/useToolNav';
@@ -170,12 +173,75 @@ let leaveTimer = 0;
 const isGroupActive = group =>
   group.list.some(item => item.path === route.path);
 
+/* —— 滑动胶囊高亮（技术参考 LeiBox fluid-tooltip：gsap expo.out 补间） —— */
+const navRowRef = ref(null);
+const capsuleRef = ref(null);
+const groupBtnRefs = new Map();
+let capsuleTween = null;
+let capsuleShown = false;
+
+const setGroupBtnRef = (name, el) => {
+  if (el) groupBtnRefs.set(name, el);
+  else groupBtnRefs.delete(name);
+};
+
+const capsulePaint = () => {
+  const capsule = capsuleRef.value;
+  if (!capsule) return;
+  const s = capsule.dataset;
+  capsule.style.transform = `translate(${s.x || 0}px, ${s.y || 0}px)`;
+  capsule.style.width = `${s.w || 0}px`;
+  capsule.style.height = `${s.h || 0}px`;
+  capsule.style.opacity = s.o || '0';
+};
+
+const capsuleShowFor = name => {
+  const row = navRowRef.value;
+  const capsule = capsuleRef.value;
+  const btn = groupBtnRefs.get(name);
+  if (!row || !capsule || !btn) return;
+  const rowRect = row.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  const first = !capsuleShown;
+  capsuleShown = true;
+  capsuleTween?.kill();
+  capsuleTween = gsap.to(capsule.dataset, {
+    x: btnRect.left - rowRect.left,
+    y: btnRect.top - rowRect.top,
+    w: btnRect.width,
+    h: btnRect.height,
+    o: 1,
+    duration: first ? 0.15 : 0.43,
+    ease: first ? 'power2.out' : 'expo.out',
+    overwrite: true,
+    onUpdate: capsulePaint,
+  });
+};
+
+const capsuleHide = () => {
+  const capsule = capsuleRef.value;
+  if (!capsule || !capsuleShown) return;
+  capsuleShown = false;
+  capsuleTween?.kill();
+  capsuleTween = gsap.to(capsule.dataset, {
+    o: 0,
+    duration: 0.15,
+    ease: 'power2.out',
+    overwrite: true,
+    onUpdate: capsulePaint,
+  });
+};
+
 const onGroupEnter = name => {
   if (leaveTimer) {
     clearTimeout(leaveTimer);
     leaveTimer = 0;
   }
-  if (locked.value) return;
+  if (locked.value) {
+    capsuleHide();
+    return;
+  }
+  capsuleShowFor(name);
   openGroup.value = name;
 };
 
@@ -184,6 +250,7 @@ const onGroupLeave = () => {
   leaveTimer = window.setTimeout(() => {
     openGroup.value = '';
     locked.value = false;
+    capsuleHide();
     leaveTimer = 0;
   }, 120);
 };
@@ -195,11 +262,13 @@ const onSelectTool = async path => {
   }
   openGroup.value = '';
   locked.value = true;
+  capsuleHide();
   await goTool(path);
 };
 
 onUnmounted(() => {
   if (leaveTimer) clearTimeout(leaveTimer);
+  capsuleTween?.kill();
 });
 
 function hashCode(str) {
@@ -235,6 +304,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* —— 滑动胶囊（技术参考 LeiBox fluid-tooltip） —— */
+.nav-capsule {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  opacity: 0;
+  will-change: transform, width, height, opacity;
+}
+
+.nav-row > div {
+  position: relative;
+  z-index: 1;
+}
+
+/* —— 下拉子菜单（一行一项的列表式） —— */
 .nav-submenu__item {
   display: flex;
   align-items: center;
@@ -284,5 +372,11 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-capsule {
+    transition: none !important;
+  }
 }
 </style>
