@@ -1,466 +1,533 @@
 <template>
   <div class="home">
-    <div class="home__wallpaper" aria-hidden="true" />
+    <header class="home-topbar" :class="{ 'is-stuck': stuck }">
+      <div class="home-topbar__inner">
+        <NuxtLink class="brand" to="/home" aria-label="tools 首页">
+          <span class="brand__mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <defs>
+                <linearGradient id="homeBrandGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#9b93ff" />
+                  <stop offset="1" stop-color="#4f46e5" />
+                </linearGradient>
+              </defs>
+              <rect width="32" height="32" rx="9" fill="url(#homeBrandGrad)" />
+              <rect x="7.5" y="8.5" width="17" height="4.2" rx="2.1" fill="#fff" />
+              <rect x="13.4" y="12.7" width="5.2" height="11" rx="2.6" fill="#fff" />
+            </svg>
+          </span>
+          <span class="brand__name">tools</span>
+          <span class="brand__count">{{ toolList.length }}</span>
+        </NuxtLink>
 
-    <div class="home__inner">
-      <header class="home-hero">
-        <h1 class="home-hero__title">工具</h1>
-        <p class="home-hero__sub">选择要使用的功能</p>
-      </header>
-
-      <div
-        v-if="toolList.length"
-        ref="snakeRef"
-        class="home-snake"
-        :style="{ '--cols': String(cols) }"
-        @pointermove="onSnakePointerMove"
-        @pointerleave="onSnakePointerLeave"
-      >
-        <!-- 柔光跟随层：技术取自 LeiBox gradient-cover-wall 的 soft-light 实现 -->
-        <span class="snake-glow" aria-hidden="true" />
-        <div
-          v-for="(row, rowIndex) in snakeRows"
-          :key="rowIndex"
-          class="snake-row"
-          :class="{ 'snake-row--rtl': rowIndex % 2 === 1 }"
-          :style="{ '--delay': `${rowIndex * 45}ms` }"
-        >
+        <div class="home-topbar__actions">
           <button
-            v-for="item in row"
-            :key="item.path"
+            class="icon-btn"
             type="button"
-            class="tool-tile"
-            :title="item.label"
-            @click="goTool(item.path)"
+            :aria-label="isDark ? '切换到亮色主题' : '切换到暗色主题'"
+            :title="isDark ? '切换到亮色' : '切换到暗色'"
+            @click="toggleTheme"
           >
-            <span class="tool-tile__icon" aria-hidden="true">
-              <ToolOutlineIcon
-                :name="item.icon"
-                box="w-12 h-12"
-                size="h-6 w-6"
-              />
-            </span>
-            <span class="tool-tile__label">{{ item.label }}</span>
+            <el-icon :size="18">
+              <Sunny v-if="isDark" />
+              <Moon v-else />
+            </el-icon>
           </button>
-        </div>
-      </div>
-
-      <p v-else class="home-empty">
-        暂无已注册工具
-      </p>
-
-      <section class="home-lab">
-        <h2 class="home-lab__title">视觉实验</h2>
-        <p class="home-lab__sub">
-          点阵波纹与旋涡 · 来源
           <a
-            href="https://leibox.pantoria.cn/docs/animations/dot-matrix-trio"
+            class="icon-btn"
+            href="https://github.com/xxxsjan"
             target="_blank"
             rel="noopener noreferrer"
-          >LeiBox</a>（仅供学习使用，点击海报可暂停）
-        </p>
-        <ClientOnly>
-          <LeiboxDotMatrixTrio />
-        </ClientOnly>
-      </section>
-    </div>
+            aria-label="GitHub"
+          >
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path
+                d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="home-main">
+      <h1 class="sr-only">工具</h1>
+
+      <template v-if="toolList.length">
+        <section
+          v-for="group in orderedGroups"
+          :key="group.group"
+          class="group"
+        >
+          <div class="group__label">
+            <h2>{{ group.group }}</h2>
+            <span>{{ pad2(group.list.length) }}</span>
+          </div>
+
+          <div class="grid">
+            <button
+              v-for="item in group.list"
+              :key="item.path"
+              class="app"
+              type="button"
+              :title="item.title"
+              @click="goTool(item.path)"
+            >
+              <ToolOutlineIcon
+                solid
+                :name="item.icon"
+                :box="iconBox"
+                :size="iconSize"
+              />
+              <span class="app__name">{{ labelOf(item) }}</span>
+            </button>
+          </div>
+        </section>
+
+        <footer class="home-foot">
+          <span>
+            {{ toolList.length }} apps · {{ orderedGroups.length }} groups
+          </span>
+          <span>点开即用</span>
+        </footer>
+      </template>
+
+      <p v-else class="home-empty">暂无已注册工具</p>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import { Moon, Sunny } from '@element-plus/icons-vue';
+import { useThemeStore } from '~/stores/theme';
 import {
   useToolNav,
   type ToolNavItem,
 } from '~/composables/useToolNav';
 
-const { toolList, groupedTools, goTool } = useToolNav();
-
-/** 按分组顺序串成一条连续列表，再蛇形折行 */
-const flatTools = computed(() =>
-  groupedTools.value.flatMap(g => g.list),
-);
-
-const snakeRef = ref<HTMLElement | null>(null);
-const cols = ref(4);
-
-const resolveCols = (width: number) => {
-  if (width >= 1024) return 7;
-  if (width >= 768) return 6;
-  if (width >= 480) return 5;
-  return 4;
-};
-
-const snakeRows = computed(() => {
-  const list = flatTools.value;
-  const n = Math.max(1, cols.value);
-  const rows: ToolNavItem[][] = [];
-  for (let i = 0; i < list.length; i += n) {
-    rows.push(list.slice(i, i + n));
-  }
-  return rows;
+definePageMeta({
+  title: '工具',
 });
 
-let resizeObserver: ResizeObserver | null = null;
+const { toolList, groupedTools, goTool } = useToolNav();
+const themeStore = useThemeStore();
+const { isDark } = storeToRefs(themeStore);
+const { toggleTheme } = themeStore;
 
-const bindSnakeObserver = (el: HTMLElement | null) => {
-  resizeObserver?.disconnect();
-  resizeObserver = null;
-  if (!el) return;
+/** 首页固定分组顺序；未列出的分组排最后 */
+const groupOrder = ['工具', '媒体类', '抖音类', '娱乐类'];
 
-  if (typeof ResizeObserver === 'undefined') {
-    cols.value = resolveCols(window.innerWidth);
-    return;
-  }
+/** 首页展示顺序（按路径），未列出的工具排在分组末尾 */
+const preferredOrder = [
+  '/whiteboard',
+  '/preview-html',
+  '/github-image-host',
+  '/svg-preview',
+  '/text-editor',
+  '/image-matting',
+  '/text-to-speech',
+  '/image-convert',
+  '/cut-image',
+  '/gptsovits',
+  '/to-audio',
+  '/dy-download',
+  '/dy-emoji',
+  '/dy-url',
+  '/ikun-keyboard',
+];
 
-  resizeObserver = new ResizeObserver(entries => {
-    const width = entries[0]?.contentRect.width ?? el.clientWidth;
-    cols.value = resolveCols(width);
-  });
-  resizeObserver.observe(el);
-  cols.value = resolveCols(el.clientWidth);
+const orderOf = (path: string) => {
+  const index = preferredOrder.indexOf(path);
+  return index < 0 ? preferredOrder.length : index;
 };
 
-watch(snakeRef, bindSnakeObserver, { flush: 'post', immediate: true });
+const orderedGroups = computed(() => {
+  const weight = (name: string) => {
+    const index = groupOrder.indexOf(name);
+    return index < 0 ? groupOrder.length : index;
+  };
+  return [...groupedTools.value]
+    .sort((a, b) => weight(a.group) - weight(b.group))
+    .map(group => ({
+      ...group,
+      list: [...group.list].sort(
+        (a, b) => orderOf(a.path) - orderOf(b.path),
+      ),
+    }));
+});
 
-/* —— 柔光跟随（技术参考 LeiBox gradient-cover-wall，阻尼弹簧平滑光强） —— */
-const GLOW_OMEGA = Math.sqrt(70);
-const GLOW_DAMPING = 0.86;
-const GLOW_DECAY = GLOW_DAMPING * GLOW_OMEGA;
-const GLOW_FREQUENCY = GLOW_OMEGA * Math.sqrt(1 - GLOW_DAMPING * GLOW_DAMPING);
-
-const glow = { light: 0, vl: 0, tl: 0 };
-let glowFrame = 0;
-let glowLast = 0;
-
-const glowSpring = (value, velocity, target, dt) => {
-  const offset = value - target;
-  const fade = Math.exp(-GLOW_DECAY * dt);
-  const c = Math.cos(GLOW_FREQUENCY * dt);
-  const s = Math.sin(GLOW_FREQUENCY * dt);
-  return [
-    target + fade * (offset * c + ((velocity + GLOW_DECAY * offset) / GLOW_FREQUENCY) * s),
-    fade * (velocity * c - (GLOW_DECAY * velocity + GLOW_DECAY * GLOW_DECAY * offset) / GLOW_FREQUENCY * s),
-  ];
+/** 统一图标下方的短名（title 里仍是完整标题） */
+const nameOverrides: Record<string, string> = {
+  '/whiteboard': 'Excalidraw 画板',
+  '/preview-html': 'HTML 预览',
+  '/github-image-host': 'Git 图床',
+  '/svg-preview': 'SVG 预览',
+  '/text-editor': '文本编辑',
+  '/image-matting': '在线抠图',
+  '/text-to-speech': '文本转语音',
+  '/image-convert': '图片转换',
+  '/cut-image': '图片去黑边',
+  '/gptsovits': 'GPT-SoVITS 调试',
+  '/to-audio': '视频转音频',
+  '/dy-download': '无水印下载',
+  '/dy-emoji': '抖音 Emoji',
+  '/dy-url': '抖音转链',
+  '/ikun-keyboard': 'IKUN 键盘',
 };
 
-const glowPaint = () => {
-  const el = snakeRef.value;
-  if (!el) return;
-  el.style.setProperty('--shine', Math.max(0, Math.min(1, glow.light)).toFixed(4));
+const labelOf = (item: ToolNavItem) =>
+  nameOverrides[item.path] ?? item.label;
+
+const pad2 = (value: number) => String(value).padStart(2, '0');
+
+const iconBox =
+  'w-[60px] h-[60px] rounded-2xl sm:w-[68px] sm:h-[68px] sm:rounded-[18px]';
+const iconSize = 'h-7 w-7 sm:h-[31px] sm:w-[31px]';
+
+/* 顶栏滚动后出现分隔线 */
+const stuck = ref(false);
+const onScroll = () => {
+  stuck.value = window.scrollY > 4;
 };
 
-const glowTick = (now: number) => {
-  glowFrame = 0;
-  const dt = glowLast ? Math.min((now - glowLast) / 1000, 0.05) : 1 / 60;
-  glowLast = now;
-  const [light, vl] = glowSpring(glow.light, glow.vl, glow.tl, dt);
-  glow.light = light;
-  glow.vl = vl;
-  const settled = Math.abs(light - glow.tl) + Math.abs(vl) < 0.003;
-  if (settled) {
-    glow.light = glow.tl;
-    glow.vl = 0;
-    glowPaint();
-    glowLast = 0;
-    return;
-  }
-  glowPaint();
-  glowFrame = requestAnimationFrame(glowTick);
-};
-
-const glowWake = () => {
-  if (!glowFrame && typeof requestAnimationFrame === 'function') {
-    glowLast = 0;
-    glowFrame = requestAnimationFrame(glowTick);
-  }
-};
-
-const onSnakePointerMove = (event: PointerEvent) => {
-  const el = snakeRef.value;
-  if (!el || event.pointerType === 'touch') return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const rect = el.getBoundingClientRect();
-  const px = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-  const py = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
-  el.style.setProperty('--glow-x', `${(px * 100).toFixed(2)}%`);
-  el.style.setProperty('--glow-y', `${(py * 100).toFixed(2)}%`);
-  glow.tl = 1;
-  glowWake();
-};
-
-const onSnakePointerLeave = () => {
-  glow.tl = 0;
-  glowWake();
-};
+onMounted(() => {
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+});
 
 onUnmounted(() => {
-  resizeObserver?.disconnect();
-  resizeObserver = null;
-  if (glowFrame) cancelAnimationFrame(glowFrame);
-  glowFrame = 0;
+  window.removeEventListener('scroll', onScroll);
 });
 </script>
 
 <style scoped>
 .home {
-  --ios-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
-    'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  --ios-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ios-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --home-bg: #08090d;
+  --home-accent: #8b87ff;
+  --glow-a: rgba(139, 135, 255, 0.22);
+  --glow-b: rgba(56, 189, 248, 0.1);
+  --glow-c: rgba(251, 113, 133, 0.07);
+  --home-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --home-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   position: relative;
   isolation: isolate;
-  min-height: calc(100vh - 4rem);
-  overflow: hidden;
-  font-family: var(--ios-font);
-  -webkit-font-smoothing: antialiased;
-}
-
-.home__wallpaper {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: -1;
+  min-height: 100vh;
   background:
-    radial-gradient(
-      ellipse 80% 55% at 12% -8%,
-      color-mix(in oklab, var(--color-primary) 14%, transparent),
-      transparent 58%
-    ),
-    radial-gradient(
-      ellipse 70% 50% at 96% 8%,
-      color-mix(in oklab, var(--color-info, var(--color-primary)) 10%, transparent),
-      transparent 55%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--color-base-200) 70%, transparent) 0%,
-      transparent 42%
-    );
-}
-
-.home__inner {
-  margin: 0 auto;
-  width: 100%;
-  max-width: 54rem;
-  padding: 0.85rem 1rem 5rem;
-}
-
-@media (min-width: 640px) {
-  .home__inner {
-    padding: 1.1rem 1.35rem 5.5rem;
-  }
-}
-
-.home-hero {
-  margin-bottom: 1.35rem;
-  padding: 0.35rem 0.2rem 0.15rem;
-  animation: home-rise 0.55s var(--ios-ease) both;
-}
-
-.home-hero__title {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 2.5rem);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
+    radial-gradient(760px 620px at 40% -8%, var(--glow-a), transparent 70%),
+    radial-gradient(620px 520px at 100% 108%, var(--glow-b), transparent 70%),
+    radial-gradient(460px 420px at -5% 105%, var(--glow-c), transparent 70%),
+    var(--home-bg);
   color: var(--color-base-content);
+  font-family: var(--home-font);
 }
 
-.home-hero__sub {
-  margin: 0.35rem 0 0;
-  font-size: 0.95rem;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+:global(html[data-theme='light'] .home) {
+  --home-bg: #f5f5f2;
+  --home-accent: #5a55e6;
+  --glow-a: rgba(139, 135, 255, 0.18);
+  --glow-b: rgba(56, 189, 248, 0.12);
+  --glow-c: rgba(251, 113, 133, 0.08);
 }
 
-/* —— 蛇形连续排布 —— */
-.home-snake {
-  --cols: 4;
-  --glow-x: 50%;
-  --glow-y: 50%;
-  --shine: 0;
+/* —— 顶栏 —— */
+.home-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid transparent;
+  background: color-mix(in oklab, var(--home-bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+  transition: border-color 0.25s ease;
+}
+
+.home-topbar.is-stuck {
+  border-bottom-color: var(--app-border);
+}
+
+.home-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 980px;
+  height: 60px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.brand {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 6px 4px 0;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand__mark {
   position: relative;
-  border-radius: 1.35rem;
-  border: 1px solid color-mix(in oklab, var(--color-base-content) 8%, transparent);
-  background: color-mix(in oklab, var(--color-base-100) 72%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in oklab, #fff 10%, transparent) inset,
-    0 12px 32px -20px rgb(0 0 0 / 0.35);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
-  padding: 0.95rem 0.55rem 1.05rem;
+  display: block;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px -8px rgba(109, 99, 255, 0.8);
 }
 
-/* 柔光跟随层（技术参考 LeiBox gradient-cover-wall 的 soft-light 实现） */
-.snake-glow {
-  pointer-events: none;
+.brand__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.brand__mark::after {
+  content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
   border-radius: inherit;
-  opacity: var(--shine);
-  background: radial-gradient(
-    circle at var(--glow-x) var(--glow-y),
-    rgb(255 255 255 / 0.25),
-    rgb(255 255 255 / 0.07) 22%,
-    transparent 52%
-  );
-  mix-blend-mode: soft-light;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  pointer-events: none;
 }
 
-@media (min-width: 640px) {
-  .home-snake {
-    padding: 1.1rem 0.75rem 1.2rem;
-  }
+.brand__name {
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
 }
 
-.snake-row {
+.brand__count {
+  margin-left: 1px;
+  padding: 4px 5px;
+  border: 1px solid var(--app-border);
+  border-radius: 5px;
+  font-family: var(--home-mono);
+  font-size: 9.5px;
+  line-height: 1;
+  color: color-mix(in oklab, var(--color-base-content) 42%, transparent);
+}
+
+.home-topbar__actions {
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  animation: home-rise 0.5s var(--ios-ease) both;
-  animation-delay: var(--delay, 0ms);
-}
-
-.snake-row + .snake-row {
-  margin-top: 0.85rem;
-}
-
-/* 奇行：从右往左排，未满行贴右，形成拐弯 */
-.snake-row--rtl {
-  flex-direction: row-reverse;
-}
-
-.tool-tile {
-  display: flex;
-  flex: 0 0 calc(100% / var(--cols));
-  flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  width: calc(100% / var(--cols));
-  max-width: calc(100% / var(--cols));
-  padding: 0.15rem 0.1rem 0.05rem;
-  background: transparent;
-  border: none;
-  border-radius: 0.85rem;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.22s var(--ios-spring);
+  gap: 4px;
+  margin-left: auto;
 }
 
-.tool-tile:hover {
-  transform: translateY(-1px);
-}
-
-.tool-tile:active {
-  transform: scale(0.9);
-  transition-duration: 0.08s;
-}
-
-.tool-tile__icon {
-  display: flex;
+.icon-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.28s var(--ios-spring);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: color-mix(in oklab, var(--color-base-content) 66%, transparent);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.tool-tile:hover .tool-tile__icon {
-  transform: scale(1.08);
+.icon-btn:hover {
+  color: var(--color-base-content);
+  background: color-mix(in oklab, var(--color-base-content) 7%, transparent);
+  border-color: var(--app-border);
 }
 
-.tool-tile:active .tool-tile__icon {
-  transform: scale(0.94);
+.icon-btn svg {
+  width: 17px;
+  height: 17px;
 }
 
-.tool-tile__label {
+/* —— 内容 —— */
+.home-main {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 22px 24px 56px;
+}
+
+.group {
+  margin-top: 28px;
+}
+
+.group:first-of-type {
+  margin-top: 0;
+}
+
+.group__label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.group__label h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-base-content) 66%, transparent);
+}
+
+.group__label span {
+  font-family: var(--home-mono);
+  font-size: 9.5px;
+  color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+}
+
+.group__label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--app-border);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 28px 10px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app:focus-visible {
+  outline: 2px solid var(--home-accent);
+  outline-offset: 6px;
+}
+
+.app__name {
   display: -webkit-box;
   width: 100%;
-  max-width: 5.5rem;
+  max-width: 96px;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  text-align: center;
-  font-size: 0.85rem;
-  font-weight: 550;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-  color: color-mix(in oklab, var(--color-base-content) 82%, transparent);
+  font-size: 11.5px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  transition: color 0.2s ease;
 }
 
-@media (min-width: 768px) {
-  .tool-tile__label {
-    max-width: 6rem;
-    font-size: 0.92rem;
-  }
-}
-
-/* —— LeiBox 视觉实验展示区 —— */
-.home-lab {
-  margin-top: 1.5rem;
-  padding: 0.2rem 0.2rem 0;
-  animation: home-rise 0.55s var(--ios-ease) both;
-  animation-delay: 120ms;
-}
-
-.home-lab__title {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+.app:hover .app__name {
   color: var(--color-base-content);
 }
 
-.home-lab__sub {
-  margin: 0.3rem 0 0.85rem;
-  font-size: 0.85rem;
-  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+.app:hover :deep(.tool-icon-solid) {
+  transform: translateY(-3px) scale(1.04);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 18px 30px -14px var(--ion-c2);
 }
 
-.home-lab__sub a {
-  color: color-mix(in oklab, var(--color-primary) 78%, var(--color-base-content));
-  text-underline-offset: 3px;
+.app:active :deep(.tool-icon-solid) {
+  transform: scale(0.93);
+  transition-duration: 0.1s;
 }
 
-.home-lab :deep([data-motion-surface]) {
-  border-radius: 1.35rem;
-  overflow: hidden;
-  box-shadow: 0 12px 32px -20px rgb(0 0 0 / 0.35);
+/* —— 页脚 —— */
+.home-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 46px;
+  padding: 16px 4px 0;
+  border-top: 1px solid var(--app-border);
+  font-family: var(--home-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
 }
 
 .home-empty {
-  margin: 0.5rem 0 0;
-  border-radius: 1.25rem;
-  border: 1px dashed color-mix(in oklab, var(--color-base-content) 16%, transparent);
-  background: color-mix(in oklab, var(--color-base-100) 55%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 2.75rem 1rem;
+  margin: 0;
+  padding: 80px 20px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 13px;
   color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
 }
 
-@keyframes home-rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.985);
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+}
+
+@media (max-width: 760px) {
+  .home-topbar__inner {
+    padding: 0 20px;
+  }
+
+  .home-main {
+    padding: 18px 20px 48px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .home-main {
+    padding-top: 16px;
+  }
+
+  .group {
+    margin-top: 24px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px 4px;
+  }
+
+  .app__name {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hero,
-  .snake-row,
-  .tool-tile,
-  .tool-tile__icon {
-    animation: none !important;
+  .icon-btn,
+  .app__name,
+  .app :deep(.tool-icon-solid) {
     transition: none !important;
   }
 }

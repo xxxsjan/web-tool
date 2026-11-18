@@ -137,7 +137,7 @@
 
     <!-- 欢迎页无导航栏时仍可切换主题 -->
     <button
-      v-show="!shouldShowBackHomeBtn"
+      v-show="shouldShowFloatingTheme"
       type="button"
       class="btn btn-ghost btn-circle fixed top-4 right-4 z-50 bg-base-100/80 shadow-md"
       :aria-label="isDark ? '切换到亮色主题' : '切换到暗色主题'"
@@ -296,8 +296,11 @@ function getFingerprint() {
 const finger = ref('');
 
 const shouldShowBackHomeBtn = computed(() => {
-  return route && route.path !== '/';
+  return route && route.path !== '/' && route.path !== '/home';
 });
+
+/** 首页 /home 自带顶栏，这里只给欢迎页留悬浮主题按钮 */
+const shouldShowFloatingTheme = computed(() => route.path === '/');
 onMounted(() => {
   finger.value = '用户 ' + getFingerprint();
 });

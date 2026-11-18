@@ -10,11 +10,14 @@ const props = withDefaults(
     box?: string;
     /** svg 尺寸（Tailwind 类） */
     size?: string;
+    /** 彩色实底 + 白色描边：首页图标桌面用 */
+    solid?: boolean;
   }>(),
   {
     name: 'toolbox',
     box: 'w-9 h-9',
     size: 'h-5 w-5',
+    solid: false,
   },
 );
 
@@ -130,14 +133,52 @@ const classMap: Record<string, string> = {
   audio: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300',
 };
 
+/** icon 键名 → 实底渐变（深→浅），用于首页彩色图标 */
+const gradientMap: Record<string, [string, string]> = {
+  toolbox: ['#94a3b8', '#334155'],
+  tiktok: ['#f472b6', '#be185d'],
+  'arrow-sync': ['#38bdf8', '#2563eb'],
+  'content-view': ['#fbbf24', '#b45309'],
+  'design-ideas': ['#a78bfa', '#6d28d9'],
+  'megaphone-loud': ['#fb7185', '#be123c'],
+  'bot-sparkle': ['#34d399', '#047857'],
+  'paint-brush': ['#fb923c', '#c2410c'],
+  image: ['#818cf8', '#4338ca'],
+  notebook: ['#facc15', '#a16207'],
+  'code-block': ['#94a3b8', '#334155'],
+  cloud: ['#2dd4bf', '#0f766e'],
+  'animal-paw-print': ['#e879f9', '#a21caf'],
+  headphones: ['#a3e635', '#4d7c0f'],
+  mic: ['#22d3ee', '#0e7490'],
+  code: ['#a78bfa', '#6d28d9'],
+  link: ['#f472b6', '#be185d'],
+  video: ['#38bdf8', '#2563eb'],
+  download: ['#38bdf8', '#2563eb'],
+  gift: ['#fb7185', '#be123c'],
+  board: ['#22d3ee', '#0e7490'],
+  star: ['#facc15', '#a16207'],
+  audio: ['#22d3ee', '#0e7490'],
+};
+
 const d = computed(() => pathMap[props.name] ?? pathMap.toolbox);
 const tintClass = computed(() => classMap[props.name] ?? classMap.toolbox);
+const grad = computed(() => gradientMap[props.name] ?? gradientMap.toolbox);
+const solidVars = computed<Record<string, string> | undefined>(() =>
+  props.solid
+    ? { '--ion-c1': grad.value[0], '--ion-c2': grad.value[1] }
+    : undefined,
+);
 </script>
 
 <template>
   <span
-    class="inline-flex shrink-0 items-center justify-center rounded-lg"
-    :class="[box, tintClass]"
+    class="inline-flex shrink-0 items-center justify-center"
+    :class="
+      solid
+        ? ['tool-icon-solid', box]
+        : ['rounded-lg', box, tintClass]
+    "
+    :style="solidVars"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -145,10 +186,38 @@ const tintClass = computed(() => classMap[props.name] ?? classMap.toolbox);
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      stroke-width="1.75"
+      :stroke-width="solid ? 1.65 : 1.75"
       aria-hidden="true"
     >
       <path stroke-linecap="round" stroke-linejoin="round" :d="d" />
     </svg>
   </span>
 </template>
+
+<style>
+/* 实底彩色图标：颜色由 --ion-c1 / --ion-c2 注入，供首页图标桌面使用 */
+.tool-icon-solid {
+  color: #fff;
+  background: linear-gradient(
+    160deg,
+    var(--ion-c1, #94a3b8),
+    var(--ion-c2, #334155)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 10px 22px -12px var(--ion-c2, #334155);
+  transition:
+    transform 0.34s cubic-bezier(0.22, 0.8, 0.24, 1),
+    box-shadow 0.34s cubic-bezier(0.22, 0.8, 0.24, 1),
+    filter 0.25s ease;
+}
+
+.tool-icon-solid svg {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-icon-solid { transition: none; }
+}
+</style>
