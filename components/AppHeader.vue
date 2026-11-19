@@ -1,25 +1,36 @@
 <template>
-  <div class="relative z-[100] max-w-full">
-    <div
-      v-show="shouldShowBackHomeBtn"
-      class="navbar relative z-[100] max-w-full overflow-visible bg-transparent w-full gap-1 px-2 sm:px-3"
-    >
-      <div class="flex-none">
-        <a class="btn btn-ghost text-xl px-2" href="/home">
-          <el-icon>
-            <House />
-          </el-icon>
-          <span class="hidden sm:inline">Tool</span>
-        </a>
-      </div>
+  <!-- 通用顶栏：对齐 home-topbar 的毛玻璃视觉风格 -->
+  <header
+    v-show="shouldShowBackHomeBtn"
+    class="app-header"
+    :class="{ 'is-stuck': stuck }"
+  >
+    <div class="app-header__inner">
+      <!-- 左侧 brand -->
+      <NuxtLink class="brand" to="/home" aria-label="tools 首页">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32">
+            <defs>
+              <linearGradient id="appHeaderBrandGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#60a5fa" />
+                <stop offset="1" stop-color="#1d4ed8" />
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="9" fill="url(#appHeaderBrandGrad)" />
+            <rect x="7.5" y="8.5" width="17" height="4.2" rx="2.1" fill="#fff" />
+            <rect x="13.4" y="12.7" width="5.2" height="11" rx="2.6" fill="#fff" />
+          </svg>
+        </span>
+        <span class="brand__name">tools</span>
+      </NuxtLink>
 
-      <!-- 分组名横排；悬停展开子工具；点击子项后收起 -->
+      <!-- 中间分组导航 -->
       <nav
-        class="flex-1 min-w-0 overflow-visible"
+        class="nav-col flex-1 min-w-0 overflow-visible"
         aria-label="工具分组导航"
       >
         <div ref="navRowRef" class="nav-row relative flex flex-wrap items-center gap-0.5 py-1">
-          <!-- 滑动胶囊高亮（技术参考 LeiBox fluid-tooltip，gsap expo.out 补间） -->
+          <!-- 滑动胶囊高亮 -->
           <span ref="capsuleRef" class="nav-capsule" aria-hidden="true" />
           <div
             v-for="group in groupedTools"
@@ -31,15 +42,13 @@
             <button
               :ref="el => setGroupBtnRef(group.group, el)"
               type="button"
-              class="btn btn-ghost btn-md h-11 gap-1.5 px-3.5 text-base font-medium"
-              :class="{
-                'btn-active bg-base-200': isGroupActive(group),
-              }"
+              class="group-btn"
+              :class="{ 'group-btn--active': isGroupActive(group) }"
             >
               {{ group.group }}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 opacity-50 transition-transform"
+                class="h-3.5 w-3.5 opacity-50 transition-transform"
                 :class="{ 'rotate-180': openGroup === group.group }"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -59,9 +68,7 @@
               class="absolute left-0 top-[calc(100%-2px)] z-[110] min-w-[13rem] max-w-[min(18rem,calc(100vw-1rem))] pt-2"
               :class="group.group === groupedTools[groupedTools.length - 1]?.group ? 'left-auto right-0' : ''"
             >
-              <div
-                class="nav-submenu rounded-xl border border-app bg-base-100/95 p-1.5 shadow-xl backdrop-blur-sm"
-              >
+              <div class="nav-submenu">
                 <button
                   v-for="item in group.list"
                   :key="item.path"
@@ -81,22 +88,16 @@
         </div>
       </nav>
 
-      <div class="flex-none relative z-[100] flex gap-1 sm:gap-2 items-center">
-        <span
-          class="hidden lg:inline text-xs text-base-content/50 max-w-[7rem] truncate"
-          :title="finger"
-        >
-          {{ finger }}
-        </span>
-
+      <!-- 右侧按钮组 -->
+      <div class="app-header__actions">
         <button
           type="button"
-          class="btn btn-ghost btn-circle"
+          class="icon-btn"
           :aria-label="isDark ? '切换到亮色主题' : '切换到暗色主题'"
           :title="isDark ? '切换到亮色' : '切换到暗色'"
           @click="toggleTheme"
         >
-          <el-icon :size="20">
+          <el-icon :size="18">
             <Sunny v-if="isDark" />
             <Moon v-else />
           </el-icon>
@@ -112,48 +113,41 @@
             ></span>
           </span>
           <a
-            class="link link-hover"
+            class="icon-btn"
             href="https://github.com/xxxsjan"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
           >
-            <svg
-              height="28"
-              aria-hidden="true"
-              viewBox="0 0 16 16"
-              version="1.1"
-              width="28"
-              class="octicon octicon-mark-github v-align-middle fill-current"
-            >
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path
                 d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"
-              ></path>
+              />
             </svg>
           </a>
         </div>
       </div>
     </div>
+  </header>
 
-    <!-- 欢迎页无导航栏时仍可切换主题 -->
-    <button
-      v-show="shouldShowFloatingTheme"
-      type="button"
-      class="btn btn-ghost btn-circle fixed top-4 right-4 z-50 bg-base-100/80 shadow-md"
-      :aria-label="isDark ? '切换到亮色主题' : '切换到暗色主题'"
-      :title="isDark ? '切换到亮色' : '切换到暗色'"
-      @click="toggleTheme"
-    >
-      <el-icon :size="20">
-        <Sunny v-if="isDark" />
-        <Moon v-else />
-      </el-icon>
-    </button>
-  </div>
+  <!-- 欢迎页无导航栏时仍可切换主题 -->
+  <button
+    v-show="shouldShowFloatingTheme"
+    type="button"
+    class="btn btn-ghost btn-circle fixed top-4 right-4 z-50 bg-base-100/80 shadow-md"
+    :aria-label="isDark ? '切换到亮色主题' : '切换到暗色主题'"
+    :title="isDark ? '切换到亮色' : '切换到暗色'"
+    @click="toggleTheme"
+  >
+    <el-icon :size="20">
+      <Sunny v-if="isDark" />
+      <Moon v-else />
+    </el-icon>
+  </button>
 </template>
 
 <script setup>
-import { House, Moon, Sunny } from '@element-plus/icons-vue';
+import { Moon, Sunny } from '@element-plus/icons-vue';
 import gsap from 'gsap';
 import { storeToRefs } from 'pinia';
 import { useThemeStore } from '~/stores/theme';
@@ -266,34 +260,11 @@ const onSelectTool = async path => {
   await goTool(path);
 };
 
-onUnmounted(() => {
-  if (leaveTimer) clearTimeout(leaveTimer);
-  capsuleTween?.kill();
-});
-
-function hashCode(str) {
-  let hash = 0;
-  if (str.length === 0) return hash;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-  }
-  return Math.abs(hash);
-}
-function getFingerprint() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 200;
-  canvas.height = 200;
-  const ctx = canvas.getContext('2d');
-
-  ctx.textBaseline = 'top';
-  ctx.font = '14px "Arial"';
-  ctx.fillStyle = 'rgb(0,0,0)';
-  ctx.fillText('hello', 22, 33);
-
-  return hashCode(canvas.toDataURL());
-}
-const finger = ref('');
+/* —— 滚动后显示下分隔线 —— */
+const stuck = ref(false);
+const onScroll = () => {
+  stuck.value = window.scrollY > 4;
+};
 
 const shouldShowBackHomeBtn = computed(() => {
   return route && route.path !== '/' && route.path !== '/home';
@@ -301,23 +272,148 @@ const shouldShowBackHomeBtn = computed(() => {
 
 /** 首页 /home 自带顶栏，这里只给欢迎页留悬浮主题按钮 */
 const shouldShowFloatingTheme = computed(() => route.path === '/');
+
 onMounted(() => {
-  finger.value = '用户 ' + getFingerprint();
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+});
+
+onUnmounted(() => {
+  if (leaveTimer) clearTimeout(leaveTimer);
+  capsuleTween?.kill();
+  window.removeEventListener('scroll', onScroll);
 });
 </script>
 
 <style scoped>
-/* —— 滑动胶囊（技术参考 LeiBox fluid-tooltip） —— */
-.nav-capsule {
-  pointer-events: none;
-  position: absolute;
+/* ———————————— CSS 变量（对齐 home-topbar 毛玻璃视觉体系） ———————————— */
+.app-header {
+  /* 亮蓝点缀主色 */
+  --ah-accent: #3b82f6;
+  --ah-accent-soft: rgba(59, 130, 246, 0.18);
+  --ah-accent-glow: rgba(96, 165, 250, 0.55);
+
+  /* 玻璃卡 */
+  --ah-glass-bg: rgba(255, 255, 255, 0.035);
+  --ah-glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --ah-glass-border: rgba(255, 255, 255, 0.09);
+  --ah-glass-border-hover: rgba(96, 165, 250, 0.35);
+
+  /* 胶囊高亮 */
+  --ah-capsule-bg: color-mix(
+    in oklab,
+    var(--color-base-content) 10%,
+    transparent
+  );
+
+  position: sticky;
   top: 0;
-  left: 0;
-  z-index: 0;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
-  opacity: 0;
-  will-change: transform, width, height, opacity;
+  z-index: 30;
+  width: 100%;
+  border-bottom: 1px solid transparent;
+  background: color-mix(in oklab, var(--color-base-100) 55%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  backdrop-filter: blur(24px) saturate(170%);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.app-header.is-stuck {
+  border-bottom-color: var(--ah-glass-border);
+  background: color-mix(in oklab, var(--color-base-100) 75%, transparent);
+}
+
+/* —— 亮色主题分支 —— */
+:global(html[data-theme='light'] .app-header) {
+  --ah-accent: #2563eb;
+  --ah-accent-soft: rgba(37, 99, 235, 0.15);
+  --ah-accent-glow: rgba(59, 130, 246, 0.35);
+
+  --ah-glass-bg: rgba(255, 255, 255, 0.55);
+  --ah-glass-bg-hover: rgba(255, 255, 255, 0.8);
+  --ah-glass-border: rgba(37, 99, 235, 0.12);
+  --ah-glass-border-hover: rgba(59, 130, 246, 0.4);
+}
+
+/* ———————————— 内容容器 ———————————— */
+.app-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 980px;
+  height: 60px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ———————————— 左侧 brand ———————————— */
+.brand {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px 5px 4px;
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.brand:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global(html[data-theme='light'] .app-header) .brand:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.brand__mark {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  border-radius: 9px;
+  box-shadow: 0 8px 20px -8px rgba(59, 130, 246, 0.75);
+}
+
+.brand__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.brand__mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.brand__name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+/* ———————————— 中间分组导航 ———————————— */
+.nav-col {
+  display: flex;
+  align-items: center;
+}
+
+.nav-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
 }
 
 .nav-row > div {
@@ -325,31 +421,93 @@ onMounted(() => {
   z-index: 1;
 }
 
-/* —— 下拉子菜单（一行一项的列表式） —— */
+/* 胶囊高亮 */
+.nav-capsule {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 999px;
+  background: var(--ah-capsule-bg);
+  opacity: 0;
+  will-change: transform, width, height, opacity;
+}
+
+/* 分组按钮（玻璃态风格） */
+.group-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.group-btn:hover {
+  color: var(--color-base-content);
+  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+}
+
+.group-btn--active {
+  color: var(--ah-accent);
+  border-color: var(--ah-glass-border-hover);
+  background: var(--ah-glass-bg);
+}
+
+/* ———————————— 下拉子菜单 ———————————— */
+.nav-submenu {
+  border: 1px solid var(--ah-glass-border);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  box-shadow:
+    0 12px 40px -12px rgba(0, 0, 0, 0.4),
+    0 4px 14px -4px rgba(0, 0, 0, 0.2);
+  padding: 6px;
+}
+
 .nav-submenu__item {
   display: flex;
   align-items: center;
   gap: 0.625rem;
   width: 100%;
-  height: 2.5rem;
+  height: 2.4rem;
   padding: 0 0.625rem;
   border: 0;
   border-radius: 0.65rem;
   background: transparent;
-  color: var(--color-base-content);
-  font-size: 0.9375rem;
+  color: color-mix(in oklab, var(--color-base-content) 85%, transparent);
+  font-size: 0.875rem;
   font-weight: 450;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .nav-submenu__item:hover {
-  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+  background: color-mix(in oklab, var(--ah-accent) 12%, transparent);
+  color: var(--ah-accent);
 }
 
 .nav-submenu__item--active {
-  background: var(--color-base-200);
+  background: var(--ah-glass-bg);
+  color: var(--ah-accent);
 }
 
 .nav-submenu__icon {
@@ -377,8 +535,89 @@ onMounted(() => {
   line-height: 1.25;
 }
 
+/* ———————————— 右侧按钮组 ———————————— */
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 通用 icon-btn（对齐 home-topbar） */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--ah-glass-border);
+  border-radius: 12px;
+  background: var(--ah-glass-bg);
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.icon-btn:hover {
+  color: var(--ah-accent);
+  background: var(--ah-glass-bg-hover);
+  border-color: var(--ah-accent-glow);
+  box-shadow: 0 0 0 4px var(--ah-accent-soft);
+  transform: translateY(-1px);
+}
+
+.icon-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.icon-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.icon-btn .el-icon {
+  display: flex;
+}
+
+/* ———————————— 响应式 ———————————— */
+@media (max-width: 760px) {
+  .app-header__inner {
+    padding: 0 16px;
+  }
+
+  .brand__name {
+    display: none;
+  }
+
+  .group-btn {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .group-btn svg {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-col {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .nav-capsule {
+  .nav-capsule,
+  .icon-btn,
+  .group-btn,
+  .brand {
     transition: none !important;
   }
 }

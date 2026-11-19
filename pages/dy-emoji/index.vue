@@ -1,13 +1,11 @@
 ﻿<template>
-  <div class="mx-auto w-full max-w-4xl px-3 pb-12 sm:px-4">
-    <header class="mb-5 text-center sm:mb-6">
-      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
-        抖音表情包提取
-      </h1>
-      <p class="text-xs text-base-content/50 sm:text-sm">
+  <div class="dy-emoji-page mx-auto w-full max-w-[980px] px-3 pb-12 sm:px-4">
+    <header class="gh-page-header mb-5 sm:mb-6">
+      <h1 class="gh-page-title">抖音表情包提取</h1>
+      <p class="gh-page-subtitle">
         粘贴评论区 HTML 或图片链接，提取后打包下载
       </p>
-      <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
+      <div class="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
           class="btn btn-ghost btn-sm"
@@ -685,8 +683,227 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ———————————— home 风格 CSS 变量 ———————————— */
+.dy-emoji-page {
+  --gh-accent: #3b82f6;
+  --gh-accent-soft: rgba(59, 130, 246, 0.18);
+  --gh-accent-glow: rgba(96, 165, 250, 0.55);
+
+  --gh-glass-bg: rgba(255, 255, 255, 0.035);
+  --gh-glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --gh-glass-border: rgba(255, 255, 255, 0.09);
+  --gh-glass-border-hover: rgba(96, 165, 250, 0.35);
+  --gh-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --gh-glass-shadow: 0 10px 40px -18px rgba(0, 0, 0, 0.6),
+    0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --gh-glass-shadow-hover: 0 18px 50px -12px rgba(14, 165, 233, 0.25),
+    0 4px 14px -2px rgba(0, 0, 0, 0.5);
+}
+
+:global(html[data-theme='light']) .dy-emoji-page {
+  --gh-accent: #2563eb;
+  --gh-accent-soft: rgba(37, 99, 235, 0.15);
+  --gh-accent-glow: rgba(59, 130, 246, 0.35);
+
+  --gh-glass-bg: rgba(255, 255, 255, 0.55);
+  --gh-glass-bg-hover: rgba(255, 255, 255, 0.8);
+  --gh-glass-border: rgba(37, 99, 235, 0.12);
+  --gh-glass-border-hover: rgba(59, 130, 246, 0.4);
+  --gh-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --gh-glass-shadow: 0 8px 32px -16px rgba(30, 64, 175, 0.25),
+    0 2px 6px -2px rgba(30, 64, 175, 0.1);
+  --gh-glass-shadow-hover: 0 16px 48px -12px rgba(37, 99, 235, 0.22),
+    0 4px 12px -2px rgba(30, 64, 175, 0.12);
+}
+
+/* ———————————— 页面标题 ———————————— */
+.gh-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.gh-page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.gh-page-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  text-align: left;
+}
+
+/* ———————————— DaisyUI 覆盖：tool-panel → 玻璃态 ———————————— */
+.dy-emoji-page :deep(.tool-panel) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 20px;
+  background: var(--gh-glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: var(--gh-glass-inset), var(--gh-glass-shadow);
+}
+
+/* panel 内分隔线 */
+.dy-emoji-page :deep(.tool-panel-head) {
+  border-bottom: 1px solid var(--gh-glass-border);
+}
+
+/* ———————————— DaisyUI btn 统一玻璃态覆盖 ———————————— */
+.dy-emoji-page :deep(.btn) {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border-color: var(--gh-glass-border);
+  background: var(--gh-glass-bg);
+  color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: none !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.dy-emoji-page :deep(.btn:hover:not(:disabled)) {
+  color: var(--gh-accent);
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-glass-border-hover);
+  transform: translateY(-1px);
+}
+
+.dy-emoji-page :deep(.btn-primary) {
+  color: #fff;
+  border-color: var(--gh-accent-glow);
+  background: var(--gh-accent);
+}
+
+.dy-emoji-page :deep(.btn-primary:hover) {
+  color: #fff;
+  background: color-mix(in oklab, var(--gh-accent) 88%, #fff);
+  border-color: var(--gh-accent-glow);
+}
+
+.dy-emoji-page :deep(.btn-secondary) {
+  color: var(--gh-accent);
+  border-color: var(--gh-glass-border-hover);
+  background: var(--gh-glass-bg);
+}
+
+.dy-emoji-page :deep(.btn-secondary:hover) {
+  color: var(--gh-accent);
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-accent-glow);
+}
+
+.dy-emoji-page :deep(.btn-accent) {
+  color: #fff;
+  border-color: var(--gh-accent-glow);
+  background: var(--gh-accent);
+}
+
+.dy-emoji-page :deep(.btn-accent:hover) {
+  color: #fff;
+  background: color-mix(in oklab, var(--gh-accent) 88%, #fff);
+}
+
+.dy-emoji-page :deep(.btn-sm) {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.dy-emoji-page :deep(.btn:disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ———————————— textarea 玻璃态 ———————————— */
+.dy-emoji-page :deep(.textarea) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 12px;
+  background: var(--gh-glass-bg);
+  color: var(--color-base-content);
+  font-size: 14px;
+  line-height: 1.55;
+  box-shadow: none;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dy-emoji-page :deep(.textarea:focus) {
+  border-color: var(--gh-glass-border-hover);
+  background: var(--gh-glass-bg-hover);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--gh-accent-soft);
+}
+
+/* ———————————— 图片网格卡片 ———————————— */
+.dy-emoji-page :deep(.group.relative) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 14px;
+  background: var(--gh-glass-bg);
+  box-shadow: var(--gh-glass-inset);
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* 顶部高光线 */
+.dy-emoji-page :deep(.group.relative::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dy-emoji-page :deep(.group.relative:hover) {
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-glass-border-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--gh-glass-shadow-hover);
+}
+
+.dy-emoji-page :deep(.group.relative img) {
+  border: none !important;
+  border-radius: 14px;
+  transition: transform 0.25s ease;
+}
+
+.dy-emoji-page :deep(.group.relative img:hover) {
+  transform: scale(1.02);
+  box-shadow: none !important;
+}
+
+/* ———————————— 右键菜单 ———————————— */
 .emoji-ctx {
-  background: color-mix(in oklab, var(--color-base-100) 88%, transparent);
+  background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+  border: 1px solid var(--gh-glass-border);
   backdrop-filter: blur(16px);
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--color-base-content) 6%, transparent) inset,
@@ -708,7 +925,8 @@ onUnmounted(() => {
 }
 
 .emoji-ctx-item:hover {
-  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+  background: color-mix(in oklab, var(--gh-accent) 12%, transparent);
+  color: var(--gh-accent);
 }
 
 .emoji-ctx-icon {
@@ -731,6 +949,12 @@ onUnmounted(() => {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .gh-page-title {
+    font-size: 18px;
   }
 }
 </style>

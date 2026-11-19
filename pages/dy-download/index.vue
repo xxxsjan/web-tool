@@ -1,10 +1,8 @@
 ﻿<template>
-  <div class="mx-auto w-full max-w-3xl px-3 pb-12 sm:px-4">
-    <header class="mb-5 text-center sm:mb-6">
-      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-3xl">
-        抖音无水印下载
-      </h1>
-      <p class="text-xs text-base-content/50 sm:text-sm">
+  <div class="dy-download-page mx-auto w-full max-w-[980px] px-3 pb-12 sm:px-4">
+    <header class="gh-page-header mb-5 sm:mb-6">
+      <h1 class="gh-page-title">抖音无水印下载</h1>
+      <p class="gh-page-subtitle">
         粘贴分享口令 → 选择画质 → 下载视频或音频
       </p>
     </header>
@@ -450,3 +448,223 @@ const startDownload = async () => {
   }
 };
 </script>
+
+<style scoped>
+/* ———————————— home 风格 CSS 变量 ———————————— */
+.dy-download-page {
+  --gh-accent: #3b82f6;
+  --gh-accent-soft: rgba(59, 130, 246, 0.18);
+  --gh-accent-glow: rgba(96, 165, 250, 0.55);
+
+  --gh-glass-bg: rgba(255, 255, 255, 0.035);
+  --gh-glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --gh-glass-border: rgba(255, 255, 255, 0.09);
+  --gh-glass-border-hover: rgba(96, 165, 250, 0.35);
+  --gh-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --gh-glass-shadow: 0 10px 40px -18px rgba(0, 0, 0, 0.6),
+    0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --gh-glass-shadow-hover: 0 18px 50px -12px rgba(14, 165, 233, 0.25),
+    0 4px 14px -2px rgba(0, 0, 0, 0.5);
+}
+
+:global(html[data-theme='light']) .dy-download-page {
+  --gh-accent: #2563eb;
+  --gh-accent-soft: rgba(37, 99, 235, 0.15);
+  --gh-accent-glow: rgba(59, 130, 246, 0.35);
+
+  --gh-glass-bg: rgba(255, 255, 255, 0.55);
+  --gh-glass-bg-hover: rgba(255, 255, 255, 0.8);
+  --gh-glass-border: rgba(37, 99, 235, 0.12);
+  --gh-glass-border-hover: rgba(59, 130, 246, 0.4);
+  --gh-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --gh-glass-shadow: 0 8px 32px -16px rgba(30, 64, 175, 0.25),
+    0 2px 6px -2px rgba(30, 64, 175, 0.1);
+  --gh-glass-shadow-hover: 0 16px 48px -12px rgba(37, 99, 235, 0.22),
+    0 4px 12px -2px rgba(30, 64, 175, 0.12);
+}
+
+/* ———————————— 页面标题 ———————————— */
+.gh-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.gh-page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.gh-page-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  text-align: left;
+}
+
+/* ———————————— DaisyUI 覆盖：tool-panel → 玻璃态 ———————————— */
+.dy-download-page :deep(.tool-panel) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 20px;
+  background: var(--gh-glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: var(--gh-glass-inset), var(--gh-glass-shadow);
+}
+
+.dy-download-page :deep(.tool-panel-foot) {
+  border-top: 1px solid var(--gh-glass-border);
+}
+
+/* ———————————— DaisyUI btn 统一玻璃态覆盖 ———————————— */
+.dy-download-page :deep(.btn) {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border-color: var(--gh-glass-border);
+  background: var(--gh-glass-bg);
+  color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: none !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.dy-download-page :deep(.btn:hover:not(:disabled)) {
+  color: var(--gh-accent);
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-glass-border-hover);
+  transform: translateY(-1px);
+}
+
+.dy-download-page :deep(.btn-primary) {
+  height: 40px;
+  min-height: 40px;
+  color: #fff;
+  border-color: var(--gh-accent-glow);
+  background: var(--gh-accent);
+}
+
+.dy-download-page :deep(.btn-primary:hover) {
+  color: #fff;
+  background: color-mix(in oklab, var(--gh-accent) 88%, #fff);
+  border-color: var(--gh-accent-glow);
+}
+
+.dy-download-page :deep(.btn-sm) {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.dy-download-page :deep(.btn-md) {
+  height: 36px;
+  min-height: 36px;
+  font-size: 14px;
+}
+
+.dy-download-page :deep(.btn:disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* 多行按钮（画质选择） */
+.dy-download-page :deep(.btn.h-auto) {
+  height: auto;
+  min-height: 60px;
+  padding: 10px 14px;
+}
+
+/* ———————————— textarea 玻璃态 ———————————— */
+.dy-download-page :deep(.textarea) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 12px;
+  background: var(--gh-glass-bg);
+  color: var(--color-base-content);
+  font-size: 14px;
+  line-height: 1.55;
+  box-shadow: none;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dy-download-page :deep(.textarea:focus) {
+  border-color: var(--gh-glass-border-hover);
+  background: var(--gh-glass-bg-hover);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--gh-accent-soft);
+}
+
+/* ———————————— badge 玻璃态 ———————————— */
+.dy-download-page :deep(.badge) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 8px;
+  background: var(--gh-glass-bg);
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.dy-download-page :deep(.badge-outline) {
+  border-color: var(--gh-glass-border);
+  background: transparent;
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+}
+
+/* ———————————— 信息卡 ———————————— */
+.dy-download-page :deep(.rounded-lg.border-app) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 12px;
+  background: var(--gh-glass-bg);
+}
+
+/* 预览容器 */
+.dy-download-page :deep(.rounded-xl.border-app) {
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--color-base-200) 50%, transparent);
+  overflow: hidden;
+}
+
+/* ———————————— progress 进度条 ———————————— */
+.dy-download-page :deep(.progress) {
+  background: var(--gh-glass-bg);
+  border-radius: 999px;
+  height: 8px;
+}
+
+.dy-download-page :deep(.progress::-webkit-progress-bar) {
+  background: var(--gh-glass-bg);
+  border-radius: 999px;
+}
+
+.dy-download-page :deep(.progress::-webkit-progress-value) {
+  background: var(--gh-accent);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.dy-download-page :deep(.progress::-moz-progress-bar) {
+  background: var(--gh-accent);
+  border-radius: 999px;
+}
+
+@media (max-width: 640px) {
+  .gh-page-title {
+    font-size: 18px;
+  }
+}
+</style>

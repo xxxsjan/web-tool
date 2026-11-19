@@ -1,10 +1,8 @@
 ﻿<template>
-  <div class="github-image-host mx-auto w-full max-w-5xl px-3 pb-12 sm:px-4">
-    <header class="mb-4 text-center sm:mb-5">
-      <h1 class="mb-1 text-xl font-bold text-base-content sm:text-2xl">
-        Git 图床
-      </h1>
-      <p class="text-xs text-base-content/50">
+  <div class="github-image-host mx-auto w-full max-w-[980px] px-3 pb-12 sm:px-4">
+    <header class="gh-page-header mb-4 sm:mb-5">
+      <h1 class="gh-page-title">Git 图床</h1>
+      <p class="gh-page-subtitle">
         Ctrl+V 粘贴上传 · 右键复制外链
       </p>
     </header>
@@ -24,12 +22,8 @@
             v-for="opt in providerOptions"
             :key="opt.value"
             type="button"
-            class="btn btn-sm"
-            :class="
-              activeProvider === opt.value
-                ? 'btn-primary'
-                : 'btn-ghost bg-base-content/5 hover:bg-base-content/10'
-            "
+            class="gh-btn gh-btn--sm"
+            :class="{ 'gh-btn--active': activeProvider === opt.value }"
             @click="switchProvider(opt.value)"
           >
             {{ opt.label }}
@@ -38,7 +32,7 @@
         <div class="flex shrink-0 gap-1.5">
           <button
             type="button"
-            class="btn btn-ghost btn-sm bg-base-content/5 hover:bg-base-content/10"
+            class="gh-btn gh-btn--sm"
             :disabled="!configReady || loadingRemote"
             @click="fetchRemoteImages"
           >
@@ -47,7 +41,7 @@
           </button>
           <button
             type="button"
-            class="btn btn-ghost btn-sm bg-base-content/5 hover:bg-base-content/10"
+            class="gh-btn gh-btn--sm"
             @click="openConfigDialog"
           >
             {{ configReady ? '配置' : '去配置' }}
@@ -1570,38 +1564,244 @@ function onMenuDelete() {
 </script>
 
 <style scoped>
+/* ———————————— home 风格 CSS 变量 ———————————— */
 .github-image-host {
-  --fm-border: color-mix(in oklab, var(--color-base-content) 22%, transparent);
-  --fm-border-strong: color-mix(in oklab, var(--color-base-content) 32%, transparent);
+  --gh-accent: #3b82f6;
+  --gh-accent-soft: rgba(59, 130, 246, 0.18);
+  --gh-accent-glow: rgba(96, 165, 250, 0.55);
+
+  --gh-glass-bg: rgba(255, 255, 255, 0.035);
+  --gh-glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --gh-glass-border: rgba(255, 255, 255, 0.09);
+  --gh-glass-border-hover: rgba(96, 165, 250, 0.35);
+  --gh-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --gh-glass-shadow: 0 10px 40px -18px rgba(0, 0, 0, 0.6),
+    0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --gh-glass-shadow-hover: 0 18px 50px -12px rgba(14, 165, 233, 0.25),
+    0 4px 14px -2px rgba(0, 0, 0, 0.5);
+
+  --gh-border: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+  --gh-border-strong: color-mix(in oklab, var(--color-base-content) 32%, transparent);
 }
 
+/* —— 亮色主题分支 —— */
+:global(html[data-theme='light']) .github-image-host {
+  --gh-accent: #2563eb;
+  --gh-accent-soft: rgba(37, 99, 235, 0.15);
+  --gh-accent-glow: rgba(59, 130, 246, 0.35);
+
+  --gh-glass-bg: rgba(255, 255, 255, 0.55);
+  --gh-glass-bg-hover: rgba(255, 255, 255, 0.8);
+  --gh-glass-border: rgba(37, 99, 235, 0.12);
+  --gh-glass-border-hover: rgba(59, 130, 246, 0.4);
+  --gh-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --gh-glass-shadow: 0 8px 32px -16px rgba(30, 64, 175, 0.25),
+    0 2px 6px -2px rgba(30, 64, 175, 0.1);
+  --gh-glass-shadow-hover: 0 16px 48px -12px rgba(37, 99, 235, 0.22),
+    0 4px 12px -2px rgba(30, 64, 175, 0.12);
+}
+
+/* ———————————— 页面标题 ———————————— */
+.gh-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.gh-page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.gh-page-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  text-align: left;
+}
+
+/* ———————————— 主面板：玻璃态 ———————————— */
 .github-image-host :deep(.fm-panel.tool-panel) {
-  border: 1px solid var(--fm-border-strong);
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 20px;
+  background: var(--gh-glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: var(--gh-glass-inset), var(--gh-glass-shadow);
 }
 
+/* 工具栏分隔线 */
 .fm-toolbar {
-  border-bottom: 1px solid var(--fm-border);
+  border-bottom: 1px solid var(--gh-glass-border);
 }
 
 .fm-pathbar {
-  border-bottom: 1px solid var(--fm-border);
+  border-bottom: 1px solid var(--gh-glass-border);
 }
 
+/* 路径输入框 */
 .fm-path-box {
-  border: 1px solid var(--fm-border-strong);
-  background: color-mix(in oklab, var(--color-base-200) 70%, transparent);
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--color-base-200) 50%, transparent);
 }
 
+/* ———————————— 玻璃态按钮（自定义） ———————————— */
+.gh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 10px;
+  background: var(--gh-glass-bg);
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.gh-btn:hover:not(:disabled) {
+  color: var(--gh-accent);
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-glass-border-hover);
+  box-shadow: 0 0 0 3px var(--gh-accent-soft);
+  transform: translateY(-1px);
+}
+
+.gh-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+.gh-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.gh-btn--active {
+  color: #fff;
+  border-color: var(--gh-accent-glow);
+  background: var(--gh-accent);
+  box-shadow: 0 4px 14px -4px var(--gh-accent-glow);
+}
+
+.gh-btn--active:hover {
+  color: #fff !important;
+  background: color-mix(in oklab, var(--gh-accent) 88%, #fff) !important;
+}
+
+/* DaisyUI btn 统一覆盖为玻璃态 */
+.github-image-host :deep(.btn) {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border-color: var(--gh-glass-border);
+  background: var(--gh-glass-bg);
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: none !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.github-image-host :deep(.btn:hover:not(.btn-primary):not(:disabled)) {
+  color: var(--gh-accent);
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-glass-border-hover);
+  transform: translateY(-1px);
+}
+
+.github-image-host :deep(.btn-primary) {
+  color: #fff;
+  border-color: var(--gh-accent-glow);
+  background: var(--gh-accent);
+}
+
+.github-image-host :deep(.btn-primary:hover) {
+  color: #fff;
+  background: color-mix(in oklab, var(--gh-accent) 88%, #fff);
+  border-color: var(--gh-accent-glow);
+}
+
+.github-image-host :deep(.btn-xs) {
+  height: 24px;
+  min-height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.github-image-host :deep(.btn-sm) {
+  height: 30px;
+  min-height: 30px;
+  font-size: 13px;
+}
+
+/* ———————————— 图片卡片：玻璃态 + hover 动效 ———————————— */
 .fm-card {
-  border: 1px solid var(--fm-border);
-  background: color-mix(in oklab, var(--color-base-content) 3%, transparent);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--gh-glass-border);
+  border-radius: 14px;
+  background: var(--gh-glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: var(--gh-glass-inset);
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* 卡片顶部高光线 */
+.fm-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  pointer-events: none;
 }
 
 .fm-card:hover {
-  border-color: var(--fm-border-strong);
-  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+  background: var(--gh-glass-bg-hover);
+  border-color: var(--gh-glass-border-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--gh-glass-shadow-hover);
 }
 
+.fm-card:active {
+  transform: translateY(-1px) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+/* ———————————— 内部输入控件 ———————————— */
 .github-image-host :deep(.input),
 .github-image-host :deep(.select) {
   border-width: 0;
@@ -1611,8 +1811,37 @@ function onMenuDelete() {
 
 .github-image-host :deep(.input:focus),
 .github-image-host :deep(.select:focus) {
-  outline: 2px solid color-mix(in oklab, var(--color-primary) 40%, transparent);
+  outline: 2px solid var(--gh-accent);
   outline-offset: 0;
+}
+
+/* ———————————— 视图切换条 ———————————— */
+.github-image-host :deep(.join) {
+  border-radius: 10px;
+  border-color: var(--gh-glass-border);
+  background: var(--gh-glass-bg);
+  overflow: hidden;
+}
+
+.github-image-host :deep(.join .btn.join-item) {
+  border-color: transparent;
+}
+
+.github-image-host :deep(.join .btn.join-item.btn-primary) {
+  border-color: var(--gh-accent);
+}
+
+@media (max-width: 640px) {
+  .gh-page-title {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-btn,
+  .fm-card {
+    transition: none !important;
+  }
 }
 </style>
 
