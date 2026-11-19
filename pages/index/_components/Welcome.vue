@@ -28,10 +28,24 @@
     </div>
 
     <ClientOnly>
-      <!-- LeiBox 立体按压按钮（见 components/leibox/README.md），点击事件冒泡至 Welcome 根节点触发进入 -->
-      <div class="enter-button">
-        <LeiboxTactilePushButton :options="{ height: 180 }" />
-      </div>
+      <!-- home 风格玻璃态进入按钮 -->
+      <button class="enter-button" type="button" aria-label="进入工具列表">
+        进入
+        <svg
+          class="enter-button__arrow"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14" />
+          <path d="m12 5 7 7-7 7" />
+        </svg>
+      </button>
     </ClientOnly>
 
     <p v-if="deployedLabel" class="deploy-meta" title="本次构建写入的部署时间">
@@ -151,9 +165,53 @@ onMounted(() => {
 }
 
 .enter-button {
-  /* CSS 变量可穿透 Shadow DOM，缩放 LeiBox 立体按钮的字号基准 */
-  --button-font-size: clamp(26px, 5vw, 44px);
-  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: clamp(42px, 5vw, 52px);
+  padding: 0 clamp(24px, 4vw, 36px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(14px, 1.8vw, 16px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.enter-button:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.enter-button:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.enter-button__arrow {
+  width: clamp(14px, 1.8vw, 16px);
+  height: clamp(14px, 1.8vw, 16px);
+  opacity: 0.7;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.enter-button:hover .enter-button__arrow {
+  opacity: 1;
+  transform: translateX(3px);
 }
 
 .deploy-meta {
